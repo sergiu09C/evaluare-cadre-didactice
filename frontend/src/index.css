@@ -1,0 +1,173 @@
+/* Import focus styles for AAA-compliant focus indicators */
+@import './styles/focus.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================
+   ACCESSIBILITY INFRASTRUCTURE
+   ============================================ */
+
+/* CSS Custom Properties - Default (Light Theme) */
+:root {
+  /* Font Sizes - Base multipliers */
+  --font-size-multiplier: 1;
+  --font-base: calc(16px * var(--font-size-multiplier));
+  --font-sm: calc(14px * var(--font-size-multiplier));
+  --font-xs: calc(12px * var(--font-size-multiplier));
+  --font-lg: calc(18px * var(--font-size-multiplier));
+  --font-xl: calc(20px * var(--font-size-multiplier));
+  --font-2xl: calc(24px * var(--font-size-multiplier));
+
+  /* Colors - Light Theme */
+  --color-bg: #f9fafb;
+  --color-bg-elevated: #ffffff;
+  --color-text-primary: #111827;
+  --color-text-secondary: #6b7280;
+  --color-border: #e5e7eb;
+  --color-primary: #0284c7;
+  --color-primary-hover: #0369a1;
+
+  /* Animations */
+  --animation-duration: 150ms;
+  --animation-easing: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Font Family */
+  --font-family-base: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+}
+
+/* Font Size Variants */
+[data-font-size="small"] {
+  --font-size-multiplier: 0.875;
+}
+
+[data-font-size="normal"] {
+  --font-size-multiplier: 1;
+}
+
+[data-font-size="large"] {
+  --font-size-multiplier: 1.125;
+}
+
+[data-font-size="extra-large"] {
+  --font-size-multiplier: 1.25;
+}
+
+/* Dyslexia-Friendly Font */
+[data-dyslexia-font="true"] {
+  --font-family-base: 'Comic Sans MS', 'OpenDyslexic', cursive, sans-serif;
+}
+
+/* Dark Theme */
+[data-theme="dark"] {
+  --color-bg: #111827;
+  --color-bg-elevated: #1f2937;
+  --color-text-primary: #f9fafb;
+  --color-text-secondary: #9ca3af;
+  --color-border: #374151;
+  --color-primary: #38bdf8;
+  --color-primary-hover: #7dd3fc;
+}
+
+/* High Contrast Mode */
+[data-high-contrast="true"] {
+  --color-bg: #ffffff;
+  --color-bg-elevated: #ffffff;
+  --color-text-primary: #000000;
+  --color-text-secondary: #000000;
+  --color-border: #000000;
+  --color-primary: #0000ee;
+  --color-primary-hover: #551a8b;
+}
+
+[data-high-contrast="true"][data-theme="dark"] {
+  --color-bg: #000000;
+  --color-bg-elevated: #000000;
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #ffffff;
+  --color-border: #ffffff;
+  --color-primary: #ffff00;
+  --color-primary-hover: #ffff99;
+}
+
+/* Respect User's Motion Preferences */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --animation-duration: 0.01ms !important;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Apply custom properties to body */
+@layer base {
+  body {
+    font-family: var(--font-family-base);
+    font-size: var(--font-base);
+    background-color: var(--color-bg);
+    color: var(--color-text-primary);
+    transition: background-color var(--animation-duration) var(--animation-easing),
+                color var(--animation-duration) var(--animation-easing);
+  }
+}
+
+@layer components {
+  .btn {
+    @apply px-4 py-2 rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2;
+  }
+
+  .btn-primary {
+    background-color: var(--color-primary);
+    color: white;
+    @apply rounded-lg px-4 py-2 font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2;
+  }
+
+  .btn-primary:hover {
+    background-color: var(--color-primary-hover);
+  }
+
+  .btn-secondary {
+    background-color: var(--color-bg-elevated);
+    color: var(--color-text-secondary);
+    border: 1px solid var(--color-border);
+    @apply rounded-lg px-4 py-2 font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2;
+  }
+
+  .btn-secondary:hover {
+    opacity: 0.8;
+  }
+
+  .btn-danger {
+    @apply bg-red-600 text-white hover:bg-red-700 focus:ring-red-500 rounded-lg px-4 py-2 font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2;
+  }
+
+  .card {
+    background-color: var(--color-bg-elevated);
+    border: 1px solid var(--color-border);
+    @apply rounded-lg shadow-sm;
+  }
+
+  .input {
+    background-color: var(--color-bg-elevated);
+    color: var(--color-text-primary);
+    border: 1px solid var(--color-border);
+    @apply w-full px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:border-transparent;
+  }
+
+  .input:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+
+  .label {
+    color: var(--color-text-secondary);
+    @apply block text-sm font-medium mb-1;
+  }
+}
