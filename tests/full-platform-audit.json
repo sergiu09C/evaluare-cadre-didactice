@@ -1,0 +1,98 @@
+{
+  "results": [
+    {
+      "page": "dashboard",
+      "selector": "#main-content a:has-text(\"Vezi toate schimbările\")",
+      "label": "Banner · Vezi toate schimbările",
+      "result": "fail",
+      "notes": "locator.click: Timeout 2000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#main-content a:has-text(\"Vezi toate schimbările\")').first()\u001b[22m\n"
+    },
+    {
+      "page": "dashboard",
+      "selector": "#main-content a:has-text(\"Vezi toate →\")",
+      "label": "Evaluations card · Vezi toate",
+      "result": "fail",
+      "notes": "locator.click: Timeout 2000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#main-content a:has-text(\"Vezi toate →\")').first()\u001b[22m\n"
+    },
+    {
+      "page": "dashboard",
+      "selector": "#main-content button:has-text(\"Vezi toate\")",
+      "label": "Achievements teaser · Vezi toate",
+      "result": "fail",
+      "notes": "locator.click: Timeout 2000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#main-content button:has-text(\"Vezi toate\")').first()\u001b[22m\n"
+    },
+    {
+      "page": "topbar",
+      "selector": "button[aria-label=\"Notificări\"]",
+      "label": "Notificări dropdown opens",
+      "result": "pass"
+    },
+    {
+      "page": "topbar",
+      "selector": "CommandPalette",
+      "label": "Command palette opens on click",
+      "result": "pass"
+    },
+    {
+      "page": "topbar",
+      "selector": "CommandPalette · keyboard",
+      "label": "⌘K opens palette",
+      "result": "pass"
+    },
+    {
+      "page": "static",
+      "selector": "/terms",
+      "label": "Terms",
+      "result": "pass"
+    },
+    {
+      "page": "static",
+      "selector": "/privacy",
+      "label": "Privacy",
+      "result": "pass"
+    },
+    {
+      "page": "static",
+      "selector": "/guide",
+      "label": "Guide",
+      "result": "pass"
+    },
+    {
+      "page": "login",
+      "selector": "a · Termeni",
+      "label": "Login → Terms",
+      "result": "pass"
+    },
+    {
+      "page": "login",
+      "selector": "a · Privacy",
+      "label": "Login → Privacy",
+      "result": "pass"
+    },
+    {
+      "page": "sidebar",
+      "selector": "/guide",
+      "label": "Ghid pentru studenți",
+      "result": "pass"
+    },
+    {
+      "page": "evaluation",
+      "selector": "flow",
+      "label": "Evaluation form flow works",
+      "result": "pass"
+    },
+    {
+      "page": "professor",
+      "selector": "/professor",
+      "label": "Professor dashboard",
+      "result": "pass"
+    }
+  ],
+  "consoleErrors": [],
+  "summary": {
+    "total": 14,
+    "passed": 11,
+    "failed": 3,
+    "consoleErrorCount": 0
+  }
+}

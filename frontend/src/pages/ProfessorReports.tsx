@@ -1,8 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import EvaluationsList from '../components/professor/EvaluationsList';
-import ExportButton from '../components/professor/ExportButton';
+import { Card, Badge, Button, KPICard, ListFilterBar } from '../components/ui';
+import {
+  ArrowLeftIcon,
+  ArrowDownTrayIcon,
+  ExclamationTriangleIcon,
+  InformationCircleIcon,
+  XMarkIcon,
+} from '@heroicons/react/24/outline';
 
 interface Evaluation {
   id: number;
@@ -29,375 +36,244 @@ interface Filters {
   academicYear?: string;
 }
 
-const ProfessorReports: React.FC = () => {
+export default function ProfessorReports() {
+  const navigate = useNavigate();
   const [evaluations, setEvaluations] = useState<Evaluation[]>([]);
   const [courses, setCourses] = useState<Course[]>([]);
   const [filters, setFilters] = useState<Filters>({});
   const [loading, setLoading] = useState(true);
+  const [exporting, setExporting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [pagination, setPagination] = useState({
-    limit: 20,
-    offset: 0,
-    total: 0,
-    hasMore: false
-  });
+  const [pagination, setPagination] = useState({ limit: 20, offset: 0, total: 0, hasMore: false });
 
   useEffect(() => {
-    const fetchCourses = async () => {
+    (async () => {
       try {
-        const response = await api.getProfessorCourses();
-        setCourses(response.courses);
-      } catch (err) {
-        console.error('Error fetching courses:', err);
+        const resp = await api.getProfessorCourses();
+        setCourses(resp.courses);
+      } catch {
+        /* noop */
       }
-    };
-
-    fetchCourses();
+    })();
   }, []);
 
   useEffect(() => {
-    fetchEvaluations();
+    fetchEvaluations(false);
   }, [filters]);
 
-  const fetchEvaluations = async (append: boolean = false) => {
+  async function fetchEvaluations(append: boolean) {
     try {
       setLoading(true);
       setError(null);
-
       const offset = append ? pagination.offset + pagination.limit : 0;
-
-      const response = await api.getProfessorEvaluations({
+      const resp = await api.getProfessorEvaluations({
         ...filters,
         limit: pagination.limit,
-        offset
+        offset,
       });
-
       if (append) {
-        setEvaluations(prev => [...prev, ...response.evaluations]);
+        setEvaluations((prev) => [...prev, ...resp.evaluations]);
       } else {
-        setEvaluations(response.evaluations);
+        setEvaluations(resp.evaluations);
       }
-
       setPagination({
-        limit: response.pagination.limit,
-        offset: response.pagination.offset,
-        total: response.pagination.total,
-        hasMore: response.pagination.hasMore
+        limit: resp.pagination.limit,
+        offset: resp.pagination.offset,
+        total: resp.pagination.total,
+        hasMore: resp.pagination.hasMore,
       });
     } catch (err: any) {
-      console.error('Error fetching evaluations:', err);
       setError(err.response?.data?.error || 'Eroare la încărcarea evaluărilor');
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleLoadMore = () => {
-    fetchEvaluations(true);
-  };
-
-  const handleFilterChange = (newFilters: Filters) => {
-    setFilters(newFilters);
-    setPagination(prev => ({ ...prev, offset: 0 }));
-  };
+  }
 
   const handleExport = async () => {
     try {
+      setExporting(true);
       const blob = await api.exportProfessorData(filters);
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-
-      // Generate filename based on filters
       let filename = 'evaluari-profesor';
       if (filters.courseId) {
-        const course = courses.find(c => c.id === filters.courseId);
-        if (course) {
-          filename += `-${course.name.replace(/\s+/g, '-')}`;
-        }
+        const c = courses.find((x) => x.id === filters.courseId);
+        if (c) filename += `-${c.name.replace(/\s+/g, '-')}`;
       }
-      if (filters.semester) {
-        filename += `-${filters.semester.replace(/\s+/g, '-')}`;
-      }
-      if (filters.academicYear) {
-        filename += `-${filters.academicYear}`;
-      }
+      if (filters.semester) filename += `-sem${filters.semester}`;
+      if (filters.academicYear) filename += `-${filters.academicYear}`;
       filename += `-${new Date().toISOString().split('T')[0]}.csv`;
-
       a.download = filename;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
-    } catch (err) {
-      console.error('Export error:', err);
-      alert('Eroare la exportul datelor');
+    } finally {
+      setExporting(false);
     }
   };
 
-  const clearFilters = () => {
-    setFilters({});
-  };
-
-  const hasActiveFilters = Object.keys(filters).length > 0;
-
-  // Get unique semesters and academic years from courses
-  const semesters = [...new Set(courses.map(c => c.semester))].sort();
-  const academicYears = [...new Set(courses.map(c => c.academicYear))].sort().reverse();
+  const clearFilters = () => setFilters({});
+  const hasActiveFilters = Object.values(filters).some((v) => v != null && v !== '');
+  const semesters = [...new Set(courses.map((c) => c.semester))].sort();
+  const academicYears = [...new Set(courses.map((c) => c.academicYear))].sort().reverse();
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Breadcrumb */}
-        <div className="mb-6">
-          <Link
-            to="/professor"
-            className="inline-flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-700"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
-            Înapoi la dashboard
-          </Link>
-        </div>
+    <div className="flex flex-col gap-7 max-w-[1280px]">
+      {/* Breadcrumb */}
+      <button
+        onClick={() => navigate('/professor')}
+        className="inline-flex items-center gap-1.5 text-[13px] text-neutral-500 hover:text-neutral-800 self-start focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-400/40 rounded px-1"
+      >
+        <ArrowLeftIcon className="w-3.5 h-3.5" aria-hidden="true" />
+        Înapoi la dashboard
+      </button>
 
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Rapoarte Evaluări
-          </h1>
-          <p className="text-gray-600">
-            Vizualizează și exportă toate evaluările primite cu filtrare avansată
-          </p>
-        </div>
+      {/* Header */}
+      <div>
+        <h1 className="font-display text-[30px] font-semibold tracking-tight text-neutral-800">
+          Rapoarte evaluări
+        </h1>
+        <p className="mt-1.5 text-neutral-500 text-[15px]">
+          Vizualizează și exportă toate evaluările primite cu filtrare avansată.
+        </p>
+      </div>
 
-        {/* Stats Summary */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white rounded-lg border-2 border-gray-200 p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600 mb-1">Total evaluări</p>
-                <p className="text-3xl font-bold text-gray-900">{pagination.total}</p>
-              </div>
-              <svg className="w-12 h-12 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-              </svg>
-            </div>
-          </div>
+      {/* Stats */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <KPICard label="Total evaluări" value={pagination.total} footnote="în tot intervalul" />
+        <KPICard label="Cursuri cu evaluări" value={courses.length} />
+        <KPICard label="Evaluări filtrate" value={evaluations.length} footnote="afișate acum" />
+      </div>
 
-          <div className="bg-white rounded-lg border-2 border-gray-200 p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600 mb-1">Cursuri cu evaluări</p>
-                <p className="text-3xl font-bold text-gray-900">{courses.length}</p>
-              </div>
-              <svg className="w-12 h-12 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-              </svg>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg border-2 border-gray-200 p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600 mb-1">Evaluări filtrate</p>
-                <p className="text-3xl font-bold text-gray-900">{evaluations.length}</p>
-              </div>
-              <svg className="w-12 h-12 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-              </svg>
-            </div>
-          </div>
-        </div>
-
-        {/* Filters Section */}
-        <div className="bg-white rounded-lg border-2 border-gray-200 p-6 mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold text-gray-900">Filtre</h2>
-            {hasActiveFilters && (
-              <button
-                onClick={clearFilters}
-                className="text-sm text-blue-600 hover:text-blue-700 font-medium"
-              >
-                Resetează filtrele
-              </button>
-            )}
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Course Filter */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Curs
-              </label>
-              <select
-                className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                value={filters.courseId || ''}
-                onChange={(e) => handleFilterChange({
-                  ...filters,
-                  courseId: e.target.value ? Number(e.target.value) : undefined
-                })}
-              >
-                <option value="">Toate cursurile</option>
-                {courses.map(course => (
-                  <option key={course.id} value={course.id}>
-                    {course.name} - {course.courseType}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Semester Filter */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Semestru
-              </label>
-              <select
-                className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                value={filters.semester || ''}
-                onChange={(e) => handleFilterChange({
-                  ...filters,
-                  semester: e.target.value || undefined
-                })}
-              >
-                <option value="">Toate semestrele</option>
-                {semesters.map(semester => (
-                  <option key={semester} value={semester}>
-                    Semestrul {semester}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Academic Year Filter */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                An academic
-              </label>
-              <select
-                className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                value={filters.academicYear || ''}
-                onChange={(e) => handleFilterChange({
-                  ...filters,
-                  academicYear: e.target.value || undefined
-                })}
-              >
-                <option value="">Toți anii</option>
-                {academicYears.map(year => (
-                  <option key={year} value={year}>
-                    {year}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          {/* Active Filters Display */}
-          {hasActiveFilters && (
-            <div className="mt-4 flex flex-wrap items-center gap-2">
-              <span className="text-sm font-medium text-gray-700">Filtre active:</span>
+      <ListFilterBar
+        selects={[
+          {
+            key: 'course',
+            label: 'Disciplină',
+            value: filters.courseId ? String(filters.courseId) : '',
+            placeholder: 'Toate disciplinele',
+            onChange: (v) => setFilters((f) => ({ ...f, courseId: v ? Number(v) : undefined })),
+            options: courses.map((c) => ({ value: String(c.id), label: `${c.name} · ${c.courseType}` })),
+          },
+          {
+            key: 'sem',
+            label: 'Semestru',
+            value: filters.semester ?? '',
+            placeholder: 'Toate semestrele',
+            onChange: (v) => setFilters((f) => ({ ...f, semester: v || undefined })),
+            options: semesters.map((s) => ({ value: s, label: `Semestrul ${s}` })),
+          },
+          {
+            key: 'year',
+            label: 'An academic',
+            value: filters.academicYear ?? '',
+            placeholder: 'Toți anii',
+            onChange: (v) => setFilters((f) => ({ ...f, academicYear: v || undefined })),
+            options: academicYears.map((y) => ({ value: y, label: y })),
+          },
+        ]}
+        chips={
+          hasActiveFilters && (
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs font-medium text-neutral-500 uppercase tracking-wide">Filtre active:</span>
               {filters.courseId && (
-                <span className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm">
-                  Curs: {courses.find(c => c.id === filters.courseId)?.name}
+                <Badge tone="accent">
+                  Disciplină: {courses.find((c) => c.id === filters.courseId)?.name}
                   <button
-                    onClick={() => handleFilterChange({ ...filters, courseId: undefined })}
-                    className="hover:bg-blue-200 rounded-full p-0.5"
+                    onClick={() => setFilters((f) => ({ ...f, courseId: undefined }))}
+                    className="ml-1 hover:bg-accent-200 rounded p-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-400"
+                    aria-label="Elimină filtru disciplină"
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
+                    <XMarkIcon className="w-3 h-3" aria-hidden="true" />
                   </button>
-                </span>
+                </Badge>
               )}
               {filters.semester && (
-                <span className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm">
+                <Badge tone="info">
                   Semestrul {filters.semester}
                   <button
-                    onClick={() => handleFilterChange({ ...filters, semester: undefined })}
-                    className="hover:bg-green-200 rounded-full p-0.5"
+                    onClick={() => setFilters((f) => ({ ...f, semester: undefined }))}
+                    className="ml-1 hover:bg-blue-200 rounded p-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-400"
+                    aria-label="Elimină filtru semestru"
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
+                    <XMarkIcon className="w-3 h-3" aria-hidden="true" />
                   </button>
-                </span>
+                </Badge>
               )}
               {filters.academicYear && (
-                <span className="inline-flex items-center gap-1 px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm">
+                <Badge tone="primary">
                   {filters.academicYear}
                   <button
-                    onClick={() => handleFilterChange({ ...filters, academicYear: undefined })}
-                    className="hover:bg-purple-200 rounded-full p-0.5"
+                    onClick={() => setFilters((f) => ({ ...f, academicYear: undefined }))}
+                    className="ml-1 hover:bg-primary-100 rounded p-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-400"
+                    aria-label="Elimină filtru an"
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
+                    <XMarkIcon className="w-3 h-3" aria-hidden="true" />
                   </button>
-                </span>
+                </Badge>
               )}
             </div>
-          )}
+          )
+        }
+        resultCount={{ current: evaluations.length, total: pagination.total }}
+        active={hasActiveFilters}
+        onClearAll={clearFilters}
+      />
+
+      {/* Export */}
+      <div className="flex justify-end">
+        <Button
+          variant="primary"
+          size="md"
+          icon={<ArrowDownTrayIcon />}
+          onClick={handleExport}
+          loading={exporting}
+          disabled={evaluations.length === 0}
+        >
+          {hasActiveFilters ? 'Exportă date filtrate (CSV)' : 'Exportă toate datele (CSV)'}
+        </Button>
+      </div>
+
+      {/* Error */}
+      {error && (
+        <Card tone="danger" className="flex gap-3 items-start">
+          <ExclamationTriangleIcon className="w-5 h-5 text-danger shrink-0 mt-0.5" aria-hidden="true" />
+          <p className="text-sm text-danger-fg">{error}</p>
+        </Card>
+      )}
+
+      {/* Evaluations list */}
+      <Card padding="none" className="overflow-hidden">
+        <div className="px-6 py-4 border-b border-neutral-100 flex items-center justify-between">
+          <h2 className="text-base font-semibold">Lista evaluări</h2>
+          <span className="text-xs text-neutral-500">
+            {evaluations.length} {evaluations.length === 1 ? 'evaluare' : 'evaluări'}
+          </span>
         </div>
-
-        {/* Export Button */}
-        <div className="mb-6">
-          <ExportButton
-            onExport={handleExport}
-            disabled={evaluations.length === 0}
-            label={hasActiveFilters ? "Exportă date filtrate (CSV)" : "Exportă toate datele (CSV)"}
-          />
-        </div>
-
-        {/* Error Display */}
-        {error && (
-          <div className="bg-red-50 border-2 border-red-200 rounded-lg p-4 mb-6">
-            <div className="flex items-center gap-3">
-              <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <p className="text-red-700">{error}</p>
-            </div>
-          </div>
-        )}
-
-        {/* Evaluations List */}
-        <div className="bg-white rounded-lg border-2 border-gray-200 p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-gray-900">
-              Lista Evaluări
-            </h2>
-            <span className="text-sm text-gray-600">
-              {evaluations.length} {evaluations.length === 1 ? 'evaluare' : 'evaluări'}
-            </span>
-          </div>
-
+        <div className="p-4">
           <EvaluationsList
             evaluations={evaluations}
             loading={loading}
-            onLoadMore={handleLoadMore}
+            onLoadMore={() => fetchEvaluations(true)}
             hasMore={pagination.hasMore}
             showFilters={false}
           />
         </div>
+      </Card>
 
-        {/* Info Box */}
-        <div className="mt-8 bg-blue-50 border-l-4 border-blue-400 p-4 rounded-lg">
-          <div className="flex items-start gap-3">
-            <svg className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <div>
-              <h3 className="text-sm font-semibold text-blue-900 mb-1">Despre rapoarte</h3>
-              <p className="text-sm text-blue-700">
-                Toate datele afișate sunt complet anonime. Nu poți identifica studenții care au completat evaluările.
-                Poți exporta datele în format CSV pentru analiză în Excel sau alte aplicații.
-              </p>
-            </div>
-          </div>
+      {/* Info */}
+      <Card tone="info" className="flex gap-3 items-start">
+        <InformationCircleIcon className="w-5 h-5 text-info shrink-0 mt-0.5" aria-hidden="true" />
+        <div>
+          <h3 className="text-sm font-semibold text-info-fg mb-1">Despre rapoarte</h3>
+          <p className="text-sm text-info-fg">
+            Toate datele afișate sunt complet anonime. Nu poți identifica studenții care au completat
+            evaluările. Poți exporta datele în format CSV pentru analiză în Excel sau alte aplicații.
+          </p>
         </div>
-      </div>
+      </Card>
     </div>
   );
-};
-
-export default ProfessorReports;
+}

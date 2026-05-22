@@ -1,0 +1,80 @@
+/* ============================================================
+   ECD — Dark Mode Tokens (design-first, NOT auto-invert)
+   Apply via [data-theme="dark"] on any artboard root.
+   ============================================================ */
+
+[data-theme="dark"] {
+  /* Primary — slightly desaturated for dark surfaces */
+  --ecd-primary-50:  #0E1828;
+  --ecd-primary-100: #142235;
+  --ecd-primary-200: #1B2E45;
+  --ecd-primary-300: #243B57;
+  --ecd-primary-400: #355378;
+  --ecd-primary-500: #4A6E97;
+  --ecd-primary-600: #6889B0;
+  --ecd-primary-700: #8FA8C7;
+  --ecd-primary-800: #C4D2E3;        /* lightest — brand text on dark */
+  --ecd-primary-900: #E8EFF7;
+
+  /* Accent — brighter on dark for vibrancy */
+  --ecd-accent-50:  #1F1638;
+  --ecd-accent-100: #2C1F4D;
+  --ecd-accent-200: #3D2A6B;
+  --ecd-accent-300: #5037A0;
+  --ecd-accent-400: #6E4FCC;
+  --ecd-accent-500: #8B5CF6;
+  --ecd-accent-600: #A78BFA;          /* primary accent — brighter */
+  --ecd-accent-700: #C4B5FD;
+  --ecd-accent-800: #DDD6FE;
+  --ecd-accent-900: #EDE9FE;
+
+  /* Neutrals — purpose-built dark scale, not inverted */
+  --ecd-neutral-0:   #0A0E16;          /* page bg base */
+  --ecd-neutral-25:  #0E131D;          /* default page bg */
+  --ecd-neutral-50:  #131926;
+  --ecd-neutral-100: #1A2130;          /* surface 1 */
+  --ecd-neutral-200: #232B3D;          /* borders */
+  --ecd-neutral-300: #313B52;
+  --ecd-neutral-400: #475370;
+  --ecd-neutral-500: #6B7693;
+  --ecd-neutral-600: #8E97B1;
+  --ecd-neutral-700: #B7BDD0;
+  --ecd-neutral-800: #DDE1EC;          /* primary text */
+  --ecd-neutral-900: #F2F4F9;
+
+  /* Semantic — punched-up bg, kept-fg pair */
+  --ecd-success-bg:   rgba(16, 185, 129, 0.14);
+  --ecd-success:      #34D399;
+  --ecd-success-fg:   #6EE7B7;
+
+  --ecd-warning-bg:   rgba(245, 158, 11, 0.14);
+  --ecd-warning:      #FBBF24;
+  --ecd-warning-fg:   #FCD34D;
+
+  --ecd-danger-bg:    rgba(239, 68, 68, 0.14);
+  --ecd-danger:       #F87171;
+  --ecd-danger-fg:    #FCA5A5;
+
+  --ecd-info-bg:      rgba(59, 130, 246, 0.14);
+  --ecd-info:         #60A5FA;
+  --ecd-info-fg:      #93C5FD;
+
+  /* Surface aliases — distinct elevation layers */
+  --ecd-bg:           #0A0E16;
+  --ecd-surface:      #131926;          /* card */
+  --ecd-surface-sub:  #1A2130;          /* nested card */
+  --ecd-border:       #232B3D;
+  --ecd-border-soft:  #1A2130;
+  --ecd-text:         #E6EAF3;
+  --ecd-text-soft:    #8E97B1;
+  --ecd-text-muted:   #6B7693;
+
+  /* Elevation — keep the soft layered character, but inverted contribution */
+  --ecd-elev-1: 0 1px 2px rgba(0, 0, 0, 0.45), 0 1px 1px rgba(0, 0, 0, 0.3);
+  --ecd-elev-2: 0 1px 3px rgba(0, 0, 0, 0.5), 0 4px 12px rgba(0, 0, 0, 0.35);
+  --ecd-elev-3: 0 2px 6px rgba(0, 0, 0, 0.55), 0 12px 28px rgba(0, 0, 0, 0.45);
+  --ecd-elev-4: 0 4px 12px rgba(0, 0, 0, 0.55), 0 24px 56px rgba(0, 0, 0, 0.5);
+  --ecd-elev-5: 0 8px 28px rgba(0, 0, 0, 0.6), 0 32px 80px rgba(0, 0, 0, 0.55);
+
+  --ecd-focus-ring: 0 0 0 3px rgba(167, 139, 250, 0.5);
+}

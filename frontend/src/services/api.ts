@@ -12,6 +12,13 @@ import type {
   ProfessorSummary,
   ProfessorDetailedStats,
   AccessibilityPreferences,
+  NotificationsResponse,
+  AchievementsResponse,
+  EvaluationHistoryResponse,
+  ClosingLoopEntry,
+  ClosingLoopEntryAdmin,
+  AdminUser,
+  ProfessorStudentsList,
 } from '../types';
 
 class ApiService {
@@ -19,7 +26,7 @@ class ApiService {
 
   constructor() {
     this.api = axios.create({
-      baseURL: '/api',
+      baseURL: import.meta.env.VITE_API_URL || '/api',
       headers: {
         'Content-Type': 'application/json',
       },
@@ -34,12 +41,13 @@ class ApiService {
       return config;
     });
 
-    // Interceptor pentru erori (ex: token expirat)
+    // Interceptor pentru erori — logout doar pe 401 (token invalid/expirat).
+    // 403 = authenticated dar regula de business interzice (ex: platforma închisă,
+    // deadline depășit). NU dezloghează.
     this.api.interceptors.response.use(
       (response) => response,
       (error) => {
-        if (error.response?.status === 401 || error.response?.status === 403) {
-          // Token invalid sau expirat
+        if (error.response?.status === 401) {
           localStorage.removeItem('token');
           localStorage.removeItem('user');
           window.location.href = '/login';
@@ -241,6 +249,553 @@ class ApiService {
   async getStudentMessages(): Promise<any> {
     const response = await this.api.get('/platform/messages/student');
     return response.data;
+  }
+
+  // ===== Rich dashboards =====
+  async getPublicFilterOptions(): Promise<{
+    faculties: Array<{ id: number; name: string; code: string }>;
+    programs: Array<{
+      id: number;
+      name: string;
+      code: string;
+      level: string;
+      faculty_id: number;
+      faculty_name: string;
+      departments?: string[];
+    }>;
+    departments: Array<{
+      name: string;
+      faculty_id: number;
+      faculty_name: string;
+      programs?: number[];
+    }>;
+    years: number[];
+    semesters: string[];
+    academicYears: string[];
+    courseTypes: string[];
+    levels: string[];
+    categories: string[];
+  }> {
+    const r = await this.api.get('/platform/filter-options-public');
+    return r.data;
+  }
+
+  async getHeatmap(params: {
+    rowDim?: 'faculty' | 'program' | 'department';
+    colDim?: 'category' | 'semester' | 'year' | 'courseType';
+    facultyId?: number;
+    programId?: number;
+    programLevel?: string;
+    departmentId?: string;
+    year?: number;
+    semester?: string;
+    courseType?: string;
+    academicYear?: string;
+  } = {}): Promise<{
+    rowDim: string;
+    colDim: string;
+    rows: string[];
+    cols: string[];
+    cells: Array<{ row: string; col: string; n: number; avg: number | null }>;
+  }> {
+    const r = await this.api.get('/platform/heatmap', { params });
+    return r.data;
+  }
+
+  async getGroupedBar(params: {
+    groupBy?: 'faculty' | 'department' | 'program';
+    splitBy?: 'semester' | 'courseType' | 'year';
+    [k: string]: any;
+  } = {}): Promise<{
+    groupBy: string;
+    splitBy: string;
+    splits: string[];
+    data: Array<{ group: string; [k: string]: any }>;
+  }> {
+    const r = await this.api.get('/platform/grouped-bar', { params });
+    return r.data;
+  }
+
+  async getTopRankings(params: {
+    entity?: 'professors' | 'courses' | 'departments';
+    metric?: 'avg' | 'count';
+    limit?: number;
+    order?: 'desc' | 'asc';
+    [k: string]: any;
+  } = {}): Promise<{
+    entity: string;
+    metric: string;
+    order: string;
+    limit: number;
+    items: Array<Record<string, any>>;
+  }> {
+    const r = await this.api.get('/platform/top-rankings', { params });
+    return r.data;
+  }
+
+  async getTimeSeriesMonthly(params: { months?: number; [k: string]: any } = {}): Promise<{
+    months: number;
+    data: Array<{ month: string; submissions: number; avg_score: number | null }>;
+  }> {
+    const r = await this.api.get('/platform/time-series-monthly', { params });
+    return r.data;
+  }
+
+  async getHomeStats(params?: {
+    facultyId?: number;
+    programId?: number;
+    programLevel?: string;
+    departmentId?: string;
+    year?: number;
+    semester?: string;
+    courseType?: string;
+    academicYear?: string;
+    category?: string;
+    days?: number;
+  }): Promise<{
+    role: 'student' | 'professor' | 'admin';
+    filters: {
+      facultyId: number | null;
+      programId: number | null;
+      programLevel: string | null;
+      departmentId: string | null;
+      year: number | null;
+      semester: string | null;
+      courseType: string | null;
+      academicYear: string | null;
+      category: string | null;
+      days: number;
+    };
+    faculties: Array<{ id: number; name: string; code: string }>;
+    hero: {
+      totalStudents: number;
+      totalProfessors: number;
+      totalEvaluations: number;
+      submittedThisMonth: number;
+      overallAvg: number | null;
+      completionRate: number;
+      eligibleStudents: number;
+      maxPossibleEvaluations: number;
+      studentsWithRemaining?: number;
+      studentsCompletedAll?: number;
+    };
+    scoreDistribution: { [k: string]: number };
+    facultyBreakdown: Array<{ faculty_id: number; faculty_name: string; code: string; evaluations: number; avg_score: number | null }>;
+    evalsByYear: Array<{ year: number; n: number }>;
+    evalsByLevel: Array<{ level: string; n: number; avg: number | null }>;
+    evalsByYearAndFaculty: Array<{ year: number; faculty: string; facultyName: string; n: number }>;
+    actionsTotal: { proposed: number; accepted: number; completed: number; rejected: number };
+    actionsByFaculty: Array<{ faculty_code: string; faculty_name: string; status: string; n: number }>;
+    actionsByLevel: Array<{ level: string; status: string; n: number }>;
+    myFacultyId: number | null;
+    myFacultyName: string | null;
+    myDepartment: string | null;
+    myProfessorId: number | null;
+    participation: {
+      university: { evaluated: number; eligible: number; rate: number };
+      faculty: { faculty_id: number; faculty_name: string; evaluated: number; eligible: number; rate: number } | null;
+      me: { evaluated: number; eligible: number; rate: number } | null;
+    };
+    timeSeries: Array<{ day: string; n: number }>;
+    categoryAverages: Array<{ category: string; avg: number | null; n: number }>;
+    roleDistribution: { student: number; professor: number; admin: number };
+    pipeline: Array<{ stage: string; label: string; value: number }>;
+    closing_loop: {
+      messages_open: number;
+      messages_in_progress?: number;
+      messages_answered: number;
+      messages_closed?: number;
+      messages_total?: number;
+    };
+    personal: Record<string, number | null> | null;
+  }> {
+    const r = await this.api.get('/platform/home-stats', { params });
+    return r.data;
+  }
+
+
+  async getPlatformStatus(): Promise<{
+    is_active: boolean;
+    closure_message: string | null;
+    deadline: string | null;
+    deadline_passed?: boolean;
+    evaluations_accepted?: boolean;
+    platform_feedback_active?: boolean;
+  }> {
+    const response = await this.api.get<{
+      is_active: boolean;
+      closure_message: string | null;
+      deadline: string | null;
+      deadline_passed?: boolean;
+      evaluations_accepted?: boolean;
+      platform_feedback_active?: boolean;
+    }>('/platform/status');
+    return response.data;
+  }
+
+  async getNotifications(): Promise<NotificationsResponse> {
+    const response = await this.api.get<NotificationsResponse>('/notifications');
+    return response.data;
+  }
+
+  async getAchievements(): Promise<AchievementsResponse> {
+    const response = await this.api.get<AchievementsResponse>('/student/achievements');
+    return response.data;
+  }
+
+  async getEvaluationHistory(): Promise<EvaluationHistoryResponse> {
+    const response = await this.api.get<EvaluationHistoryResponse>('/student/evaluation-history');
+    return response.data;
+  }
+
+  async getFeedbackStats(): Promise<any> {
+    const response = await this.api.get('/student/feedback-stats');
+    return response.data;
+  }
+
+  // ========== CLOSING-THE-LOOP ==========
+  async getClosingLoop(): Promise<{ entries: ClosingLoopEntry[] }> {
+    const response = await this.api.get<{ entries: ClosingLoopEntry[] }>('/closing-the-loop');
+    return response.data;
+  }
+
+  async getClosingLoopAdmin(): Promise<{ entries: ClosingLoopEntryAdmin[] }> {
+    const response = await this.api.get<{ entries: ClosingLoopEntryAdmin[] }>('/closing-the-loop/admin');
+    return response.data;
+  }
+
+  async createClosingLoop(data: Partial<ClosingLoopEntryAdmin>): Promise<{ id: number }> {
+    const response = await this.api.post<{ id: number }>('/closing-the-loop', data);
+    return response.data;
+  }
+
+  async updateClosingLoop(id: number, data: Partial<ClosingLoopEntryAdmin>): Promise<void> {
+    await this.api.put(`/closing-the-loop/${id}`, data);
+  }
+
+  async deleteClosingLoop(id: number): Promise<void> {
+    await this.api.delete(`/closing-the-loop/${id}`);
+  }
+
+  // ========== ADMIN USERS CRUD ==========
+  async getAdminUsers(params?: {
+    role?: string;
+    search?: string;
+    page?: number;
+    pageSize?: number;
+  }): Promise<{
+    users: AdminUser[];
+    pagination?: { page: number; pageSize: number; total: number; totalPages: number; hasMore: boolean };
+  }> {
+    const response = await this.api.get<{
+      users: AdminUser[];
+      pagination?: { page: number; pageSize: number; total: number; totalPages: number; hasMore: boolean };
+    }>('/admin/users', { params });
+    return response.data;
+  }
+
+  async getAdminUserCounts(
+    params?: { search?: string },
+  ): Promise<{ counts: { all: number; student: number; professor: number; admin: number } }> {
+    const response = await this.api.get<{ counts: { all: number; student: number; professor: number; admin: number } }>(
+      '/admin/users/counts',
+      { params },
+    );
+    return response.data;
+  }
+
+  async createAdminUser(data: Partial<AdminUser> & { password: string }): Promise<{ id: number }> {
+    const response = await this.api.post<{ id: number }>('/admin/users', data);
+    return response.data;
+  }
+
+  async updateAdminUser(id: number, data: Partial<AdminUser>): Promise<void> {
+    await this.api.put(`/admin/users/${id}`, data);
+  }
+
+  async deactivateAdminUser(id: number): Promise<void> {
+    await this.api.delete(`/admin/users/${id}`);
+  }
+
+  // ========== PROFESSOR PROFILE EDITOR (admin) ==========
+  async getProfessorProfile(userId: number): Promise<{
+    professor: { id: number; facultyId: number | null; facultyName: string | null; department: string | null } | null;
+    courses: Array<{
+      id: number;
+      name: string;
+      activity: 'curs' | 'seminar' | 'laborator';
+      semester: string;
+      year: number;
+      program: string;
+      programLevel: string;
+      programFacultyId: number;
+    }>;
+  }> {
+    const r = await this.api.get(`/admin/users/${userId}/professor-profile`);
+    return r.data;
+  }
+
+  async lookupCourses(params?: { facultyId?: number; search?: string }): Promise<{
+    courses: Array<{
+      id: number;
+      name: string;
+      activity: 'curs' | 'seminar' | 'laborator';
+      semester: string;
+      year: number;
+      program: string;
+      programLevel: string;
+      currentProfessor: string | null;
+    }>;
+  }> {
+    const r = await this.api.get('/admin/lookup/courses', { params });
+    return r.data;
+  }
+
+  async lookupDepartments(params?: { facultyId?: number }): Promise<{ departments: string[] }> {
+    const r = await this.api.get('/admin/lookup/departments', { params });
+    return r.data;
+  }
+
+  // ========== PROFESSOR EVALUATION DETAILS (individual, full) ==========
+  async getEvaluationDetails(evaluationId: number): Promise<{
+    evaluation: {
+      id: number;
+      anon_id: string;
+      submitted_at: string;
+      course: {
+        id: number;
+        name: string;
+        code: string;
+        courseType: string;
+        semester: string;
+        academicYear: string;
+      };
+      average: number | null;
+      score_distribution: { [k: string]: number };
+      responses: Array<{
+        question_id: number;
+        question_text: string;
+        category: string;
+        question_type: string;
+        likert: number | null;
+        text: string | null;
+      }>;
+    };
+  }> {
+    const r = await this.api.get(`/professor/evaluations/${evaluationId}/details`);
+    return r.data;
+  }
+
+  // ========== PROFESSOR DRILL-DOWN PER EVALUARE ==========
+  async getCourseEvaluations(courseId: number): Promise<{
+    threshold_met: boolean;
+    min_required: number;
+    total_evaluations: number;
+    evaluations: Array<{
+      anon_id: string;
+      submitted_month: string;
+      average: number | null;
+      responses: Array<{
+        question_id: number;
+        question_text: string;
+        category: string;
+        likert: number | null;
+        text: string | null;
+      }>;
+    }>;
+    message?: string;
+  }> {
+    const r = await this.api.get(`/professor/courses/${courseId}/evaluations`);
+    return r.data as any;
+  }
+
+  // ========== PROFESSOR TREND ==========
+  async getProfessorTrend(): Promise<{ trend: Array<{ period: string; avg: number; count: number }> }> {
+    const response = await this.api.get<{ trend: Array<{ period: string; avg: number; count: number }> }>('/professor/trend');
+    return response.data;
+  }
+
+  // ========== PROFESSOR STUDENTS LIST (anonimizat) ==========
+  async getProfessorStudentsList(): Promise<ProfessorStudentsList> {
+    const response = await this.api.get<ProfessorStudentsList>('/professor/students-list');
+    return response.data;
+  }
+
+  // ========== ACHIEVEMENTS (dynamic, admin-editable) ==========
+  async getDynamicAchievements(): Promise<{
+    achievements: Array<{ id: number; key: string; title: string; description: string; icon: string; tone: string; earned: boolean; earnedAt: string | null }>;
+    totalBadges: number;
+    totalPossible: number;
+  }> {
+    const response = await this.api.get('/achievements/user');
+    return response.data;
+  }
+
+  async getAchievementDefinitions(): Promise<{
+    definitions: Array<{ id: number; key: string; title: string; description: string; icon: string; tone: string; criteria_type: string; threshold: number; is_active: number }>;
+  }> {
+    const response = await this.api.get('/achievements/definitions');
+    return response.data;
+  }
+
+  async createAchievementDef(data: any): Promise<{ id: number }> {
+    const response = await this.api.post('/achievements/definitions', data);
+    return response.data;
+  }
+
+  async updateAchievementDef(id: number, data: any): Promise<void> {
+    await this.api.put(`/achievements/definitions/${id}`, data);
+  }
+
+  async deleteAchievementDef(id: number): Promise<void> {
+    await this.api.delete(`/achievements/definitions/${id}`);
+  }
+
+  // ========== PLATFORM FEEDBACK ==========
+  async getPlatformFeedbackQuestions(): Promise<{ questions: any[]; submissionCount: number }> {
+    const response = await this.api.get('/platform-feedback/questions');
+    return response.data;
+  }
+
+  async submitPlatformFeedback(
+    responses: any[],
+  ): Promise<{ ok: boolean; submissionId: number; count: number; submissionCount: number }> {
+    const response = await this.api.post('/platform-feedback/submit', { responses });
+    return response.data;
+  }
+
+  async listMyPlatformFeedbackSubmissions(): Promise<{
+    submissions: Array<{ id: number; submitted_at: string; responseCount: number }>;
+  }> {
+    const r = await this.api.get('/platform-feedback/history');
+    return r.data;
+  }
+
+  async getMyPlatformFeedbackSubmission(id: number): Promise<{
+    submission: { id: number; submittedAt: string };
+    items: Array<{
+      questionId: number;
+      text: string;
+      type: 'likert' | 'text' | 'choice';
+      category: string | null;
+      options: string[];
+      response: { likert: number | null; text: string | null; choice: string | null };
+    }>;
+  }> {
+    const r = await this.api.get(`/platform-feedback/history/${id}`);
+    return r.data;
+  }
+
+  // === Free-form messages cu closing-loop ===
+  async createPlatformFeedbackMessage(data: {
+    subject?: string;
+    message: string;
+    category?: string;
+  }): Promise<{ id: number }> {
+    const r = await this.api.post('/platform-feedback/messages', data);
+    return r.data;
+  }
+
+  async listMyPlatformFeedbackMessages(): Promise<{ messages: any[] }> {
+    const r = await this.api.get('/platform-feedback/messages/mine');
+    return r.data;
+  }
+
+  async adminListPlatformFeedbackMessages(params?: { status?: string; role?: string }): Promise<{
+    messages: any[];
+  }> {
+    const r = await this.api.get('/platform-feedback/admin/messages', { params });
+    return r.data;
+  }
+
+  async adminRespondPlatformFeedbackMessage(
+    id: number,
+    response: string,
+    status: 'open' | 'in_progress' | 'answered' | 'closed' = 'answered',
+  ): Promise<{ ok: boolean }> {
+    const r = await this.api.post(`/platform-feedback/admin/messages/${id}/respond`, {
+      response,
+      status,
+    });
+    return r.data;
+  }
+
+  async adminUpdatePlatformFeedbackMessageStatus(
+    id: number,
+    status: 'open' | 'in_progress' | 'answered' | 'closed',
+  ): Promise<{ ok: boolean }> {
+    const r = await this.api.patch(`/platform-feedback/admin/messages/${id}/status`, { status });
+    return r.data;
+  }
+
+  async adminListPlatformFeedbackQuestions(): Promise<{ questions: any[] }> {
+    const response = await this.api.get('/platform-feedback/admin/questions');
+    return response.data;
+  }
+
+  async adminCreatePlatformFeedbackQuestion(data: any): Promise<{ id: number }> {
+    const response = await this.api.post('/platform-feedback/admin/questions', data);
+    return response.data;
+  }
+
+  async adminUpdatePlatformFeedbackQuestion(id: number, data: any): Promise<void> {
+    await this.api.put(`/platform-feedback/admin/questions/${id}`, data);
+  }
+
+  async adminDeletePlatformFeedbackQuestion(id: number): Promise<void> {
+    await this.api.delete(`/platform-feedback/admin/questions/${id}`);
+  }
+
+  async adminPlatformFeedbackReport(): Promise<{ report: any[]; total_respondents: number }> {
+    const response = await this.api.get('/platform-feedback/admin/report');
+    return response.data;
+  }
+
+  // ========== ACTIONS WORKFLOW ==========
+  async listActionTemplates(): Promise<{ templates: any[] }> {
+    const r = await this.api.get('/actions/templates');
+    return r.data;
+  }
+  async createActionTemplate(data: any): Promise<{ id: number }> {
+    const r = await this.api.post('/actions/templates', data);
+    return r.data;
+  }
+  async deleteActionTemplate(id: number): Promise<void> {
+    await this.api.delete(`/actions/templates/${id}`);
+  }
+  async proposeAction(data: { professor_id: number; template_id?: number | null; title: string; description?: string; category?: string }): Promise<{ id: number }> {
+    const r = await this.api.post('/actions/propose', data);
+    return r.data;
+  }
+  async adminListActions(params?: { professor_id?: number; status?: string }): Promise<{ actions: any[] }> {
+    const r = await this.api.get('/actions/admin/list', { params });
+    return r.data;
+  }
+  async adminActionsSummary(professor_id: number): Promise<any> {
+    const r = await this.api.get('/actions/admin/summary', { params: { professor_id } });
+    return r.data;
+  }
+  async professorListActions(): Promise<{ actions: any[] }> {
+    const r = await this.api.get('/actions/my');
+    return r.data;
+  }
+  async professorRespondAction(id: number, decision: 'accepted' | 'rejected' | 'completed', notes?: string): Promise<void> {
+    await this.api.put(`/actions/my/${id}/respond`, { decision, notes });
+  }
+
+  // ========== GUIDES ==========
+  async getGuide(role: 'student' | 'professor' | 'admin'): Promise<{ role: string; title: string; body: string; updated_at: string }> {
+    const response = await this.api.get<{ role: string; title: string; body: string; updated_at: string }>(`/guides/${role}`);
+    return response.data;
+  }
+
+  async getAllGuides(): Promise<{ guides: Array<{ role: string; title: string; body: string; updated_at: string }> }> {
+    const response = await this.api.get<{ guides: Array<{ role: string; title: string; body: string; updated_at: string }> }>('/guides');
+    return response.data;
+  }
+
+  async updateGuide(role: 'student' | 'professor' | 'admin', data: { title: string; body: string }): Promise<void> {
+    await this.api.put(`/guides/${role}`, data);
   }
 
   // ========== QUESTIONNAIRE MANAGEMENT ENDPOINTS ==========

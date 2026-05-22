@@ -5,6 +5,7 @@ import { ConfirmDialog, AlertDialog } from '../components/AccessibleModal';
 import { SuccessNotification, ErrorNotification } from '../components/LiveRegion';
 import { useTabNavigation } from '../hooks/useTabNavigation';
 import { FocusTrap } from '../components/a11y';
+import ScreenReaderOnly from '../components/ScreenReaderOnly';
 
 export default function AdminControls() {
   const navigate = useNavigate();
@@ -434,14 +435,14 @@ export default function AdminControls() {
     <div className="space-y-6">
       {/* Header with Back Button */}
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-gray-900">Panou Control Platformă</h1>
-        <button onClick={() => navigate('/admin')} className="btn btn-secondary">
+        <h1 className="text-3xl font-bold text-neutral-800">Panou Control Platformă</h1>
+        <button onClick={() => navigate('/admin')} className="inline-flex items-center gap-2 px-4 h-10 rounded-md bg-white border border-neutral-200 text-neutral-800 font-medium shadow-elev-1 hover:bg-neutral-50 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-400/40 disabled:opacity-50 disabled:cursor-not-allowed">
           ← Înapoi la Dashboard
         </button>
       </div>
 
       {/* Tabs */}
-      <div className="border-b border-gray-200">
+      <div className="border-b border-neutral-200">
         <nav ref={tablistRef} className="-mb-px flex space-x-8" role="tablist" aria-label="Secțiuni panou control administrare">
           <button
             onClick={() => setActiveTab('platform')}
@@ -452,8 +453,8 @@ export default function AdminControls() {
             tabIndex={activeTab === 'platform' ? 0 : -1}
             className={`${
               activeTab === 'platform'
-                ? 'border-primary-500 text-primary-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                ? 'border-accent-600 text-primary-800'
+                : 'border-transparent text-neutral-500 hover:text-neutral-700 hover:border-neutral-200'
             } whitespace-nowrap py-4 px-1 border-b-2 font-medium`}
           >
             Setări Platformă
@@ -467,8 +468,8 @@ export default function AdminControls() {
             tabIndex={activeTab === 'messages' ? 0 : -1}
             className={`${
               activeTab === 'messages'
-                ? 'border-primary-500 text-primary-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                ? 'border-accent-600 text-primary-800'
+                : 'border-transparent text-neutral-500 hover:text-neutral-700 hover:border-neutral-200'
             } whitespace-nowrap py-4 px-1 border-b-2 font-medium`}
           >
             Mesaje Studenți
@@ -482,8 +483,8 @@ export default function AdminControls() {
             tabIndex={activeTab === 'filters' ? 0 : -1}
             className={`${
               activeTab === 'filters'
-                ? 'border-primary-500 text-primary-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                ? 'border-accent-600 text-primary-800'
+                : 'border-transparent text-neutral-500 hover:text-neutral-700 hover:border-neutral-200'
             } whitespace-nowrap py-4 px-1 border-b-2 font-medium`}
           >
             Filtre Avansate
@@ -497,8 +498,8 @@ export default function AdminControls() {
             tabIndex={activeTab === 'disciplines' ? 0 : -1}
             className={`${
               activeTab === 'disciplines'
-                ? 'border-primary-500 text-primary-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                ? 'border-accent-600 text-primary-800'
+                : 'border-transparent text-neutral-500 hover:text-neutral-700 hover:border-neutral-200'
             } whitespace-nowrap py-4 px-1 border-b-2 font-medium`}
           >
             Comparație Discipline
@@ -512,8 +513,8 @@ export default function AdminControls() {
             tabIndex={activeTab === 'questionnaire' ? 0 : -1}
             className={`${
               activeTab === 'questionnaire'
-                ? 'border-primary-500 text-primary-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                ? 'border-accent-600 text-primary-800'
+                : 'border-transparent text-neutral-500 hover:text-neutral-700 hover:border-neutral-200'
             } whitespace-nowrap py-4 px-1 border-b-2 font-medium`}
           >
             Editare Chestionar
@@ -527,8 +528,8 @@ export default function AdminControls() {
             tabIndex={activeTab === 'email' ? 0 : -1}
             className={`${
               activeTab === 'email'
-                ? 'border-primary-500 text-primary-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                ? 'border-accent-600 text-primary-800'
+                : 'border-transparent text-neutral-500 hover:text-neutral-700 hover:border-neutral-200'
             } whitespace-nowrap py-4 px-1 border-b-2 font-medium`}
           >
             Setări Email
@@ -538,14 +539,14 @@ export default function AdminControls() {
 
       {/* Platform Settings Tab */}
       {activeTab === 'platform' && (
-        <div className="card p-6 space-y-6" role="tabpanel" id="panel-platform" aria-labelledby="tab-platform">
-          <h2 className="text-xl font-semibold text-gray-900">Setări Platformă</h2>
+        <div className="bg-white border border-neutral-100 rounded-xl shadow-elev-1 p-6 space-y-6" role="tabpanel" id="panel-platform" aria-labelledby="tab-platform">
+          <h2 className="text-xl font-semibold text-neutral-800">Setări Platformă</h2>
 
           {/* Platform ON/OFF Toggle */}
-          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+          <div className="flex items-center justify-between p-4 bg-neutral-25 rounded-lg">
             <div>
-              <h3 className="text-lg font-medium text-gray-900" id="platform-status-label">Status Platformă</h3>
-              <p className="text-sm text-gray-600" id="platform-status-desc">
+              <h3 className="text-lg font-medium text-neutral-800" id="platform-status-label">Status Platformă</h3>
+              <p className="text-sm text-neutral-500" id="platform-status-desc">
                 {isActive ? 'Platforma este ACTIVĂ și accesibilă studenților' : 'Platforma este ÎNCHISĂ'}
               </p>
             </div>
@@ -558,7 +559,7 @@ export default function AdminControls() {
               aria-describedby="platform-status-desc"
               className={`${
                 isActive ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'
-              } relative inline-flex h-12 w-24 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2`}
+              } relative inline-flex h-12 w-24 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-accent-400/40 focus:ring-offset-2`}
             >
               <span
                 className={`${
@@ -575,14 +576,14 @@ export default function AdminControls() {
 
           {/* Closure Message */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-neutral-700 mb-2">
               Mesaj de închidere platformă
             </label>
             <textarea
               value={closureMessage}
               onChange={(e) => setClosureMessage(e.target.value)}
               rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className="w-full px-3 py-2 border border-neutral-200 rounded-md focus:outline-none focus:ring-2 focus:ring-accent-400/40"
               placeholder="Mesajul afișat studenților când platforma este închisă"
             />
           </div>
@@ -593,33 +594,33 @@ export default function AdminControls() {
               type="checkbox"
               checked={autoReminders}
               onChange={(e) => setAutoReminders(e.target.checked)}
-              className="h-4 w-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+              className="h-4 w-4 text-primary-800 border-neutral-200 rounded focus:ring-accent-400/40"
             />
-            <label className="text-sm font-medium text-gray-700">
+            <label className="text-sm font-medium text-neutral-700">
               Remindere automate activate
             </label>
           </div>
 
           {/* Reminder Days */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-neutral-700 mb-2">
               Zile reminder (separate prin virgulă)
             </label>
             <input
               type="text"
               value={reminderDays}
               onChange={(e) => setReminderDays(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className="w-full px-3 py-2 border border-neutral-200 rounded-md focus:outline-none focus:ring-2 focus:ring-accent-400/40"
               placeholder="3,2,1"
             />
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-neutral-500 mt-1">
               Zilele înainte de deadline când se trimit remindere automate
             </p>
           </div>
 
           {/* Evaluation Deadline Section */}
-          <div className="border-t border-gray-200 pt-4 space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900">Deadline Evaluări</h3>
+          <div className="border-t border-neutral-200 pt-4 space-y-4">
+            <h3 className="text-lg font-semibold text-neutral-800">Deadline Evaluări</h3>
 
             {/* Enable Deadline */}
             <div className="flex items-center space-x-2">
@@ -628,27 +629,27 @@ export default function AdminControls() {
                 id="deadline-enabled"
                 checked={deadlineEnabled}
                 onChange={(e) => setDeadlineEnabled(e.target.checked)}
-                className="h-4 w-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                className="h-4 w-4 text-primary-800 border-neutral-200 rounded focus:ring-accent-400/40"
               />
-              <label htmlFor="deadline-enabled" className="text-sm font-medium text-gray-700">
+              <label htmlFor="deadline-enabled" className="text-sm font-medium text-neutral-700">
                 Activează deadline pentru evaluări
               </label>
             </div>
 
             {/* Deadline Date/Time Picker */}
             {deadlineEnabled && (
-              <div className="ml-6 space-y-3 p-4 bg-gray-50 rounded-lg">
+              <div className="ml-6 space-y-3 p-4 bg-neutral-25 rounded-lg">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-neutral-700 mb-2">
                     Data și ora limită
                   </label>
                   <input
                     type="datetime-local"
                     value={deadlineDate}
                     onChange={(e) => setDeadlineDate(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    className="w-full px-3 py-2 border border-neutral-200 rounded-md focus:outline-none focus:ring-2 focus:ring-accent-400/40"
                   />
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-neutral-500 mt-1">
                     Studenții nu vor mai putea completa evaluări după această dată
                   </p>
                 </div>
@@ -660,9 +661,9 @@ export default function AdminControls() {
                     id="auto-close"
                     checked={autoCloseOnDeadline}
                     onChange={(e) => setAutoCloseOnDeadline(e.target.checked)}
-                    className="h-4 w-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                    className="h-4 w-4 text-primary-800 border-neutral-200 rounded focus:ring-accent-400/40"
                   />
-                  <label htmlFor="auto-close" className="text-sm text-gray-700">
+                  <label htmlFor="auto-close" className="text-sm text-neutral-700">
                     Închide automat platforma la deadline
                   </label>
                 </div>
@@ -674,7 +675,7 @@ export default function AdminControls() {
           <button
             onClick={savePlatformSettings}
             disabled={savingSettings}
-            className="btn btn-primary w-full"
+            className="inline-flex items-center gap-2 px-4 h-10 rounded-md bg-primary-800 text-white font-medium shadow-elev-1 hover:bg-primary-700 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-400/40 disabled:opacity-50 disabled:cursor-not-allowed w-full"
           >
             {savingSettings ? 'Se salvează...' : 'Salvează Setări'}
           </button>
@@ -685,27 +686,27 @@ export default function AdminControls() {
       {activeTab === 'messages' && (
         <div className="space-y-6" role="tabpanel" id="panel-messages" aria-labelledby="tab-messages">
           {/* Send Message Form */}
-          <div className="card p-6 space-y-4">
-            <h2 className="text-xl font-semibold text-gray-900">Trimite Mesaj Studenți</h2>
+          <div className="bg-white border border-neutral-100 rounded-xl shadow-elev-1 p-6 space-y-4">
+            <h2 className="text-xl font-semibold text-neutral-800">Trimite Mesaj Studenți</h2>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Titlu</label>
+              <label className="block text-sm font-medium text-neutral-700 mb-2">Titlu</label>
               <input
                 type="text"
                 value={messageTitle}
                 onChange={(e) => setMessageTitle(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                className="w-full px-3 py-2 border border-neutral-200 rounded-md"
                 placeholder="Titlul mesajului"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Conținut</label>
+              <label className="block text-sm font-medium text-neutral-700 mb-2">Conținut</label>
               <textarea
                 value={messageContent}
                 onChange={(e) => setMessageContent(e.target.value)}
                 rows={5}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                className="w-full px-3 py-2 border border-neutral-200 rounded-md"
                 placeholder="Conținutul mesajului"
               />
             </div>
@@ -714,12 +715,12 @@ export default function AdminControls() {
             {filterOptions && (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Facultăți</label>
+                  <label className="block text-sm font-medium text-neutral-700 mb-2">Facultăți</label>
                   <select
                     multiple
                     value={selectedFaculties.map(String)}
                     onChange={(e) => setSelectedFaculties(Array.from(e.target.selectedOptions, opt => parseInt(opt.value)))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                    className="w-full px-3 py-2 border border-neutral-200 rounded-md"
                     size={3}
                   >
                     {filterOptions.faculties.map((f: any) => (
@@ -729,11 +730,11 @@ export default function AdminControls() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Nivel studii</label>
+                  <label className="block text-sm font-medium text-neutral-700 mb-2">Nivel studii</label>
                   <select
                     value={selectedLevel}
                     onChange={(e) => setSelectedLevel(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                    className="w-full px-3 py-2 border border-neutral-200 rounded-md"
                   >
                     <option value="">Toate</option>
                     <option value="licenta">Licență</option>
@@ -742,12 +743,12 @@ export default function AdminControls() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Ani de studiu</label>
+                  <label className="block text-sm font-medium text-neutral-700 mb-2">Ani de studiu</label>
                   <select
                     multiple
                     value={selectedYears.map(String)}
                     onChange={(e) => setSelectedYears(Array.from(e.target.selectedOptions, opt => parseInt(opt.value)))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                    className="w-full px-3 py-2 border border-neutral-200 rounded-md"
                     size={3}
                   >
                     <option value="1">Anul 1</option>
@@ -762,26 +763,26 @@ export default function AdminControls() {
             <button
               onClick={handleSendMessage}
               disabled={sendingMessage}
-              className="btn btn-primary w-full"
+              className="inline-flex items-center gap-2 px-4 h-10 rounded-md bg-primary-800 text-white font-medium shadow-elev-1 hover:bg-primary-700 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-400/40 disabled:opacity-50 disabled:cursor-not-allowed w-full"
             >
               {sendingMessage ? 'Se trimite...' : 'Trimite Mesaj'}
             </button>
           </div>
 
           {/* Message History */}
-          <div className="card p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Istoric Mesaje</h2>
+          <div className="bg-white border border-neutral-100 rounded-xl shadow-elev-1 p-6">
+            <h2 className="text-xl font-semibold text-neutral-800 mb-4">Istoric Mesaje</h2>
             <div className="space-y-3">
               {messageHistory.map((msg) => (
-                <div key={msg.id} className="border border-gray-200 rounded-lg p-4">
+                <div key={msg.id} className="border border-neutral-200 rounded-lg p-4">
                   <div className="flex justify-between items-start">
                     <div>
-                      <h3 className="font-medium text-gray-900">{msg.title}</h3>
-                      <p className="text-sm text-gray-600 mt-1">{msg.content}</p>
+                      <h3 className="font-medium text-neutral-800">{msg.title}</h3>
+                      <p className="text-sm text-neutral-500 mt-1">{msg.content}</p>
                     </div>
-                    <span className="text-xs text-gray-500">{msg.recipients_count} destinatari</span>
+                    <span className="text-xs text-neutral-500">{msg.recipients_count} destinatari</span>
                   </div>
-                  <p className="text-xs text-gray-400 mt-2">
+                  <p className="text-xs text-neutral-400 mt-2">
                     {new Date(msg.sent_at).toLocaleString('ro-RO')} - Trimis de {msg.sent_by_name}
                   </p>
                 </div>
@@ -794,15 +795,15 @@ export default function AdminControls() {
       {/* Filters Tab */}
       {activeTab === 'filters' && (
         <div className="space-y-6" role="tabpanel" id="panel-filters" aria-labelledby="tab-filters">
-          <div className="card p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Statistici cu Filtre Avansate</h2>
+          <div className="bg-white border border-neutral-100 rounded-xl shadow-elev-1 p-6">
+            <h2 className="text-xl font-semibold text-neutral-800 mb-4">Statistici cu Filtre Avansate</h2>
 
             {filterOptions && (
               <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4">
                 <select
                   value={statsFilter.facultyId}
                   onChange={(e) => setStatsFilter({...statsFilter, facultyId: e.target.value})}
-                  className="px-3 py-2 border border-gray-300 rounded-md"
+                  className="px-3 py-2 border border-neutral-200 rounded-md"
                 >
                   <option value="">Toate facultățile</option>
                   {filterOptions.faculties.map((f: any) => (
@@ -813,7 +814,7 @@ export default function AdminControls() {
                 <select
                   value={statsFilter.level}
                   onChange={(e) => setStatsFilter({...statsFilter, level: e.target.value})}
-                  className="px-3 py-2 border border-gray-300 rounded-md"
+                  className="px-3 py-2 border border-neutral-200 rounded-md"
                 >
                   <option value="">Toate nivelurile</option>
                   <option value="licenta">Licență</option>
@@ -823,7 +824,7 @@ export default function AdminControls() {
                 <select
                   value={statsFilter.yearNumber}
                   onChange={(e) => setStatsFilter({...statsFilter, yearNumber: e.target.value})}
-                  className="px-3 py-2 border border-gray-300 rounded-md"
+                  className="px-3 py-2 border border-neutral-200 rounded-md"
                 >
                   <option value="">Toți anii</option>
                   <option value="1">Anul 1</option>
@@ -835,7 +836,7 @@ export default function AdminControls() {
                 <select
                   value={statsFilter.courseType}
                   onChange={(e) => setStatsFilter({...statsFilter, courseType: e.target.value})}
-                  className="px-3 py-2 border border-gray-300 rounded-md"
+                  className="px-3 py-2 border border-neutral-200 rounded-md"
                 >
                   <option value="">Toate tipurile</option>
                   <option value="curs">Curs</option>
@@ -846,7 +847,7 @@ export default function AdminControls() {
                 <select
                   value={statsFilter.semester}
                   onChange={(e) => setStatsFilter({...statsFilter, semester: e.target.value})}
-                  className="px-3 py-2 border border-gray-300 rounded-md"
+                  className="px-3 py-2 border border-neutral-200 rounded-md"
                 >
                   <option value="">Ambele semestre</option>
                   <option value="1">Semestrul 1</option>
@@ -858,7 +859,7 @@ export default function AdminControls() {
             <button
               onClick={handleLoadFilteredStats}
               disabled={loadingStats}
-              className="btn btn-primary mb-4"
+              className="inline-flex items-center gap-2 px-4 h-10 rounded-md bg-primary-800 text-white font-medium shadow-elev-1 hover:bg-primary-700 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-400/40 disabled:opacity-50 disabled:cursor-not-allowed mb-4"
             >
               {loadingStats ? 'Se încarcă...' : 'Aplică Filtre'}
             </button>
@@ -866,30 +867,30 @@ export default function AdminControls() {
             {/* Results Table */}
             {filteredStats && (
               <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
+                <table className="min-w-full divide-y divide-neutral-200">
+                  <thead className="bg-neutral-25">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Facultate</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Program</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nivel</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">An</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tip Curs</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Completări</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Rată %</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Scor Mediu</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Facultate</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Program</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Nivel</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">An</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Tip Curs</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Completări</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Rată %</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Scor Mediu</th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody className="bg-white divide-y divide-neutral-200">
                     {filteredStats.stats.map((stat: any, idx: number) => (
                       <tr key={idx}>
-                        <td className="px-6 py-4 text-sm text-gray-900">{stat.faculty_name}</td>
-                        <td className="px-6 py-4 text-sm text-gray-900">{stat.program_name}</td>
-                        <td className="px-6 py-4 text-sm text-gray-900">{stat.level === 'licenta' ? 'L' : 'M'}</td>
-                        <td className="px-6 py-4 text-sm text-gray-900">{stat.year_number}</td>
-                        <td className="px-6 py-4 text-sm text-gray-900">{stat.course_type}</td>
-                        <td className="px-6 py-4 text-sm text-gray-900">{stat.completed}/{stat.total_evaluations}</td>
-                        <td className="px-6 py-4 text-sm text-gray-900">{stat.completion_rate}%</td>
-                        <td className="px-6 py-4 text-sm text-gray-900">
+                        <td className="px-6 py-4 text-sm text-neutral-800">{stat.faculty_name}</td>
+                        <td className="px-6 py-4 text-sm text-neutral-800">{stat.program_name}</td>
+                        <td className="px-6 py-4 text-sm text-neutral-800">{stat.level === 'licenta' ? 'L' : 'M'}</td>
+                        <td className="px-6 py-4 text-sm text-neutral-800">{stat.year_number}</td>
+                        <td className="px-6 py-4 text-sm text-neutral-800">{stat.course_type}</td>
+                        <td className="px-6 py-4 text-sm text-neutral-800">{stat.completed}/{stat.total_evaluations}</td>
+                        <td className="px-6 py-4 text-sm text-neutral-800">{stat.completion_rate}%</td>
+                        <td className="px-6 py-4 text-sm text-neutral-800">
                           {stat.average_score ? stat.average_score.toFixed(2) : '-'}
                         </td>
                       </tr>
@@ -904,9 +905,9 @@ export default function AdminControls() {
 
       {/* Disciplines Tab */}
       {activeTab === 'disciplines' && (
-        <div className="card p-6" role="tabpanel" id="panel-disciplines" aria-labelledby="tab-disciplines">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Comparație Profesori - Aceeași Disciplină</h2>
-          <p className="text-gray-600 mb-6">
+        <div className="bg-white border border-neutral-100 rounded-xl shadow-elev-1 p-6" role="tabpanel" id="panel-disciplines" aria-labelledby="tab-disciplines">
+          <h2 className="text-xl font-semibold text-neutral-800 mb-4">Comparație Profesori - Aceeași Disciplină</h2>
+          <p className="text-neutral-500 mb-6">
             Compară performanța profesorilor care predau aceeași disciplină
           </p>
 
@@ -914,7 +915,7 @@ export default function AdminControls() {
             <select
               value={selectedCourse}
               onChange={(e) => setSelectedCourse(e.target.value)}
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-md"
+              className="flex-1 px-3 py-2 border border-neutral-200 rounded-md"
             >
               <option value="">Selectează disciplina</option>
               {courseNames.map((course) => (
@@ -927,7 +928,7 @@ export default function AdminControls() {
             <button
               onClick={handleLoadDisciplineComparison}
               disabled={loadingDisciplines || !selectedCourse}
-              className="btn btn-primary"
+              className="inline-flex items-center gap-2 px-4 h-10 rounded-md bg-primary-800 text-white font-medium shadow-elev-1 hover:bg-primary-700 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-400/40 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loadingDisciplines ? 'Se încarcă...' : 'Compară'}
             </button>
@@ -935,38 +936,38 @@ export default function AdminControls() {
 
           {disciplineComparison && (
             <div>
-              <div className="mb-4 p-4 bg-blue-50 rounded-lg">
-                <h3 className="font-medium text-blue-900">Disciplina: {disciplineComparison.courseName}</h3>
-                <p className="text-sm text-blue-700">{disciplineComparison.comparisons.length} profesori găsiți</p>
+              <div className="mb-4 p-4 bg-info-bg rounded-lg">
+                <h3 className="font-medium text-info-fg">Disciplina: {disciplineComparison.courseName}</h3>
+                <p className="text-sm text-info-fg">{disciplineComparison.comparisons.length} profesori găsiți</p>
               </div>
 
               <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
+                <table className="min-w-full divide-y divide-neutral-200">
+                  <thead className="bg-neutral-25">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Profesor</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Titlu</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Departament</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Facultate</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tip Curs</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Evaluări</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Rată %</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Scor Mediu</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Profesor</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Titlu</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Departament</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Facultate</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Tip Curs</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Evaluări</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Rată %</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Scor Mediu</th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody className="bg-white divide-y divide-neutral-200">
                     {disciplineComparison.comparisons.map((comp: any, idx: number) => (
                       <tr key={idx} className={idx === 0 ? 'bg-green-50' : ''}>
-                        <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                        <td className="px-6 py-4 text-sm font-medium text-neutral-800">
                           {comp.professor_name}
                           {idx === 0 && <span className="ml-2 text-green-600">🏆</span>}
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-900">{comp.professor_title}</td>
-                        <td className="px-6 py-4 text-sm text-gray-900">{comp.department}</td>
-                        <td className="px-6 py-4 text-sm text-gray-900">{comp.faculty_name}</td>
-                        <td className="px-6 py-4 text-sm text-gray-900">{comp.course_type}</td>
-                        <td className="px-6 py-4 text-sm text-gray-900">{comp.completed}/{comp.total_evaluations}</td>
-                        <td className="px-6 py-4 text-sm text-gray-900">{comp.completion_rate}%</td>
+                        <td className="px-6 py-4 text-sm text-neutral-800">{comp.professor_title}</td>
+                        <td className="px-6 py-4 text-sm text-neutral-800">{comp.department}</td>
+                        <td className="px-6 py-4 text-sm text-neutral-800">{comp.faculty_name}</td>
+                        <td className="px-6 py-4 text-sm text-neutral-800">{comp.course_type}</td>
+                        <td className="px-6 py-4 text-sm text-neutral-800">{comp.completed}/{comp.total_evaluations}</td>
+                        <td className="px-6 py-4 text-sm text-neutral-800">{comp.completion_rate}%</td>
                         <td className="px-6 py-4 text-sm">
                           <span className={`font-semibold ${
                             comp.average_score >= 4 ? 'text-green-600' :
@@ -988,11 +989,11 @@ export default function AdminControls() {
       {/* Questionnaire Management Tab */}
       {activeTab === 'questionnaire' && (
         <div className="space-y-6" role="tabpanel" id="panel-questionnaire" aria-labelledby="tab-questionnaire">
-          <div className="card p-6">
+          <div className="bg-white border border-neutral-100 rounded-xl shadow-elev-1 p-6">
             <div className="flex justify-between items-center mb-6">
               <div>
-                <h2 className="text-xl font-semibold text-gray-900">Editare Chestionar de Evaluare</h2>
-                <p className="text-gray-600 mt-1">Gestionează întrebările din chestionarul de evaluare</p>
+                <h2 className="text-xl font-semibold text-neutral-800">Editare Chestionar de Evaluare</h2>
+                <p className="text-neutral-500 mt-1">Gestionează întrebările din chestionarul de evaluare</p>
               </div>
               <button
                 onClick={() => {
@@ -1000,7 +1001,7 @@ export default function AdminControls() {
                   setQuestionForm({ text: '', type: 'likert', category: '', is_required: true });
                   setShowQuestionForm(true);
                 }}
-                className="btn btn-primary"
+                className="inline-flex items-center gap-2 px-4 h-10 rounded-md bg-primary-800 text-white font-medium shadow-elev-1 hover:bg-primary-700 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-400/40 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 + Adaugă Întrebare
               </button>
@@ -1009,24 +1010,24 @@ export default function AdminControls() {
             {/* Questions List */}
             {loadingQuestions ? (
               <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto"></div>
-                <p className="text-gray-600 mt-2">Se încarcă...</p>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent-600-600 mx-auto"></div>
+                <p className="text-neutral-500 mt-2">Se încarcă...</p>
               </div>
             ) : questions.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
+              <div className="text-center py-8 text-neutral-500">
                 <p>Nu există întrebări în chestionar</p>
               </div>
             ) : (
               <div className="space-y-3">
                 {questions.map((question, index) => (
-                  <div key={question.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50">
+                  <div key={question.id} className="border border-neutral-200 rounded-lg p-4 hover:bg-neutral-25">
                     <div className="flex items-start gap-4">
                       {/* Order Controls */}
                       <div className="flex flex-col gap-1">
                         <button
                           onClick={() => handleMoveQuestion(index, 'up')}
                           disabled={index === 0}
-                          className="p-1 hover:bg-gray-200 rounded disabled:opacity-30"
+                          className="p-1 hover:bg-neutral-200 rounded disabled:opacity-30"
                           title="Mută în sus"
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1036,7 +1037,7 @@ export default function AdminControls() {
                         <button
                           onClick={() => handleMoveQuestion(index, 'down')}
                           disabled={index === questions.length - 1}
-                          className="p-1 hover:bg-gray-200 rounded disabled:opacity-30"
+                          className="p-1 hover:bg-neutral-200 rounded disabled:opacity-30"
                           title="Mută în jos"
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1048,29 +1049,29 @@ export default function AdminControls() {
                       {/* Question Content */}
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
-                          <span className="text-sm font-semibold text-gray-500">#{index + 1}</span>
+                          <span className="text-sm font-semibold text-neutral-500">#{index + 1}</span>
                           <span className={`px-2 py-1 text-xs font-medium rounded ${
                             question.type === 'likert'
-                              ? 'bg-blue-100 text-blue-800'
+                              ? 'bg-info-bg text-info-fg'
                               : 'bg-purple-100 text-purple-800'
                           }`}>
                             {question.type === 'likert' ? 'Scală Likert' : 'Text liber'}
                           </span>
-                          <span className="px-2 py-1 text-xs font-medium rounded bg-gray-100 text-gray-800">
+                          <span className="px-2 py-1 text-xs font-medium rounded bg-neutral-100 text-neutral-800">
                             {question.category}
                           </span>
                           {question.is_required && (
                             <span className="text-red-500 text-xs">* Obligatoriu</span>
                           )}
                         </div>
-                        <p className="text-gray-900">{question.text}</p>
+                        <p className="text-neutral-800">{question.text}</p>
                       </div>
 
                       {/* Action Buttons */}
                       <div className="flex gap-2">
                         <button
                           onClick={() => handleEditQuestion(question)}
-                          className="p-2 text-blue-600 hover:bg-blue-50 rounded"
+                          className="p-2 text-info-fg hover:bg-info-bg rounded"
                           title="Editează"
                         >
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1100,20 +1101,20 @@ export default function AdminControls() {
               <FocusTrap enabled={showQuestionForm}>
                 <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
                   <div className="p-6">
-                  <h3 className="text-xl font-semibold text-gray-900 mb-4">
+                  <h3 className="text-xl font-semibold text-neutral-800 mb-4">
                     {editingQuestion ? 'Editare Întrebare' : 'Întrebare Nouă'}
                   </h3>
 
                   <div className="space-y-4">
                     {/* Question Text */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-neutral-700 mb-1">
                         Text Întrebare <span className="text-red-500">*</span>
                       </label>
                       <textarea
                         value={questionForm.text}
                         onChange={(e) => setQuestionForm({ ...questionForm, text: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                        className="w-full px-3 py-2 border border-neutral-200 rounded-md"
                         rows={3}
                         placeholder="Introduceți textul întrebării..."
                       />
@@ -1121,13 +1122,13 @@ export default function AdminControls() {
 
                     {/* Question Type */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-neutral-700 mb-1">
                         Tip Întrebare <span className="text-red-500">*</span>
                       </label>
                       <select
                         value={questionForm.type}
                         onChange={(e) => setQuestionForm({ ...questionForm, type: e.target.value as 'likert' | 'text' })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                        className="w-full px-3 py-2 border border-neutral-200 rounded-md"
                       >
                         <option value="likert">Scală Likert (1-5)</option>
                         <option value="text">Text liber</option>
@@ -1136,14 +1137,14 @@ export default function AdminControls() {
 
                     {/* Category */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-neutral-700 mb-1">
                         Categorie <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="text"
                         value={questionForm.category}
                         onChange={(e) => setQuestionForm({ ...questionForm, category: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                        className="w-full px-3 py-2 border border-neutral-200 rounded-md"
                         placeholder="ex: Metodologie predare, Evaluare, etc."
                       />
                     </div>
@@ -1155,9 +1156,9 @@ export default function AdminControls() {
                         id="is_required"
                         checked={questionForm.is_required}
                         onChange={(e) => setQuestionForm({ ...questionForm, is_required: e.target.checked })}
-                        className="h-4 w-4 text-primary-600 border-gray-300 rounded"
+                        className="h-4 w-4 text-primary-800 border-neutral-200 rounded"
                       />
-                      <label htmlFor="is_required" className="ml-2 text-sm text-gray-700">
+                      <label htmlFor="is_required" className="ml-2 text-sm text-neutral-700">
                         Întrebare obligatorie
                       </label>
                     </div>
@@ -1171,13 +1172,13 @@ export default function AdminControls() {
                         setEditingQuestion(null);
                         setQuestionForm({ text: '', type: 'likert', category: '', is_required: true });
                       }}
-                      className="btn btn-secondary"
+                      className="inline-flex items-center gap-2 px-4 h-10 rounded-md bg-white border border-neutral-200 text-neutral-800 font-medium shadow-elev-1 hover:bg-neutral-50 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-400/40 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Anulează
                     </button>
                     <button
                       onClick={handleSaveQuestion}
-                      className="btn btn-primary"
+                      className="inline-flex items-center gap-2 px-4 h-10 rounded-md bg-primary-800 text-white font-medium shadow-elev-1 hover:bg-primary-700 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-400/40 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {editingQuestion ? 'Actualizează' : 'Creează'} Întrebare
                     </button>
@@ -1192,19 +1193,19 @@ export default function AdminControls() {
 
       {/* Email Settings Tab */}
       {activeTab === 'email' && (
-        <div className="card p-6 space-y-6" role="tabpanel" id="panel-email" aria-labelledby="tab-email">
+        <div className="bg-white border border-neutral-100 rounded-xl shadow-elev-1 p-6 space-y-6" role="tabpanel" id="panel-email" aria-labelledby="tab-email">
           <div>
-            <h2 className="text-xl font-semibold text-gray-900">Setări Email</h2>
-            <p className="text-sm text-gray-600 mt-1">
+            <h2 className="text-xl font-semibold text-neutral-800">Setări Email</h2>
+            <p className="text-sm text-neutral-500 mt-1">
               Configurează sistemul de notificări email pentru studenți
             </p>
           </div>
 
           {/* Enable Email */}
-          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+          <div className="flex items-center justify-between p-4 bg-neutral-25 rounded-lg">
             <div>
-              <h3 className="text-lg font-medium text-gray-900" id="email-toggle-label">Activează Email Notifications</h3>
-              <p className="text-sm text-gray-600" id="email-toggle-desc">
+              <h3 className="text-lg font-medium text-neutral-800" id="email-toggle-label">Activează Email Notifications</h3>
+              <p className="text-sm text-neutral-500" id="email-toggle-desc">
                 Trimite notificări automate prin email către studenți
               </p>
             </div>
@@ -1215,8 +1216,8 @@ export default function AdminControls() {
               aria-checked={emailEnabled}
               aria-labelledby="email-toggle-label"
               aria-describedby="email-toggle-desc"
-              className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${
-                emailEnabled ? 'bg-primary-600' : 'bg-gray-200'
+              className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-accent-400/40 focus:ring-offset-2 ${
+                emailEnabled ? 'bg-primary-600' : 'bg-neutral-200'
               }`}
             >
               <span
@@ -1231,12 +1232,12 @@ export default function AdminControls() {
             <>
               {/* SMTP Configuration */}
               <div className="space-y-4 border-t pt-6">
-                <h3 className="text-lg font-medium text-gray-900">Configurare SMTP</h3>
+                <h3 className="text-lg font-medium text-neutral-800">Configurare SMTP</h3>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Email Host */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-neutral-700 mb-1">
                       Server SMTP <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -1244,28 +1245,28 @@ export default function AdminControls() {
                       value={emailHost}
                       onChange={(e) => setEmailHost(e.target.value)}
                       placeholder="smtp.gmail.com"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500"
+                      className="w-full px-3 py-2 border border-neutral-200 rounded-md focus:ring-2 focus:ring-accent-400/40"
                     />
-                    <p className="text-xs text-gray-500 mt-1">Ex: smtp.gmail.com, smtp.office365.com</p>
+                    <p className="text-xs text-neutral-500 mt-1">Ex: smtp.gmail.com, smtp.office365.com</p>
                   </div>
 
                   {/* Email Port */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-neutral-700 mb-1">
                       Port SMTP <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="number"
                       value={emailPort}
                       onChange={(e) => setEmailPort(Number(e.target.value))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500"
+                      className="w-full px-3 py-2 border border-neutral-200 rounded-md focus:ring-2 focus:ring-accent-400/40"
                     />
-                    <p className="text-xs text-gray-500 mt-1">587 (TLS) sau 465 (SSL)</p>
+                    <p className="text-xs text-neutral-500 mt-1">587 (TLS) sau 465 (SSL)</p>
                   </div>
 
                   {/* Email User */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-neutral-700 mb-1">
                       Username/Email <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -1273,13 +1274,13 @@ export default function AdminControls() {
                       value={emailUser}
                       onChange={(e) => setEmailUser(e.target.value)}
                       placeholder="your-email@example.com"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500"
+                      className="w-full px-3 py-2 border border-neutral-200 rounded-md focus:ring-2 focus:ring-accent-400/40"
                     />
                   </div>
 
                   {/* Email Password */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-neutral-700 mb-1">
                       Parolă <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -1287,9 +1288,9 @@ export default function AdminControls() {
                       value={emailPassword}
                       onChange={(e) => setEmailPassword(e.target.value)}
                       placeholder="••••••••"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500"
+                      className="w-full px-3 py-2 border border-neutral-200 rounded-md focus:ring-2 focus:ring-accent-400/40"
                     />
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-neutral-500 mt-1">
                       Pentru Gmail, folosește App Password
                     </p>
                   </div>
@@ -1302,9 +1303,9 @@ export default function AdminControls() {
                     id="email-secure"
                     checked={emailSecure}
                     onChange={(e) => setEmailSecure(e.target.checked)}
-                    className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                    className="h-4 w-4 text-primary-800 focus:ring-accent-400/40 border-neutral-200 rounded"
                   />
-                  <label htmlFor="email-secure" className="ml-2 text-sm text-gray-700">
+                  <label htmlFor="email-secure" className="ml-2 text-sm text-neutral-700">
                     Folosește SSL/TLS (port 465)
                   </label>
                 </div>
@@ -1312,12 +1313,12 @@ export default function AdminControls() {
 
               {/* Sender Configuration */}
               <div className="space-y-4 border-t pt-6">
-                <h3 className="text-lg font-medium text-gray-900">Configurare Expeditor</h3>
+                <h3 className="text-lg font-medium text-neutral-800">Configurare Expeditor</h3>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* From Name */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-neutral-700 mb-1">
                       Nume Expeditor <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -1325,13 +1326,13 @@ export default function AdminControls() {
                       value={emailFromName}
                       onChange={(e) => setEmailFromName(e.target.value)}
                       placeholder="Platformă Evaluare"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500"
+                      className="w-full px-3 py-2 border border-neutral-200 rounded-md focus:ring-2 focus:ring-accent-400/40"
                     />
                   </div>
 
                   {/* From Address */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-neutral-700 mb-1">
                       Email Expeditor <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -1339,7 +1340,7 @@ export default function AdminControls() {
                       value={emailFromAddress}
                       onChange={(e) => setEmailFromAddress(e.target.value)}
                       placeholder="noreply@universitate.ro"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500"
+                      className="w-full px-3 py-2 border border-neutral-200 rounded-md focus:ring-2 focus:ring-accent-400/40"
                     />
                   </div>
                 </div>
@@ -1347,7 +1348,7 @@ export default function AdminControls() {
 
               {/* Notification Settings */}
               <div className="space-y-4 border-t pt-6">
-                <h3 className="text-lg font-medium text-gray-900">Setări Notificări</h3>
+                <h3 className="text-lg font-medium text-neutral-800">Setări Notificări</h3>
 
                 <div className="flex items-center">
                   <input
@@ -1355,9 +1356,9 @@ export default function AdminControls() {
                     id="send-email-on-message"
                     checked={sendEmailOnMessage}
                     onChange={(e) => setSendEmailOnMessage(e.target.checked)}
-                    className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                    className="h-4 w-4 text-primary-800 focus:ring-accent-400/40 border-neutral-200 rounded"
                   />
-                  <label htmlFor="send-email-on-message" className="ml-2 text-sm text-gray-700">
+                  <label htmlFor="send-email-on-message" className="ml-2 text-sm text-neutral-700">
                     Trimite email când se postează un mesaj nou
                   </label>
                 </div>
@@ -1365,8 +1366,8 @@ export default function AdminControls() {
 
               {/* Test Email */}
               <div className="space-y-4 border-t pt-6">
-                <h3 className="text-lg font-medium text-gray-900">Testare Configurație</h3>
-                <p className="text-sm text-gray-600">
+                <h3 className="text-lg font-medium text-neutral-800">Testare Configurație</h3>
+                <p className="text-sm text-neutral-500">
                   Trimite un email de test pentru a verifica dacă configurația funcționează corect
                 </p>
 
@@ -1376,12 +1377,12 @@ export default function AdminControls() {
                     value={testEmail}
                     onChange={(e) => setTestEmail(e.target.value)}
                     placeholder="test@example.com"
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500"
+                    className="flex-1 px-3 py-2 border border-neutral-200 rounded-md focus:ring-2 focus:ring-accent-400/40"
                   />
                   <button
                     onClick={handleTestEmail}
                     disabled={testingEmail || !testEmail}
-                    className="btn btn-secondary disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="inline-flex items-center gap-2 px-4 h-10 rounded-md bg-white border border-neutral-200 text-neutral-800 font-medium shadow-elev-1 hover:bg-neutral-50 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-400/40 disabled:opacity-50 disabled:cursor-not-allowed disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {testingEmail ? 'Se trimite...' : 'Trimite Test'}
                   </button>
@@ -1395,16 +1396,16 @@ export default function AdminControls() {
             <button
               onClick={saveEmailSettings}
               disabled={savingEmailSettings}
-              className="btn btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+              className="inline-flex items-center gap-2 px-4 h-10 rounded-md bg-primary-800 text-white font-medium shadow-elev-1 hover:bg-primary-700 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-400/40 disabled:opacity-50 disabled:cursor-not-allowed disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {savingEmailSettings ? 'Se salvează...' : '💾 Salvează Setările Email'}
             </button>
           </div>
 
           {/* Help Section */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <h4 className="text-sm font-semibold text-blue-900 mb-2">ℹ️ Informații Utile</h4>
-            <ul className="text-sm text-blue-800 space-y-1 list-disc list-inside">
+          <div className="bg-info-bg border border-blue-200 rounded-lg p-4">
+            <h4 className="text-sm font-semibold text-info-fg mb-2">ℹ️ Informații Utile</h4>
+            <ul className="text-sm text-info-fg space-y-1 list-disc list-inside">
               <li>Pentru Gmail: Activează "2-Step Verification" și generează un "App Password"</li>
               <li>Pentru Office 365: Folosește credențialele normale de email</li>
               <li>Asigură-te că serverul SMTP permite trimiterea de emailuri</li>

@@ -24,6 +24,60 @@ function initializeDatabase() {
     db.exec(cleanedSchema);
     console.log('✅ Database schema created successfully');
 
+    // Apply migrations (order matters)
+    const migrationsDir = path.join(__dirname, 'migrations');
+    // Note: 005-add-professor-role.sql is skipped because schema.sql already
+    // includes `professor_id` in users, and 005's rebuild drops the columns
+    // added by 004 (program_id, year). It is fully redundant.
+    const migrationFiles = [
+      '003-add-user-preferences.sql',
+      '004-add-program-and-professor-type.sql',
+      'add-course-type-and-platform-settings.sql',
+      'add-email-settings.sql',
+      'add-platform-deadline.sql',
+      '006-closing-the-loop.sql',
+      // 007 + 008: 007 schimba la (student, professor), 008 revine la
+      // (student, course, professor). Pe DB nou se aplică amândouă în ordine
+      // și rezultă final granularitate per disciplină.
+      '007-evaluations-unique-student-professor.sql',
+      '008-evaluations-unique-per-discipline.sql',
+      '009-guides.sql',
+      '010-achievement-definitions.sql',
+      '011-platform-feedback.sql',
+      '012-action-templates.sql',
+      '013-backfill-student-program-year.sql',
+      '014-platform-feedback-messages.sql',
+      '015-platform-feedback-submissions.sql',
+    ];
+    for (const file of migrationFiles) {
+      const p = path.join(migrationsDir, file);
+      if (!fs.existsSync(p)) continue;
+      const sql = fs.readFileSync(p, 'utf8');
+      // Strip comments
+      const cleaned = sql
+        .split('\n')
+        .filter((line) => !line.trim().startsWith('--'))
+        .join('\n')
+        .replace(/\/\*[\s\S]*?\*\//g, '');
+      // Run statements one-by-one; ignore "duplicate column" errors so re-runs are idempotent
+      const statements = cleaned
+        .split(';')
+        .map((s) => s.trim())
+        .filter(Boolean);
+      for (const stmt of statements) {
+        try {
+          db.exec(stmt);
+        } catch (e) {
+          const msg = String(e.message || e);
+          if (msg.includes('duplicate column') || msg.includes('already exists')) {
+            continue;
+          }
+          console.warn(`⚠️  Migration ${file}: ${msg}`);
+        }
+      }
+    }
+    console.log('✅ Migrations applied');
+
     // Run EXTENDED seeding with realistic data
     const { seedExtendedData } = require('./seed-extended');
     seedExtendedData(db);

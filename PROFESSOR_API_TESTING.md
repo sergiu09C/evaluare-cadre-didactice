@@ -390,12 +390,12 @@ echo "=========================================="
 ## Fișiere Create/Modificate
 
 ### Fișiere Noi
-1. `/Users/anosr/Desktop/AntiGravity/backend/src/middleware/authProfessor.js`
-2. `/Users/anosr/Desktop/AntiGravity/backend/src/controllers/professorController.js`
-3. `/Users/anosr/Desktop/AntiGravity/backend/src/routes/professorRoutes.js`
+1. `/Users/anosr/Desktop/test1/evaluare-cadre-didactice/backend/src/middleware/authProfessor.js`
+2. `/Users/anosr/Desktop/test1/evaluare-cadre-didactice/backend/src/controllers/professorController.js`
+3. `/Users/anosr/Desktop/test1/evaluare-cadre-didactice/backend/src/routes/professorRoutes.js`
 
 ### Fișiere Modificate
-1. `/Users/anosr/Desktop/AntiGravity/backend/src/server.js` (adăugat ruta `/api/professor`)
+1. `/Users/anosr/Desktop/test1/evaluare-cadre-didactice/backend/src/server.js` (adăugat ruta `/api/professor`)
 
 ---
 

@@ -365,6 +365,6 @@ Când găsești o problemă:
 
 ---
 
-**Platformă:** AntiGravity - Evaluare Cadre Didactice
+**Platformă:** Evaluarea Cadrelor Didactice - Evaluare Cadre Didactice
 **Versiune:** 2.0.0 (Accessibility-first)
 **Ultima actualizare checklist:** Februarie 2026

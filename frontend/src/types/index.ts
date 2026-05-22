@@ -91,6 +91,13 @@ export interface EvaluationStatus {
   draft: number;
   notStarted: number;
   completionRate: number;
+  breakdown?: {
+    discipline: number;
+    cadreDidacticeUnice: number;
+    cursuri: number;
+    laboratoare: number;
+    seminare: number;
+  };
 }
 
 // Admin Dashboard Types
@@ -293,4 +300,51 @@ export interface Notification {
 export interface NotificationsResponse {
   notifications: Notification[];
   unreadCount: number;
+}
+
+export interface ClosingLoopEntry {
+  id: number;
+  title: string;
+  body: string;
+  dot_color: string;
+  related_dimension?: string | null;
+  sort_order: number;
+  updated_at: string;
+}
+
+export interface ClosingLoopEntryAdmin extends ClosingLoopEntry {
+  is_published: boolean | number;
+  created_at: string;
+}
+
+export interface ProfessorStudentsList {
+  courses: Array<{
+    course_id: number;
+    course_name: string;
+    course_code: string;
+    course_type: string;
+    semester: string;
+    total_enrolled: number;
+    total_evaluated: number;
+    completion_rate: number;
+    students: Array<{ name: string; year: number | null }>;
+  }>;
+  total_unique_students: number;
+  unique_students_who_evaluated: number;
+  total_evaluations_received: number;
+  total_enrollments: number;
+}
+
+export interface AdminUser {
+  id: number;
+  email: string;
+  firstName: string;
+  lastName: string;
+  role: 'student' | 'professor' | 'admin';
+  is_active: boolean | number;
+  professor_id?: number | null;
+  program_id?: number | null;
+  year?: number | null;
+  department?: string | null;
+  faculty?: string | null;
 }

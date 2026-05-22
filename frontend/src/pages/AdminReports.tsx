@@ -164,7 +164,7 @@ export default function AdminReports() {
     }
     if (selectedLevel) activeFilters['Nivel'] = selectedLevel.charAt(0).toUpperCase() + selectedLevel.slice(1);
     if (selectedYear) activeFilters['An'] = `Anul ${selectedYear}`;
-    if (selectedCourseType) activeFilters['Tip curs'] = selectedCourseType.charAt(0).toUpperCase() + selectedCourseType.slice(1);
+    if (selectedCourseType) activeFilters['Activitate'] = selectedCourseType.charAt(0).toUpperCase() + selectedCourseType.slice(1);
     if (selectedSemester) activeFilters['Semestru'] = `Semestrul ${selectedSemester}`;
     if (selectedCourseName) activeFilters['Disciplină'] = selectedCourseName;
 
@@ -178,16 +178,16 @@ export default function AdminReports() {
         <div>
           <button
             onClick={() => navigate('/admin')}
-            className="text-sm text-gray-600 hover:text-gray-900 mb-2 flex items-center gap-1"
+            className="text-sm text-neutral-500 hover:text-neutral-800 mb-2 flex items-center gap-1"
           >
             ← Înapoi la Dashboard
           </button>
-          <h1 className="text-3xl font-bold text-gray-900">Rapoarte Avansate</h1>
-          <p className="text-gray-600 mt-1">Analize detaliate și rapoarte personalizate</p>
+          <h1 className="text-3xl font-bold text-neutral-800">Rapoarte Avansate</h1>
+          <p className="text-neutral-500 mt-1">Analize detaliate și rapoarte personalizate</p>
         </div>
         <button
           onClick={handleExportPDF}
-          className="btn btn-secondary"
+          className="inline-flex items-center gap-2 px-4 h-10 rounded-md bg-white border border-neutral-200 text-neutral-800 font-medium shadow-elev-1 hover:bg-neutral-50 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-400/40 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           📄 Export PDF
         </button>
@@ -195,7 +195,7 @@ export default function AdminReports() {
 
       {/* Tabs */}
       <div className="card">
-        <div ref={tablistRef} className="flex border-b border-gray-200 overflow-x-auto" role="tablist" aria-label="Tipuri de rapoarte">
+        <div ref={tablistRef} className="flex border-b border-neutral-200 overflow-x-auto" role="tablist" aria-label="Tipuri de rapoarte">
           {tabs.map((tab, index) => (
             <button
               key={tab.id}
@@ -207,8 +207,8 @@ export default function AdminReports() {
               tabIndex={activeTab === tab.id ? 0 : -1}
               className={`px-6 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
                 activeTab === tab.id
-                  ? 'border-primary-600 text-primary-600'
-                  : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300'
+                  ? 'border-primary-600 text-primary-800'
+                  : 'border-transparent text-neutral-500 hover:text-neutral-800 hover:border-neutral-200'
               }`}
             >
               <span aria-hidden="true">{tab.icon}</span> {tab.label}
@@ -219,18 +219,18 @@ export default function AdminReports() {
 
       {/* Filters */}
       {filterOptions && (
-        <div className="card p-4">
+        <div className="bg-white border border-neutral-100 rounded-xl shadow-elev-1 p-4">
           <div className="flex flex-wrap items-center gap-4">
-            <span className="text-sm font-medium text-gray-700">Filtre:</span>
+            <span className="text-sm font-medium text-neutral-700">Filtre:</span>
 
             {/* Faculty Filter */}
             {activeTab !== 'discipline' && (
               <div className="flex items-center gap-2">
-                <label className="text-sm text-gray-600">Facultate:</label>
+                <label className="text-sm text-neutral-500">Facultate:</label>
                 <select
                   value={selectedFaculty}
                   onChange={(e) => setSelectedFaculty(e.target.value ? Number(e.target.value) : '')}
-                  className="px-3 py-1.5 border border-gray-300 rounded-md text-sm"
+                  className="px-3 py-1.5 border border-neutral-200 rounded-md text-sm"
                 >
                   <option value="">Toate</option>
                   {filterOptions.faculties.map((faculty) => (
@@ -245,11 +245,11 @@ export default function AdminReports() {
             {/* Level Filter */}
             {(activeTab === 'overview' || activeTab === 'faculty' || activeTab === 'year') && (
               <div className="flex items-center gap-2">
-                <label className="text-sm text-gray-600">Nivel:</label>
+                <label className="text-sm text-neutral-500">Nivel:</label>
                 <select
                   value={selectedLevel}
                   onChange={(e) => setSelectedLevel(e.target.value)}
-                  className="px-3 py-1.5 border border-gray-300 rounded-md text-sm"
+                  className="px-3 py-1.5 border border-neutral-200 rounded-md text-sm"
                 >
                   <option value="">Toate</option>
                   {filterOptions.levels.map((level) => (
@@ -264,11 +264,11 @@ export default function AdminReports() {
             {/* Year Filter */}
             {(activeTab === 'overview' || activeTab === 'faculty' || activeTab === 'courseType') && (
               <div className="flex items-center gap-2">
-                <label className="text-sm text-gray-600">An:</label>
+                <label className="text-sm text-neutral-500">An:</label>
                 <select
                   value={selectedYear}
                   onChange={(e) => setSelectedYear(e.target.value ? Number(e.target.value) : '')}
-                  className="px-3 py-1.5 border border-gray-300 rounded-md text-sm"
+                  className="px-3 py-1.5 border border-neutral-200 rounded-md text-sm"
                 >
                   <option value="">Toți</option>
                   {filterOptions.years.map((year) => (
@@ -283,11 +283,11 @@ export default function AdminReports() {
             {/* Course Type Filter */}
             {(activeTab === 'overview' || activeTab === 'faculty') && (
               <div className="flex items-center gap-2">
-                <label className="text-sm text-gray-600">Tip:</label>
+                <label className="text-sm text-neutral-500">Tip:</label>
                 <select
                   value={selectedCourseType}
                   onChange={(e) => setSelectedCourseType(e.target.value)}
-                  className="px-3 py-1.5 border border-gray-300 rounded-md text-sm"
+                  className="px-3 py-1.5 border border-neutral-200 rounded-md text-sm"
                 >
                   <option value="">Toate</option>
                   {filterOptions.courseTypes.map((type) => (
@@ -302,11 +302,11 @@ export default function AdminReports() {
             {/* Semester Filter */}
             {(activeTab === 'overview' || activeTab === 'faculty') && (
               <div className="flex items-center gap-2">
-                <label className="text-sm text-gray-600">Semestru:</label>
+                <label className="text-sm text-neutral-500">Semestru:</label>
                 <select
                   value={selectedSemester}
                   onChange={(e) => setSelectedSemester(e.target.value)}
-                  className="px-3 py-1.5 border border-gray-300 rounded-md text-sm"
+                  className="px-3 py-1.5 border border-neutral-200 rounded-md text-sm"
                 >
                   <option value="">Toate</option>
                   <option value="1">Semestrul 1</option>
@@ -318,14 +318,14 @@ export default function AdminReports() {
             {/* Course Name Selection for Discipline Comparison */}
             {activeTab === 'discipline' && (
               <div className="flex items-center gap-2">
-                <label className="text-sm text-gray-600">Disciplină:</label>
+                <label className="text-sm text-neutral-500">Disciplină:</label>
                 <select
                   value={selectedCourseName}
                   onChange={(e) => {
                     setSelectedCourseName(e.target.value);
                     if (e.target.value) loadReportData();
                   }}
-                  className="px-3 py-1.5 border border-gray-300 rounded-md text-sm min-w-[250px]"
+                  className="px-3 py-1.5 border border-neutral-200 rounded-md text-sm min-w-[250px]"
                 >
                   <option value="">Selectează o disciplină...</option>
                   {courseNames.map((course) => (
@@ -344,7 +344,7 @@ export default function AdminReports() {
                   handleClearFilters();
                   setSelectedCourseName('');
                 }}
-                className="text-sm text-primary-600 hover:text-primary-700 font-medium"
+                className="text-sm text-primary-800 hover:text-primary-800 font-medium"
               >
                 ✕ Șterge filtre
               </button>
@@ -357,13 +357,13 @@ export default function AdminReports() {
       {loading && (
         <div className="text-center py-12">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
-          <div className="text-gray-600">Se încarcă...</div>
+          <div className="text-neutral-500">Se încarcă...</div>
         </div>
       )}
 
       {/* Error State */}
       {error && (
-        <div className="card p-6 bg-red-50 border-red-200">
+        <div className="bg-white border border-neutral-100 rounded-xl shadow-elev-1 p-6 bg-red-50 border-red-200">
           <p className="text-red-700">{error}</p>
         </div>
       )}
@@ -375,8 +375,8 @@ export default function AdminReports() {
           {(activeTab === 'overview' || activeTab === 'faculty') && filteredStats && (
             <div className="space-y-6">
               {/* Chart */}
-              <div className="card p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              <div className="bg-white border border-neutral-100 rounded-xl shadow-elev-1 p-6">
+                <h3 className="text-lg font-semibold text-neutral-800 mb-4">
                   Rata de Completare {filteredStats.filters && Object.keys(filteredStats.filters).length > 0 && '(Filtrate)'}
                 </h3>
                 {filteredStats.stats && filteredStats.stats.length > 0 ? (
@@ -398,36 +398,36 @@ export default function AdminReports() {
                     </BarChart>
                   </ResponsiveContainer>
                 ) : (
-                  <p className="text-gray-500 text-center py-8">Nu există date pentru filtrele selectate</p>
+                  <p className="text-neutral-500 text-center py-8">Nu există date pentru filtrele selectate</p>
                 )}
               </div>
 
               {/* Data Table */}
               {filteredStats.stats && filteredStats.stats.length > 0 && (
                 <div className="card">
-                  <div className="p-6 border-b border-gray-200">
-                    <h3 className="text-lg font-semibold text-gray-900">Date Detaliate</h3>
+                  <div className="p-6 border-b border-neutral-200">
+                    <h3 className="text-lg font-semibold text-neutral-800">Date Detaliate</h3>
                   </div>
                   <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50">
+                    <table className="min-w-full divide-y divide-neutral-200">
+                      <thead className="bg-neutral-25">
                         <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Facultate</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nivel</th>
-                          <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">An</th>
-                          <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Total</th>
-                          <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Completate</th>
-                          <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Rata (%)</th>
-                          <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Scor Mediu</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Facultate</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Nivel</th>
+                          <th className="px-6 py-3 text-center text-xs font-medium text-neutral-500 uppercase">An</th>
+                          <th className="px-6 py-3 text-center text-xs font-medium text-neutral-500 uppercase">Total</th>
+                          <th className="px-6 py-3 text-center text-xs font-medium text-neutral-500 uppercase">Completate</th>
+                          <th className="px-6 py-3 text-center text-xs font-medium text-neutral-500 uppercase">Rata (%)</th>
+                          <th className="px-6 py-3 text-center text-xs font-medium text-neutral-500 uppercase">Scor Mediu</th>
                         </tr>
                       </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
+                      <tbody className="bg-white divide-y divide-neutral-200">
                         {filteredStats.stats.map((stat: any, index: number) => (
-                          <tr key={index} className="hover:bg-gray-50">
-                            <td className="px-6 py-4 text-sm text-gray-900">{stat.faculty_name}</td>
-                            <td className="px-6 py-4 text-sm text-gray-600">{stat.level || '-'}</td>
-                            <td className="px-6 py-4 text-sm text-center text-gray-600">{stat.year_number || '-'}</td>
-                            <td className="px-6 py-4 text-sm text-center text-gray-900">{stat.total_evaluations}</td>
+                          <tr key={index} className="hover:bg-neutral-25">
+                            <td className="px-6 py-4 text-sm text-neutral-800">{stat.faculty_name}</td>
+                            <td className="px-6 py-4 text-sm text-neutral-500">{stat.level || '-'}</td>
+                            <td className="px-6 py-4 text-sm text-center text-neutral-500">{stat.year_number || '-'}</td>
+                            <td className="px-6 py-4 text-sm text-center text-neutral-800">{stat.total_evaluations}</td>
                             <td className="px-6 py-4 text-sm text-center text-green-600 font-medium">{stat.completed}</td>
                             <td className="px-6 py-4 text-sm text-center">
                               <span className={`font-semibold ${
@@ -460,8 +460,8 @@ export default function AdminReports() {
           {/* Year Stats Tab */}
           {activeTab === 'year' && yearStats && (
             <div className="space-y-6">
-              <div className="card p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Statistici pe Ani de Studiu</h3>
+              <div className="bg-white border border-neutral-100 rounded-xl shadow-elev-1 p-6">
+                <h3 className="text-lg font-semibold text-neutral-800 mb-4">Statistici pe Ani de Studiu</h3>
                 {yearStats.stats && yearStats.stats.length > 0 ? (
                   <ResponsiveContainer width="100%" height={400}>
                     <LineChart data={yearStats.stats}>
@@ -475,7 +475,7 @@ export default function AdminReports() {
                     </LineChart>
                   </ResponsiveContainer>
                 ) : (
-                  <p className="text-gray-500 text-center py-8">Nu există date pentru filtrele selectate</p>
+                  <p className="text-neutral-500 text-center py-8">Nu există date pentru filtrele selectate</p>
                 )}
               </div>
             </div>
@@ -484,8 +484,8 @@ export default function AdminReports() {
           {/* Course Type Stats Tab */}
           {activeTab === 'courseType' && courseTypeStats && (
             <div className="space-y-6">
-              <div className="card p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Statistici pe Tip de Curs</h3>
+              <div className="bg-white border border-neutral-100 rounded-xl shadow-elev-1 p-6">
+                <h3 className="text-lg font-semibold text-neutral-800 mb-4">Statistici pe Tip de Curs</h3>
                 {courseTypeStats.stats && courseTypeStats.stats.length > 0 ? (
                   <ResponsiveContainer width="100%" height={400}>
                     <BarChart data={courseTypeStats.stats}>
@@ -499,7 +499,7 @@ export default function AdminReports() {
                     </BarChart>
                   </ResponsiveContainer>
                 ) : (
-                  <p className="text-gray-500 text-center py-8">Nu există date pentru filtrele selectate</p>
+                  <p className="text-neutral-500 text-center py-8">Nu există date pentru filtrele selectate</p>
                 )}
               </div>
             </div>
@@ -509,14 +509,14 @@ export default function AdminReports() {
           {activeTab === 'discipline' && (
             <div className="space-y-6">
               {!selectedCourseName ? (
-                <div className="card p-12 text-center">
-                  <p className="text-gray-600 mb-2">Selectează o disciplină din filtrul de mai sus pentru a vedea comparația între profesori.</p>
-                  <p className="text-sm text-gray-500">Sunt afișate doar disciplinele predate de mai mulți profesori.</p>
+                <div className="bg-white border border-neutral-100 rounded-xl shadow-elev-1 p-12 text-center">
+                  <p className="text-neutral-500 mb-2">Selectează o disciplină din filtrul de mai sus pentru a vedea comparația între profesori.</p>
+                  <p className="text-sm text-neutral-500">Sunt afișate doar disciplinele predate de mai mulți profesori.</p>
                 </div>
               ) : disciplineComparison && disciplineComparison.comparisons && disciplineComparison.comparisons.length > 0 ? (
                 <>
-                  <div className="card p-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                  <div className="bg-white border border-neutral-100 rounded-xl shadow-elev-1 p-6">
+                    <h3 className="text-lg font-semibold text-neutral-800 mb-4">
                       Comparație Profesori - {disciplineComparison.courseName}
                     </h3>
                     <ResponsiveContainer width="100%" height={400}>
@@ -539,27 +539,27 @@ export default function AdminReports() {
                   </div>
 
                   <div className="card">
-                    <div className="p-6 border-b border-gray-200">
-                      <h3 className="text-lg font-semibold text-gray-900">Comparație Detaliată</h3>
+                    <div className="p-6 border-b border-neutral-200">
+                      <h3 className="text-lg font-semibold text-neutral-800">Comparație Detaliată</h3>
                     </div>
                     <div className="overflow-x-auto">
-                      <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
+                      <table className="min-w-full divide-y divide-neutral-200">
+                        <thead className="bg-neutral-25">
                           <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Profesor</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Departament</th>
-                            <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Evaluări</th>
-                            <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Completate</th>
-                            <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Rata (%)</th>
-                            <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Scor Mediu</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Profesor</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Departament</th>
+                            <th className="px-6 py-3 text-center text-xs font-medium text-neutral-500 uppercase">Evaluări</th>
+                            <th className="px-6 py-3 text-center text-xs font-medium text-neutral-500 uppercase">Completate</th>
+                            <th className="px-6 py-3 text-center text-xs font-medium text-neutral-500 uppercase">Rata (%)</th>
+                            <th className="px-6 py-3 text-center text-xs font-medium text-neutral-500 uppercase">Scor Mediu</th>
                           </tr>
                         </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
+                        <tbody className="bg-white divide-y divide-neutral-200">
                           {disciplineComparison.comparisons.map((comp: any, index: number) => (
-                            <tr key={index} className="hover:bg-gray-50">
-                              <td className="px-6 py-4 text-sm font-medium text-gray-900">{comp.professor_name}</td>
-                              <td className="px-6 py-4 text-sm text-gray-600">{comp.department}</td>
-                              <td className="px-6 py-4 text-sm text-center text-gray-900">{comp.total_evaluations}</td>
+                            <tr key={index} className="hover:bg-neutral-25">
+                              <td className="px-6 py-4 text-sm font-medium text-neutral-800">{comp.professor_name}</td>
+                              <td className="px-6 py-4 text-sm text-neutral-500">{comp.department}</td>
+                              <td className="px-6 py-4 text-sm text-center text-neutral-800">{comp.total_evaluations}</td>
                               <td className="px-6 py-4 text-sm text-center text-green-600 font-medium">{comp.completed}</td>
                               <td className="px-6 py-4 text-sm text-center">
                                 <span className={`font-semibold ${
@@ -587,8 +587,8 @@ export default function AdminReports() {
                   </div>
                 </>
               ) : (
-                <div className="card p-12 text-center">
-                  <p className="text-gray-600">Nu există date pentru disciplina selectată.</p>
+                <div className="bg-white border border-neutral-100 rounded-xl shadow-elev-1 p-12 text-center">
+                  <p className="text-neutral-500">Nu există date pentru disciplina selectată.</p>
                 </div>
               )}
             </div>

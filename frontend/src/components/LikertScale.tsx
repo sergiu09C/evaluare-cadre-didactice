@@ -11,31 +11,19 @@ interface LikertScaleProps {
   isReadOnly?: boolean;
 }
 
-const LIKERT_LABELS = [
-  'Dezacord total',
-  'Dezacord parțial',
-  'Neutru',
-  'Acord parțial',
-  'Acord total'
+const LIKERT_OPTIONS = [
+  { value: 1, label: 'Total dezacord' },
+  { value: 2, label: 'Dezacord' },
+  { value: 3, label: 'Neutru' },
+  { value: 4, label: 'Acord' },
+  { value: 5, label: 'Total acord' },
 ];
 
-/**
- * LikertScale Component with Keyboard Navigation
- *
- * Keyboard support:
- * - Arrow Left/Right: Navigate between options
- * - Number keys 1-5: Directly select an option
- * - Home/End: Jump to first/last option
- * - Space/Enter: Activate focused option
- *
- * @example
- * <LikertScale
- *   questionId={1}
- *   questionText="Profesorul explică clar"
- *   value={responses[1]?.likert}
- *   onChange={(value) => handleLikertChange(1, value)}
- * />
- */
+// Size-progressive grayscale (Variant C from design system).
+// Visual differentiation via SIZE, neutral grayscale to avoid color-bias.
+// Selected option draws accent-violet ring + dot.
+const SIZES = [28, 36, 44, 36, 28]; // visual symmetry around neutral
+
 export default function LikertScale({
   questionId,
   questionText,
@@ -46,7 +34,6 @@ export default function LikertScale({
 }: LikertScaleProps) {
   const radiogroupRef = useRef<HTMLDivElement>(null);
 
-  // Enable arrow key navigation for horizontal list
   useArrowNavigation({
     containerRef: radiogroupRef,
     direction: 'horizontal',
@@ -58,26 +45,18 @@ export default function LikertScale({
 
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     if (isReadOnly) return;
-
-    // Handle number keys 1-5 for direct selection
     const key = event.key;
     if (key >= '1' && key <= '5') {
       event.preventDefault();
       const numValue = parseInt(key, 10);
       onChange(numValue);
-
-      // Focus the selected button
       const buttons = radiogroupRef.current?.querySelectorAll<HTMLButtonElement>('button[role="radio"]');
-      if (buttons && buttons[numValue - 1]) {
-        buttons[numValue - 1].focus();
-      }
+      if (buttons && buttons[numValue - 1]) buttons[numValue - 1].focus();
     }
   };
 
   const handleButtonKeyDown = (event: KeyboardEvent<HTMLButtonElement>, buttonValue: number) => {
     if (isReadOnly) return;
-
-    // Handle Space and Enter to activate the button
     if (event.key === ' ' || event.key === 'Enter') {
       event.preventDefault();
       onChange(buttonValue);
@@ -85,50 +64,70 @@ export default function LikertScale({
   };
 
   return (
-    <div className="space-y-2">
-      <div className="flex justify-between text-xs text-gray-600 mb-2" aria-hidden="true">
-        <span>Dezacord total</span>
-        <span>Acord total</span>
-      </div>
+    <div className="flex flex-col gap-2.5">
       <div
         ref={radiogroupRef}
         role="radiogroup"
         aria-labelledby={`question-${questionId}`}
         aria-required={isRequired}
-        className="flex gap-2 justify-center"
         onKeyDown={handleKeyDown}
+        className="relative h-16 flex items-center"
       >
         <ScreenReaderOnly>
           Scală de evaluare de la 1 la 5, unde 1 înseamnă dezacord total și 5 înseamnă acord total.
           Folosește tastele săgeată stânga și dreapta pentru a naviga, sau apasă tastele 1-5 pentru selecție directă.
         </ScreenReaderOnly>
-        {[1, 2, 3, 4, 5].map((buttonValue) => {
-          const isSelected = value === buttonValue;
-          return (
-            <button
-              key={buttonValue}
-              type="button"
-              role="radio"
-              aria-checked={isSelected}
-              aria-label={`Nivel ${buttonValue} din 5: ${LIKERT_LABELS[buttonValue - 1]} pentru întrebarea: ${questionText}`}
-              onClick={() => !isReadOnly && onChange(buttonValue)}
-              onKeyDown={(e) => handleButtonKeyDown(e, buttonValue)}
-              disabled={isReadOnly}
-              className={`likert-button w-16 h-16 rounded-lg border-2 font-semibold transition-all ${
-                isSelected
-                  ? 'bg-primary-600 text-white border-primary-600 scale-110'
-                  : 'bg-white text-gray-700 border-gray-300 hover:border-primary-400'
-              } ${isReadOnly ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}`}
-              tabIndex={isSelected || (!value && buttonValue === 3) ? 0 : -1}
-            >
-              {buttonValue}
-            </button>
-          );
-        })}
+
+        {/* axis line */}
+        <div className="absolute left-[10%] right-[10%] top-1/2 h-px bg-neutral-200" aria-hidden="true" />
+
+        <div className="flex justify-between items-center w-full relative">
+          {LIKERT_OPTIONS.map((opt, i) => {
+            const selected = value === opt.value;
+            const sz = SIZES[i];
+            return (
+              <button
+                key={opt.value}
+                type="button"
+                role="radio"
+                aria-checked={selected}
+                aria-label={`Nivel ${opt.value} din 5: ${opt.label} pentru întrebarea: ${questionText}`}
+                tabIndex={selected || (!value && i === 2) ? 0 : -1}
+                onClick={() => !isReadOnly && onChange(opt.value)}
+                onKeyDown={(e) => handleButtonKeyDown(e, opt.value)}
+                disabled={isReadOnly}
+                className={`w-14 h-14 p-0 border-none bg-transparent flex items-center justify-center rounded-full focus:outline-none focus-visible:ring-[3px] focus-visible:ring-accent-400/50 ${
+                  isReadOnly ? 'cursor-not-allowed' : 'cursor-pointer'
+                }`}
+              >
+                <span
+                  className={`rounded-full border-[1.5px] flex items-center justify-center text-white font-semibold text-[13px] transition-all duration-fast ease-out-expo ${
+                    selected
+                      ? 'bg-accent-600 border-accent-600 scale-[1.06] shadow-[0_4px_14px_rgba(124,58,237,0.35)]'
+                      : 'bg-white border-neutral-300'
+                  }`}
+                  style={{ width: sz, height: sz }}
+                  aria-hidden="true"
+                >
+                  {selected ? opt.value : ''}
+                </span>
+              </button>
+            );
+          })}
+        </div>
       </div>
+
+      <div className="flex justify-between items-center text-[11px] text-neutral-400 px-1">
+        <span>Total dezacord</span>
+        <span className="opacity-50">Neutru</span>
+        <span>Total acord</span>
+      </div>
+
       <ScreenReaderOnly aria-live="polite" aria-atomic="true">
-        {value && `Selecție curentă: ${value} din 5 - ${LIKERT_LABELS[value - 1]}`}
+        {value && `Selecție curentă: ${value} din 5 - ${LIKERT_OPTIONS[value - 1].label}`}
       </ScreenReaderOnly>
     </div>
   );
 }
+
+export { LIKERT_OPTIONS };

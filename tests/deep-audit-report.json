@@ -1,0 +1,417 @@
+{
+  "summary": {
+    "findings": {
+      "total": 12,
+      "critical": 0,
+      "high": 0,
+      "medium": 5,
+      "low": 7
+    },
+    "errors": {
+      "consoleErrors": 0,
+      "pageErrors": 0,
+      "networkErrors": 0
+    },
+    "designScores": [
+      {
+        "page": "AdminDashboard",
+        "role": "admin",
+        "score": 100,
+        "oldClasses": 21,
+        "issues": 3
+      },
+      {
+        "page": "AdminControls",
+        "role": "admin",
+        "score": 100,
+        "oldClasses": 20,
+        "issues": 3
+      },
+      {
+        "page": "AdminReports",
+        "role": "admin",
+        "score": 100,
+        "oldClasses": 22,
+        "issues": 4
+      },
+      {
+        "page": "ProfessorDetails",
+        "role": "admin",
+        "score": 100,
+        "oldClasses": 20,
+        "issues": 3
+      },
+      {
+        "page": "ProfessorDashboard",
+        "role": "professor",
+        "score": 100,
+        "oldClasses": 21,
+        "issues": 3
+      },
+      {
+        "page": "ProfessorCourseDetails",
+        "role": "professor",
+        "score": 100,
+        "oldClasses": 21,
+        "issues": 3
+      },
+      {
+        "page": "ProfessorReports",
+        "role": "professor",
+        "score": 100,
+        "oldClasses": 21,
+        "issues": 3
+      },
+      {
+        "page": "StudentDashboard",
+        "role": "student",
+        "score": 100,
+        "oldClasses": 21,
+        "issues": 3
+      },
+      {
+        "page": "ActiveEvaluations",
+        "role": "student",
+        "score": 100,
+        "oldClasses": 20,
+        "issues": 3
+      },
+      {
+        "page": "EvaluationHistory",
+        "role": "student",
+        "score": 100,
+        "oldClasses": 20,
+        "issues": 3
+      },
+      {
+        "page": "AggregatedResults",
+        "role": "student",
+        "score": 100,
+        "oldClasses": 20,
+        "issues": 3
+      },
+      {
+        "page": "Achievements",
+        "role": "student",
+        "score": 100,
+        "oldClasses": 20,
+        "issues": 3
+      }
+    ]
+  },
+  "findings": [
+    {
+      "role": "admin",
+      "area": "controls",
+      "severity": "medium",
+      "description": "Tab \"messages\" NU este vizibil în AdminControls (sau selector incorect)",
+      "page": "/admin/controls"
+    },
+    {
+      "role": "admin",
+      "area": "controls",
+      "severity": "medium",
+      "description": "Tab \"filters\" NU este vizibil în AdminControls (sau selector incorect)",
+      "page": "/admin/controls"
+    },
+    {
+      "role": "admin",
+      "area": "controls",
+      "severity": "medium",
+      "description": "Tab \"disciplines\" NU este vizibil în AdminControls (sau selector incorect)",
+      "page": "/admin/controls"
+    },
+    {
+      "role": "admin",
+      "area": "controls",
+      "severity": "medium",
+      "description": "Tab \"questionnaire\" NU este vizibil în AdminControls (sau selector incorect)",
+      "page": "/admin/controls"
+    },
+    {
+      "role": "admin",
+      "area": "sidebar",
+      "severity": "low",
+      "description": "Sidebar admin items: [\"E\",\"Acasă · Călătoria evaluării\",\"Dashboard admin\",\"Gestionare platformă\",\"Closing-the-loop\",\"Editor ghiduri\",\"Editor achievements\",\"Feedback platformă\",\"Rapoarte\",\"Utilizatori\",\"Ghid pentru admin\",\"Deconectare\"]",
+      "page": "/admin"
+    },
+    {
+      "role": "professor",
+      "area": "navigation",
+      "severity": "medium",
+      "description": "Profesor nu are link/buton către detalii curs vizibil pe Dashboard",
+      "page": "/professor"
+    },
+    {
+      "role": "professor",
+      "area": "sidebar",
+      "severity": "low",
+      "description": "Sidebar professor items: [\"E\",\"Acasă · Călătoria evaluării\",\"Dashboard profesor\",\"Cursurile mele\",\"Studenți\",\"Acțiuni propuse\",\"Rapoarte\",\"Feedback platformă\",\"Ghid pentru profesori\",\"Deconectare\"]",
+      "page": "/professor"
+    },
+    {
+      "role": "admin",
+      "area": "questions-CRUD",
+      "severity": "low",
+      "description": "Admin poate citi 13 întrebări din chestionar"
+    },
+    {
+      "role": "cross",
+      "area": "questions-data-correlation",
+      "severity": "low",
+      "description": "OK: admin vede 13 întrebări, studentul primește 13"
+    },
+    {
+      "role": "cross",
+      "area": "messaging",
+      "severity": "low",
+      "description": "OK: Mesajul de la admin a ajuns la student"
+    },
+    {
+      "role": "admin",
+      "area": "platform-settings",
+      "severity": "low",
+      "description": "Admin poate citi setări. is_active=true, deadline=2026-05-28 18:14:35"
+    },
+    {
+      "role": "cross",
+      "area": "professor-data",
+      "severity": "low",
+      "description": "OK: Professor poate citi dashboard. Total evaluări vizibile: N/A"
+    }
+  ],
+  "designAudits": [
+    {
+      "page": "AdminDashboard",
+      "url": "/admin",
+      "role": "admin",
+      "usesNewCardClass": true,
+      "usesOldDotCard": false,
+      "usesOldBtnClass": false,
+      "usesHardcodedColors": true,
+      "usesGeistFont": true,
+      "usesNeutral25Bg": true,
+      "oldClassCount": 21,
+      "newComponentCount": 113,
+      "designScore": 100,
+      "notes": [
+        "5× \"bg-gray-*\"",
+        "5× \"text-gray-*\"",
+        "11× \"blue-* hardcodat\""
+      ]
+    },
+    {
+      "page": "AdminControls",
+      "url": "/admin/controls",
+      "role": "admin",
+      "usesNewCardClass": true,
+      "usesOldDotCard": false,
+      "usesOldBtnClass": false,
+      "usesHardcodedColors": true,
+      "usesGeistFont": true,
+      "usesNeutral25Bg": true,
+      "oldClassCount": 20,
+      "newComponentCount": 80,
+      "designScore": 100,
+      "notes": [
+        "5× \"bg-gray-*\"",
+        "5× \"text-gray-*\"",
+        "10× \"blue-* hardcodat\""
+      ]
+    },
+    {
+      "page": "AdminReports",
+      "url": "/admin/reports",
+      "role": "admin",
+      "usesNewCardClass": true,
+      "usesOldDotCard": true,
+      "usesOldBtnClass": false,
+      "usesHardcodedColors": true,
+      "usesGeistFont": true,
+      "usesNeutral25Bg": true,
+      "oldClassCount": 22,
+      "newComponentCount": 195,
+      "designScore": 100,
+      "notes": [
+        "2× clasă veche \".card\"",
+        "5× \"bg-gray-*\"",
+        "5× \"text-gray-*\"",
+        "10× \"blue-* hardcodat\""
+      ]
+    },
+    {
+      "page": "ProfessorDetails",
+      "url": "/admin/professor/1",
+      "role": "admin",
+      "usesNewCardClass": true,
+      "usesOldDotCard": false,
+      "usesOldBtnClass": false,
+      "usesHardcodedColors": true,
+      "usesGeistFont": true,
+      "usesNeutral25Bg": true,
+      "oldClassCount": 20,
+      "newComponentCount": 113,
+      "designScore": 100,
+      "notes": [
+        "5× \"bg-gray-*\"",
+        "5× \"text-gray-*\"",
+        "10× \"blue-* hardcodat\""
+      ]
+    },
+    {
+      "page": "ProfessorDashboard",
+      "url": "/professor",
+      "role": "professor",
+      "usesNewCardClass": true,
+      "usesOldDotCard": false,
+      "usesOldBtnClass": false,
+      "usesHardcodedColors": true,
+      "usesGeistFont": true,
+      "usesNeutral25Bg": true,
+      "oldClassCount": 21,
+      "newComponentCount": 112,
+      "designScore": 100,
+      "notes": [
+        "5× \"bg-gray-*\"",
+        "5× \"text-gray-*\"",
+        "11× \"blue-* hardcodat\""
+      ]
+    },
+    {
+      "page": "ProfessorCourseDetails",
+      "url": "http://localhost:3000/professor",
+      "role": "professor",
+      "usesNewCardClass": true,
+      "usesOldDotCard": false,
+      "usesOldBtnClass": false,
+      "usesHardcodedColors": true,
+      "usesGeistFont": true,
+      "usesNeutral25Bg": true,
+      "oldClassCount": 21,
+      "newComponentCount": 112,
+      "designScore": 100,
+      "notes": [
+        "5× \"bg-gray-*\"",
+        "5× \"text-gray-*\"",
+        "11× \"blue-* hardcodat\""
+      ]
+    },
+    {
+      "page": "ProfessorReports",
+      "url": "/professor/reports",
+      "role": "professor",
+      "usesNewCardClass": true,
+      "usesOldDotCard": false,
+      "usesOldBtnClass": false,
+      "usesHardcodedColors": true,
+      "usesGeistFont": true,
+      "usesNeutral25Bg": true,
+      "oldClassCount": 21,
+      "newComponentCount": 81,
+      "designScore": 100,
+      "notes": [
+        "5× \"bg-gray-*\"",
+        "5× \"text-gray-*\"",
+        "11× \"blue-* hardcodat\""
+      ]
+    },
+    {
+      "page": "StudentDashboard",
+      "url": "/",
+      "role": "student",
+      "usesNewCardClass": true,
+      "usesOldDotCard": false,
+      "usesOldBtnClass": false,
+      "usesHardcodedColors": true,
+      "usesGeistFont": true,
+      "usesNeutral25Bg": true,
+      "oldClassCount": 21,
+      "newComponentCount": 110,
+      "designScore": 100,
+      "notes": [
+        "5× \"bg-gray-*\"",
+        "5× \"text-gray-*\"",
+        "11× \"blue-* hardcodat\""
+      ]
+    },
+    {
+      "page": "ActiveEvaluations",
+      "url": "/evaluations",
+      "role": "student",
+      "usesNewCardClass": true,
+      "usesOldDotCard": false,
+      "usesOldBtnClass": false,
+      "usesHardcodedColors": true,
+      "usesGeistFont": true,
+      "usesNeutral25Bg": true,
+      "oldClassCount": 20,
+      "newComponentCount": 110,
+      "designScore": 100,
+      "notes": [
+        "5× \"bg-gray-*\"",
+        "5× \"text-gray-*\"",
+        "10× \"blue-* hardcodat\""
+      ]
+    },
+    {
+      "page": "EvaluationHistory",
+      "url": "/history",
+      "role": "student",
+      "usesNewCardClass": true,
+      "usesOldDotCard": false,
+      "usesOldBtnClass": false,
+      "usesHardcodedColors": true,
+      "usesGeistFont": true,
+      "usesNeutral25Bg": true,
+      "oldClassCount": 20,
+      "newComponentCount": 99,
+      "designScore": 100,
+      "notes": [
+        "5× \"bg-gray-*\"",
+        "5× \"text-gray-*\"",
+        "10× \"blue-* hardcodat\""
+      ]
+    },
+    {
+      "page": "AggregatedResults",
+      "url": "/results",
+      "role": "student",
+      "usesNewCardClass": true,
+      "usesOldDotCard": false,
+      "usesOldBtnClass": false,
+      "usesHardcodedColors": true,
+      "usesGeistFont": true,
+      "usesNeutral25Bg": true,
+      "oldClassCount": 20,
+      "newComponentCount": 83,
+      "designScore": 100,
+      "notes": [
+        "5× \"bg-gray-*\"",
+        "5× \"text-gray-*\"",
+        "10× \"blue-* hardcodat\""
+      ]
+    },
+    {
+      "page": "Achievements",
+      "url": "/achievements",
+      "role": "student",
+      "usesNewCardClass": true,
+      "usesOldDotCard": false,
+      "usesOldBtnClass": false,
+      "usesHardcodedColors": true,
+      "usesGeistFont": true,
+      "usesNeutral25Bg": true,
+      "oldClassCount": 20,
+      "newComponentCount": 86,
+      "designScore": 100,
+      "notes": [
+        "5× \"bg-gray-*\"",
+        "5× \"text-gray-*\"",
+        "10× \"blue-* hardcodat\""
+      ]
+    }
+  ],
+  "consoleErrors": [],
+  "pageErrors": [],
+  "networkErrors": []
+}

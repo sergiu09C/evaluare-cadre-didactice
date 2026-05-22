@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { AccessibilityProvider } from './contexts/AccessibilityContext';
@@ -5,15 +6,57 @@ import { useKeyboardShortcut } from './hooks/useKeyboardShortcut';
 import { KeyboardShortcutsHelp } from './components/a11y';
 import LoginPage from './pages/LoginPage';
 import StudentDashboard from './pages/StudentDashboard';
-import EvaluationForm from './pages/EvaluationForm';
-import AdminDashboard from './pages/AdminDashboard';
-import AdminControls from './pages/AdminControls';
-import AdminReports from './pages/AdminReports';
-import ProfessorDetails from './pages/ProfessorDetails';
-import ProfessorDashboard from './pages/ProfessorDashboard';
-import ProfessorCourseDetails from './pages/ProfessorCourseDetails';
-import ProfessorReports from './pages/ProfessorReports';
 import Layout from './components/Layout';
+import ErrorBoundary from './components/ErrorBoundary';
+import { ToastProvider } from './components/Toast';
+
+// Lazy-load less-frequent routes to keep initial JS small
+const EvaluationForm = lazy(() => import('./pages/EvaluationForm'));
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
+const AdminControls = lazy(() => import('./pages/AdminControls'));
+const AdminReports = lazy(() => import('./pages/AdminReports'));
+const AdminUsers = lazy(() => import('./pages/AdminUsers'));
+const AdminClosingLoop = lazy(() => import('./pages/AdminClosingLoop'));
+const AdminGuides = lazy(() => import('./pages/AdminGuides'));
+const AdminAchievements = lazy(() => import('./pages/AdminAchievements'));
+const AdminPlatformFeedback = lazy(() => import('./pages/AdminPlatformFeedback'));
+const PlatformFeedback = lazy(() => import('./pages/PlatformFeedback'));
+const EvaluationLifecycle = lazy(() => import('./pages/EvaluationLifecycle'));
+const ProfessorDetails = lazy(() => import('./pages/ProfessorDetails'));
+const ProfessorDashboard = lazy(() => import('./pages/ProfessorDashboard'));
+const ProfessorCourseDetails = lazy(() => import('./pages/ProfessorCourseDetails'));
+const ProfessorReports = lazy(() => import('./pages/ProfessorReports'));
+const ProfessorCourses = lazy(() => import('./pages/ProfessorCourses'));
+const ProfessorStudents = lazy(() => import('./pages/ProfessorStudents'));
+const ProfessorActions = lazy(() => import('./pages/ProfessorActions'));
+const ProfessorEvaluationDetails = lazy(() => import('./pages/ProfessorEvaluationDetails'));
+const Achievements = lazy(() => import('./pages/Achievements'));
+const EvaluationHistory = lazy(() => import('./pages/EvaluationHistory'));
+const AggregatedResults = lazy(() => import('./pages/AggregatedResults'));
+const ActiveEvaluations = lazy(() => import('./pages/ActiveEvaluations'));
+// Placeholder used to ensure the module is in graph (TS-friendly)
+const StaticPages = lazy(() =>
+  import('./pages/StaticPages').then(() => ({
+    default: () => null,
+  })),
+);
+const Terms = lazy(() => import('./pages/StaticPages').then((m) => ({ default: m.Terms })));
+const Privacy = lazy(() => import('./pages/StaticPages').then((m) => ({ default: m.Privacy })));
+// Guides citesc dinamic din DB (editabili de admin)
+const DynamicGuideLazy = lazy(() => import('./pages/DynamicGuide'));
+const Guide = () => <DynamicGuideLazy role="student" />;
+const GuideProfessor = () => <DynamicGuideLazy role="professor" />;
+const GuideAdmin = () => <DynamicGuideLazy role="admin" />;
+
+void StaticPages; // keep TS happy if not used directly
+
+function RouteLoader() {
+  return (
+    <div className="flex items-center justify-center min-h-[60vh]" role="status" aria-busy="true">
+      <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-accent-600" aria-hidden="true" />
+    </div>
+  );
+}
 
 // Protected Route Component
 function ProtectedRoute({
@@ -104,6 +147,7 @@ function AppRoutes() {
       {/* Global Keyboard Shortcuts Help - Triggered with ? key */}
       <KeyboardShortcutsHelp />
 
+      <Suspense fallback={<RouteLoader />}>
       <Routes>
       <Route
         path="/login"
@@ -118,13 +162,24 @@ function AppRoutes() {
         }
       />
 
-      {/* Student Routes */}
+      {/* Home — Lifecycle pentru toate rolurile (decizie produs:
+          studentul/profesorul/adminul vede întâi „călătoria evaluării"). */}
       <Route
         path="/"
         element={
           <ProtectedRoute>
             <Layout>
-              {isAdmin ? <Navigate to="/admin" replace /> : isProfessor ? <Navigate to="/professor" replace /> : <StudentDashboard />}
+              {isAdmin ? <Navigate to="/admin" replace /> : isProfessor ? <Navigate to="/professor" replace /> : <EvaluationLifecycle />}
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <StudentDashboard />
             </Layout>
           </ProtectedRoute>
         }
@@ -139,10 +194,94 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
+      <Route
+        path="/evaluations"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <ActiveEvaluations />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/history"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <EvaluationHistory />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/results"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <AggregatedResults />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/achievements"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <Achievements />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/guide"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <Guide />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/guide/professor"
+        element={
+          <ProtectedRoute requireProfessor>
+            <Layout>
+              <GuideProfessor />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/guide/admin"
+        element={
+          <ProtectedRoute requireAdmin>
+            <Layout>
+              <GuideAdmin />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
 
-      {/* Admin Routes */}
+      {/* Public static pages (no auth required) */}
+      <Route path="/terms" element={<Terms />} />
+      <Route path="/privacy" element={<Privacy />} />
+
+      {/* Admin Routes — Acasă = Lifecycle */}
       <Route
         path="/admin"
+        element={
+          <ProtectedRoute requireAdmin>
+            <Layout>
+              <EvaluationLifecycle />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/dashboard"
         element={
           <ProtectedRoute requireAdmin>
             <Layout>
@@ -172,6 +311,76 @@ function AppRoutes() {
         }
       />
       <Route
+        path="/admin/users"
+        element={
+          <ProtectedRoute requireAdmin>
+            <Layout>
+              <AdminUsers />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/closing-loop"
+        element={
+          <ProtectedRoute requireAdmin>
+            <Layout>
+              <AdminClosingLoop />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/guides"
+        element={
+          <ProtectedRoute requireAdmin>
+            <Layout>
+              <AdminGuides />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/achievements"
+        element={
+          <ProtectedRoute requireAdmin>
+            <Layout>
+              <AdminAchievements />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/platform-feedback"
+        element={
+          <ProtectedRoute requireAdmin>
+            <Layout>
+              <AdminPlatformFeedback />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/feedback"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <PlatformFeedback />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/lifecycle"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <EvaluationLifecycle />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/admin/professor/:id"
         element={
           <ProtectedRoute requireAdmin>
@@ -182,13 +391,53 @@ function AppRoutes() {
         }
       />
 
-      {/* Professor Routes */}
+      {/* Professor Routes — Acasă = Lifecycle */}
       <Route
         path="/professor"
         element={
           <ProtectedRoute requireProfessor>
             <Layout>
+              <EvaluationLifecycle />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/professor/dashboard"
+        element={
+          <ProtectedRoute requireProfessor>
+            <Layout>
               <ProfessorDashboard />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/professor/courses"
+        element={
+          <ProtectedRoute requireProfessor>
+            <Layout>
+              <ProfessorCourses />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/professor/students"
+        element={
+          <ProtectedRoute requireProfessor>
+            <Layout>
+              <ProfessorStudents />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/professor/actions"
+        element={
+          <ProtectedRoute requireProfessor>
+            <Layout>
+              <ProfessorActions />
             </Layout>
           </ProtectedRoute>
         }
@@ -213,23 +462,38 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
+      <Route
+        path="/professor/evaluations/:id"
+        element={
+          <ProtectedRoute requireProfessor>
+            <Layout>
+              <ProfessorEvaluationDetails />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
 
       {/* 404 */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+    </Suspense>
     </>
   );
 }
 
 function App() {
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <AccessibilityProvider>
-          <AppRoutes />
-        </AccessibilityProvider>
-      </AuthProvider>
-    </BrowserRouter>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <AuthProvider>
+          <AccessibilityProvider>
+            <ToastProvider>
+              <AppRoutes />
+            </ToastProvider>
+          </AccessibilityProvider>
+        </AuthProvider>
+      </BrowserRouter>
+    </ErrorBoundary>
   );
 }
 

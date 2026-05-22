@@ -70,9 +70,9 @@ const ExportButton: React.FC<ExportButtonProps> = ({
   };
 
   const variantStyles = {
-    primary: 'bg-blue-600 hover:bg-blue-700 text-white border-transparent',
+    primary: 'bg-info hover:bg-info-fg text-white border-transparent',
     secondary: 'bg-gray-600 hover:bg-gray-700 text-white border-transparent',
-    outline: 'bg-white hover:bg-gray-50 text-gray-700 border-gray-300 hover:border-gray-400'
+    outline: 'bg-white hover:bg-neutral-25 text-neutral-700 border-neutral-200 hover:border-gray-400'
   };
 
   const sizeStyles = {

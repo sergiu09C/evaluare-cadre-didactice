@@ -34,9 +34,33 @@ exports.getFeedbackStats = (req, res, next) => {
       WHERE p.faculty_id = ? AND u.role = 'student'
     `).get(student.faculty_id);
 
-    const completionRate = facultyStats.total_evaluations > 0
-      ? Math.round((facultyStats.completed_evaluations / facultyStats.total_evaluations) * 100)
-      : 0;
+    // CORECT: submitted_per_faculty / max_possible_per_faculty (NU submitted/total_evals)
+    const facMaxRow = db
+      .prepare(
+        `SELECT SUM(student_counts.cnt) AS max_evals
+         FROM courses c
+         JOIN professors p2 ON p2.id = c.professor_id
+         JOIN (
+           SELECT sy.id AS sy_id, COUNT(*) AS cnt
+           FROM users u
+           JOIN groups g ON g.id = u.group_id
+           JOIN series s ON s.id = g.series_id
+           JOIN study_years sy ON sy.id = s.study_year_id
+           WHERE u.role='student' AND u.is_active=1
+           GROUP BY sy.id
+         ) student_counts ON student_counts.sy_id = c.study_year_id
+         WHERE p2.faculty_id = ?`,
+      )
+      .get(student.faculty_id);
+    const facSubmitted = db
+      .prepare(
+        `SELECT COUNT(*) AS n FROM evaluations e
+         JOIN professors p ON p.id = e.professor_id
+         WHERE e.status='submitted' AND p.faculty_id = ?`,
+      )
+      .get(student.faculty_id).n;
+    const completionRate =
+      facMaxRow?.max_evals > 0 ? Math.round((facSubmitted / facMaxRow.max_evals) * 100) : 0;
 
     // Stats per program (anonymous)
     const programStats = db.prepare(`
@@ -57,7 +81,43 @@ exports.getFeedbackStats = (req, res, next) => {
       FROM evaluations
     `).get();
 
+    // === byCategory pentru DualRadar (tu vs facultate) — categorii Likert ===
+    const studentByCategory = db
+      .prepare(
+        `SELECT q.category, AVG(r.response_likert) AS avg
+         FROM responses r
+         JOIN questions q ON q.id = r.question_id
+         JOIN evaluations e ON e.id = r.evaluation_id
+         WHERE e.student_id = ? AND e.status='submitted' AND r.response_likert IS NOT NULL
+         GROUP BY q.category`,
+      )
+      .all(req.user.id);
+    const facultyByCategory = db
+      .prepare(
+        `SELECT q.category, AVG(r.response_likert) AS avg
+         FROM responses r
+         JOIN questions q ON q.id = r.question_id
+         JOIN evaluations e ON e.id = r.evaluation_id
+         JOIN professors p ON p.id = e.professor_id
+         WHERE p.faculty_id = ? AND e.status='submitted' AND r.response_likert IS NOT NULL
+         GROUP BY q.category`,
+      )
+      .all(student.faculty_id);
+    const byCategory = {};
+    for (const r of studentByCategory) {
+      byCategory[r.category] = {
+        current: r.avg != null ? parseFloat(r.avg.toFixed(2)) : null,
+        previous: null,
+        facultyAvg: null,
+      };
+    }
+    for (const r of facultyByCategory) {
+      if (!byCategory[r.category]) byCategory[r.category] = { current: null, previous: null, facultyAvg: null };
+      byCategory[r.category].facultyAvg = r.avg != null ? parseFloat(r.avg.toFixed(2)) : null;
+    }
+
     res.json({
+      byCategory,
       faculty: {
         completionRate,
         activeStudents: facultyStats.active_students,
@@ -176,7 +236,7 @@ exports.getAchievements = (req, res, next) => {
       INNER JOIN questions q ON q.id = r.question_id
       WHERE e.student_id = ?
         AND q.type = 'text'
-        AND LENGTH(r.text_response) > 50
+        AND LENGTH(r.response_text) > 50
     `).get(studentId).count;
 
     if (textResponses >= 10) {
@@ -209,9 +269,20 @@ exports.getAchievements = (req, res, next) => {
       }
     };
 
+    // Streak = numărul de semestre distincte cu submission
+    const streak = db
+      .prepare(
+        `SELECT COUNT(DISTINCT c.academic_year || '-' || c.semester) AS n
+         FROM evaluations e
+         JOIN courses c ON c.id = e.course_id
+         WHERE e.student_id = ? AND e.status = 'submitted'`,
+      )
+      .get(studentId).n;
+
     res.json({
       achievements,
       progress,
+      streak,
       totalBadges: achievements.length,
       totalPossible: 4
     });

@@ -39,4 +39,17 @@ router.get('/stats/by-year', adminController.getYearStats);
 // GET /api/admin/stats/by-course-type - Statistici pe tipuri de curs (curs/lab/seminar)
 router.get('/stats/by-course-type', adminController.getCourseTypeStats);
 
+// === USERS CRUD ===
+const adminUsersController = require('../controllers/adminUsersController');
+router.get('/users', adminUsersController.list);
+router.get('/users/counts', adminUsersController.counts);
+router.get('/users/:id/professor-profile', adminUsersController.getProfessorProfile);
+router.post('/users', adminUsersController.create);
+router.put('/users/:id', adminUsersController.update);
+router.delete('/users/:id', adminUsersController.deactivate);
+
+// Lookups pentru editor profil profesor
+router.get('/lookup/courses', adminUsersController.lookupCourses);
+router.get('/lookup/departments', adminUsersController.lookupDepartments);
+
 module.exports = router;

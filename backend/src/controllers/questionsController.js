@@ -78,11 +78,18 @@ exports.updateQuestion = (req, res) => {
 
     const db = getDatabase();
 
+    // Preserve existing order_index if not provided (better-sqlite3 doesn't accept undefined)
+    const existing = db.prepare('SELECT order_index FROM questions WHERE id = ?').get(id);
+    if (!existing) {
+      return res.status(404).json({ error: 'Întrebarea nu a fost găsită' });
+    }
+    const orderIdx = order_index ?? existing.order_index;
+
     const result = db.prepare(`
       UPDATE questions
       SET text = ?, type = ?, category = ?, order_index = ?, is_required = ?
       WHERE id = ?
-    `).run(text, type, category, order_index, is_required ? 1 : 0, id);
+    `).run(text, type, category, orderIdx, is_required ? 1 : 0, id);
 
     if (result.changes === 0) {
       return res.status(404).json({ error: 'Întrebarea nu a fost găsită' });
@@ -93,7 +100,7 @@ exports.updateQuestion = (req, res) => {
     res.json({ message: 'Întrebare actualizată cu succes', question: updatedQuestion });
   } catch (error) {
     console.error('Error updating question:', error);
-    res.status(500).json({ error: 'Eroare la actualizarea întrebării' });
+    res.status(500).json({ error: 'Eroare la actualizarea întrebării', detail: error.message });
   }
 };
 

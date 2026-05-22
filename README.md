@@ -1,6 +1,6 @@
 # 📚 Platformă de Evaluare Cadre Didactice
 
-[![GitHub](https://img.shields.io/badge/github-AntiGravity-blue?logo=github)](https://github.com/sergiu09C/AntiGravity)
+[![GitHub](https://img.shields.io/badge/github-evaluare--cadre--didactice-blue?logo=github)](https://github.com/sergiu09C/evaluare-cadre-didactice)
 [![License](https://img.shields.io/badge/license-Private-red)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen?logo=node.js)](https://nodejs.org/)
 [![React](https://img.shields.io/badge/react-18.2.0-blue?logo=react)](https://reactjs.org/)
@@ -148,8 +148,8 @@ git --version    # ar trebui să afișeze 2.x.x sau mai nou
 ### 1. Clonare Repository
 
 ```bash
-git clone https://github.com/sergiu09C/AntiGravity.git
-cd AntiGravity
+git clone https://github.com/sergiu09C/evaluare-cadre-didactice.git
+cd evaluare-cadre-didactice
 ```
 
 ### 2. Instalare Dependențe Backend
@@ -303,7 +303,7 @@ Deschide browser-ul la: **http://localhost:3000**
 ## 📁 Structura Proiectului
 
 ```
-AntiGravity/
+evaluare-cadre-didactice/
 ├── backend/                           # Backend Node.js + Express
 │   ├── src/
 │   │   ├── config/                   # Configurare database
@@ -806,7 +806,7 @@ NODE_ENV=production node src/server.js
 
 # Sau cu PM2 (recomandat)
 npm install -g pm2
-pm2 start src/server.js --name "antigravity-backend" -i max
+pm2 start src/server.js --name "ecd-backend" -i max
 pm2 save
 pm2 startup  # Configurare auto-restart la reboot
 ```
@@ -895,8 +895,8 @@ sudo npm install -g pm2
 2. **Clone repository:**
 ```bash
 cd /var/www
-sudo git clone https://github.com/sergiu09C/AntiGravity.git
-cd AntiGravity
+sudo git clone https://github.com/sergiu09C/evaluare-cadre-didactice.git
+cd evaluare-cadre-didactice
 sudo chown -R $USER:$USER .
 ```
 
@@ -912,7 +912,7 @@ nano .env  # Configurează variabile producție
 # Update config/database.js pentru PostgreSQL
 
 # Start cu PM2
-pm2 start src/server.js --name antigravity-api -i max
+pm2 start src/server.js --name ecd-api -i max
 pm2 save
 pm2 startup
 ```
@@ -922,12 +922,12 @@ pm2 startup
 cd ../frontend
 npm install
 npm run build
-sudo cp -r dist/* /var/www/html/antigravity/
+sudo cp -r dist/* /var/www/html/ecd/
 ```
 
 5. **Configurare Nginx:**
 ```bash
-sudo nano /etc/nginx/sites-available/antigravity
+sudo nano /etc/nginx/sites-available/ecd
 ```
 
 ```nginx
@@ -935,7 +935,7 @@ server {
     listen 80;
     server_name yourdomain.com www.yourdomain.com;
 
-    root /var/www/html/antigravity;
+    root /var/www/html/ecd;
     index index.html;
 
     # Frontend (SPA)
@@ -964,7 +964,7 @@ server {
 ```
 
 ```bash
-sudo ln -s /etc/nginx/sites-available/antigravity /etc/nginx/sites-enabled/
+sudo ln -s /etc/nginx/sites-available/ecd /etc/nginx/sites-enabled/
 sudo nginx -t
 sudo systemctl restart nginx
 ```
@@ -983,18 +983,18 @@ sudo certbot renew --dry-run  # Test auto-renewal
 ```bash
 # Azure CLI
 az login
-az group create --name AntiGravityRG --location eastus
+az group create --name EvaluareCadreRG --location eastus
 
 # Backend - Azure App Service
-az appservice plan create --name AntiGravityPlan --resource-group AntiGravityRG --sku B1 --is-linux
-az webapp create --resource-group AntiGravityRG --plan AntiGravityPlan --name antigravity-api --runtime "NODE|18-lts"
-az webapp deployment source config --name antigravity-api --resource-group AntiGravityRG --repo-url https://github.com/sergiu09C/AntiGravity --branch main --manual-integration
+az appservice plan create --name EvaluareCadrePlan --resource-group EvaluareCadreRG --sku B1 --is-linux
+az webapp create --resource-group EvaluareCadreRG --plan EvaluareCadrePlan --name ecd-api --runtime "NODE|18-lts"
+az webapp deployment source config --name ecd-api --resource-group EvaluareCadreRG --repo-url https://github.com/sergiu09C/evaluare-cadre-didactice --branch main --manual-integration
 
 # Frontend - Azure Static Web Apps
-az staticwebapp create --name antigravity-frontend --resource-group AntiGravityRG --source https://github.com/sergiu09C/AntiGravity --branch main --app-location "/frontend" --output-location "dist"
+az staticwebapp create --name ecd-frontend --resource-group EvaluareCadreRG --source https://github.com/sergiu09C/evaluare-cadre-didactice --branch main --app-location "/frontend" --output-location "dist"
 
 # Database - Azure Database for PostgreSQL
-az postgres server create --resource-group AntiGravityRG --name antigravity-db --admin-user dbadmin --admin-password <password> --sku-name B_Gen5_1
+az postgres server create --resource-group EvaluareCadreRG --name evaluare-cadre-didactice-db --admin-user dbadmin --admin-password <password> --sku-name B_Gen5_1
 ```
 
 #### **Heroku**
@@ -1007,18 +1007,18 @@ curl https://cli-assets.heroku.com/install.sh | sh
 heroku login
 
 # Create apps
-heroku create antigravity-api
-heroku create antigravity-frontend
+heroku create ecd-api
+heroku create ecd-frontend
 
 # Backend
 cd backend
 git init
-heroku git:remote -a antigravity-api
+heroku git:remote -a ecd-api
 git push heroku main
 
 # Frontend (buildpack Node.js)
 cd ../frontend
-heroku buildpacks:set heroku/nodejs -a antigravity-frontend
+heroku buildpacks:set heroku/nodejs -a ecd-frontend
 git push heroku main
 ```
 
@@ -1027,7 +1027,7 @@ git push heroku main
 1. Fork repository pe GitHub
 2. Mergi la https://cloud.digitalocean.com/apps
 3. Click "Create App" → Connect GitHub
-4. Selectează repository `AntiGravity`
+4. Selectează repository `Evaluarea Cadrelor Didactice`
 5. Configurează 2 componente:
    - **Backend:** Node.js, build command `cd backend && npm install`, run command `node src/server.js`
    - **Frontend:** Static Site, build command `cd frontend && npm install && npm run build`, output dir `frontend/dist`
@@ -1176,8 +1176,8 @@ Toate drepturile rezervate. Nu este permisă redistribuirea sau utilizarea comer
 
 Pentru întrebări, bug reports sau feature requests:
 
-- **GitHub Issues:** https://github.com/sergiu09C/AntiGravity/issues
-- **GitHub Discussions:** https://github.com/sergiu09C/AntiGravity/discussions
+- **GitHub Issues:** https://github.com/sergiu09C/evaluare-cadre-didactice/issues
+- **GitHub Discussions:** https://github.com/sergiu09C/evaluare-cadre-didactice/discussions
 - **Email:** support@youruni.ro (placeholder)
 
 ---
@@ -1197,7 +1197,7 @@ Mulțumiri speciale:
 
 *Platforma este dezvoltată cu scopul de a îmbunătăți calitatea educației prin feedback constructiv și anonim. Respectă confidențialitatea studenților și profesorilor, și folosește datele responsabil.*
 
-**Repository:** https://github.com/sergiu09C/AntiGravity
+**Repository:** https://github.com/sergiu09C/evaluare-cadre-didactice
 
 **Dezvoltat în:** 2025
 **Ultima actualizare:** Februarie 2025

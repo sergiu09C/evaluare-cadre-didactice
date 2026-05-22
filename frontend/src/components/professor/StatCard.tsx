@@ -21,16 +21,16 @@ const StatCard: React.FC<StatCardProps> = ({
   variant = 'default'
 }) => {
   const variantStyles = {
-    default: 'bg-white border-gray-200',
-    primary: 'bg-blue-50 border-blue-200',
+    default: 'bg-white border-neutral-200',
+    primary: 'bg-info-bg border-blue-200',
     success: 'bg-green-50 border-green-200',
     warning: 'bg-yellow-50 border-yellow-200',
     danger: 'bg-red-50 border-red-200'
   };
 
   const iconColors = {
-    default: 'text-gray-600',
-    primary: 'text-blue-600',
+    default: 'text-neutral-500',
+    primary: 'text-info-fg',
     success: 'text-green-600',
     warning: 'text-yellow-600',
     danger: 'text-red-600'
@@ -40,9 +40,9 @@ const StatCard: React.FC<StatCardProps> = ({
     <div className={`rounded-lg border-2 p-6 shadow-sm transition-all hover:shadow-md ${variantStyles[variant]}`}>
       <div className="flex items-start justify-between">
         <div className="flex-1">
-          <p className="text-sm font-medium text-gray-600 mb-1">{title}</p>
+          <p className="text-sm font-medium text-neutral-500 mb-1">{title}</p>
           <div className="flex items-baseline gap-2">
-            <p className="text-3xl font-bold text-gray-900">{value}</p>
+            <p className="text-3xl font-bold text-neutral-800">{value}</p>
             {trend && (
               <span
                 className={`text-sm font-medium flex items-center gap-1 ${
@@ -63,7 +63,7 @@ const StatCard: React.FC<StatCardProps> = ({
             )}
           </div>
           {subtitle && (
-            <p className="text-sm text-gray-500 mt-1">{subtitle}</p>
+            <p className="text-sm text-neutral-500 mt-1">{subtitle}</p>
           )}
         </div>
         {icon && (

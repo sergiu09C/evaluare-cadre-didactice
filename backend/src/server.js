@@ -12,7 +12,10 @@ const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(helmet()); // Security headers
-app.use(cors()); // Enable CORS
+const corsOrigin = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(',').map((s) => s.trim())
+  : true;
+app.use(cors({ origin: corsOrigin, credentials: true }));
 app.use(express.json()); // Parse JSON bodies
 app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
 app.use(morgan('dev')); // HTTP request logger
@@ -26,6 +29,52 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// Public stats (no auth) — used by login page brand panel
+app.get('/api/public-stats', (req, res, next) => {
+  try {
+    const { getDatabase } = require('./config/database');
+    const db = getDatabase();
+    const totalStudents = db.prepare("SELECT COUNT(*) AS n FROM users WHERE role='student'").get().n;
+    const submittedCount = db.prepare("SELECT COUNT(*) AS n FROM evaluations WHERE status='submitted'").get().n;
+    const totalRequired = db
+      .prepare(
+        `SELECT COUNT(*) AS n
+         FROM users u
+         INNER JOIN groups g ON g.id = u.group_id
+         INNER JOIN series s ON s.id = g.series_id
+         INNER JOIN study_years sy ON sy.id = s.study_year_id
+         INNER JOIN courses c ON c.study_year_id = sy.id
+         WHERE u.role = 'student' AND c.academic_year = (
+           SELECT academic_year FROM courses ORDER BY academic_year DESC LIMIT 1
+         )`,
+      )
+      .get().n;
+    const completionRate = totalRequired > 0 ? Math.round((submittedCount / totalRequired) * 100) : 0;
+    const avgRow = db
+      .prepare(
+        `SELECT AVG(r.response_likert) AS avg
+         FROM responses r
+         JOIN evaluations e ON e.id = r.evaluation_id
+         WHERE r.response_likert IS NOT NULL AND e.status = 'submitted'`,
+      )
+      .get();
+    const avgScore = avgRow.avg ? Number(avgRow.avg.toFixed(2)) : 0;
+    const settings = db
+      .prepare('SELECT is_active, evaluation_deadline_date FROM platform_settings LIMIT 1')
+      .get();
+    res.json({
+      participation_rate: completionRate,
+      avg_score: avgScore,
+      submitted_count: submittedCount,
+      total_students: totalStudents,
+      is_active: settings ? !!settings.is_active : true,
+      deadline: settings?.evaluation_deadline_date || null,
+    });
+  } catch (e) {
+    next(e);
+  }
+});
+
 // API Routes
 app.use('/api/auth', require('./routes/auth'));
 // For protected routes: authenticate first, THEN check platform status
@@ -36,6 +85,12 @@ app.use('/api/questions', require('./routes/questions'));
 app.use('/api/user', require('./routes/user'));
 app.use('/api/student', authenticateToken, require('./routes/feedback'));
 app.use('/api/professor', require('./routes/professorRoutes'));
+app.use('/api/notifications', require('./routes/notifications'));
+app.use('/api/closing-the-loop', require('./routes/closingLoop'));
+app.use('/api/guides', require('./routes/guides'));
+app.use('/api/achievements', require('./routes/achievements'));
+app.use('/api/platform-feedback', require('./routes/platformFeedback'));
+app.use('/api/actions', require('./routes/actions'));
 
 // Error handlers (must be last)
 app.use(notFoundHandler);

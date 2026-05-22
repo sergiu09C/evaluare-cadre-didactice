@@ -1,9 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
-import StatCard from '../components/professor/StatCard';
 import ResponseChart from '../components/professor/ResponseChart';
+import StackedSemanticBar from '../components/charts/StackedSemanticBar';
 import AnonymizedFeedback from '../components/professor/AnonymizedFeedback';
+import IndividualEvaluations from '../components/professor/IndividualEvaluations';
+import { Card, Badge, Button, KPICard, Select, EmptyState } from '../components/ui';
+import {
+  ArrowLeftIcon,
+  ArrowDownTrayIcon,
+  BookOpenIcon,
+  CalendarIcon,
+  ExclamationTriangleIcon,
+} from '@heroicons/react/24/outline';
 
 interface CourseStats {
   course: {
@@ -24,350 +33,322 @@ interface CourseStats {
     type: string;
     averageScore: number | null;
     responseCount: number;
-    distribution: {
-      score1: number;
-      score2: number;
-      score3: number;
-      score4: number;
-      score5: number;
-    };
+    distribution: { score1: number; score2: number; score3: number; score4: number; score5: number };
   }>;
-  textFeedback: Array<{
-    question: string;
-    category: string;
-    answer: string;
-    submittedAt: string;
-  }> | { message: string };
+  textFeedback:
+    | Array<{ question: string; category: string; answer: string; submittedAt: string }>
+    | { message: string };
 }
 
-const ProfessorCourseDetails: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
-  const courseId = Number(id);
+function scoreColor(score: number | null): string {
+  if (score == null) return 'text-neutral-500';
+  if (score >= 4.5) return 'text-success-fg';
+  if (score >= 4.0) return 'text-info-fg';
+  if (score >= 3.5) return 'text-warning-fg';
+  return 'text-danger-fg';
+}
 
+function scoreTone(score: number | null): 'success' | 'info' | 'warning' | 'danger' | 'neutral' {
+  if (score == null) return 'neutral';
+  if (score >= 4.5) return 'success';
+  if (score >= 4.0) return 'info';
+  if (score >= 3.5) return 'warning';
+  return 'danger';
+}
+
+export default function ProfessorCourseDetails() {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const courseId = Number(id);
   const [loading, setLoading] = useState(true);
-  const [courseStats, setCourseStats] = useState<CourseStats | null>(null);
+  const [stats, setStats] = useState<CourseStats | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [chartType, setChartType] = useState<'bar' | 'pie'>('bar');
+  const [chartType, setChartType] = useState<'bar' | 'pie' | 'stacked'>('stacked');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
-    const fetchCourseStats = async () => {
+    if (!courseId) return;
+    (async () => {
       try {
         setLoading(true);
-        setError(null);
         const data = await api.getProfessorCourseStats(courseId);
-        setCourseStats(data);
+        setStats(data);
       } catch (err: any) {
-        console.error('Error fetching course stats:', err);
         setError(err.response?.data?.error || 'Eroare la încărcarea statisticilor cursului');
       } finally {
         setLoading(false);
       }
-    };
-
-    if (courseId) {
-      fetchCourseStats();
-    }
+    })();
   }, [courseId]);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Se încarcă statisticile cursului...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error || !courseStats) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="bg-red-50 border-2 border-red-200 rounded-lg p-6 max-w-md">
-          <div className="flex items-center gap-3 mb-2">
-            <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <h3 className="text-lg font-semibold text-red-900">Eroare</h3>
-          </div>
-          <p className="text-red-700 mb-4">{error || 'Cursul nu a fost găsit'}</p>
-          <Link
-            to="/professor"
-            className="inline-flex items-center gap-2 text-sm font-medium text-red-600 hover:text-red-700"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
-            Înapoi la dashboard
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
-  // Get unique categories
-  const categories = ['all', ...new Set(courseStats.questionDistribution.map(q => q.category))];
-
-  // Filter questions by category
-  const filteredQuestions = selectedCategory === 'all'
-    ? courseStats.questionDistribution
-    : courseStats.questionDistribution.filter(q => q.category === selectedCategory);
-
-  // Calculate category averages
-  const categoryAverages = categories.slice(1).map(category => {
-    const categoryQuestions = courseStats.questionDistribution.filter(q => q.category === category);
-    const total = categoryQuestions.reduce((sum, q) => sum + (q.averageScore || 0), 0);
-    const avg = categoryQuestions.length > 0 ? total / categoryQuestions.length : 0;
-    return { category, average: avg, count: categoryQuestions.length };
-  });
-
   const handleExport = async () => {
+    if (!stats) return;
     try {
+      setExporting(true);
       const blob = await api.exportProfessorData({ courseId });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `evaluari-${courseStats.course.name.replace(/\s+/g, '-')}-${new Date().toISOString().split('T')[0]}.csv`;
+      a.download = `evaluari-${stats.course.name.replace(/\s+/g, '-')}-${new Date().toISOString().split('T')[0]}.csv`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
-    } catch (err) {
-      console.error('Export error:', err);
-      alert('Eroare la exportul datelor');
+    } finally {
+      setExporting(false);
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Breadcrumb */}
-        <div className="mb-6">
-          <Link
-            to="/professor"
-            className="inline-flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-700 mb-4"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
+  if (loading) {
+    return (
+      <div className="text-center py-16" role="status" aria-busy="true">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent-600 mx-auto mb-4" aria-hidden="true" />
+        <div className="text-neutral-500">Se încarcă statisticile cursului...</div>
+      </div>
+    );
+  }
+
+  if (error || !stats) {
+    return (
+      <Card tone="danger" className="flex gap-3 items-start max-w-2xl">
+        <ExclamationTriangleIcon className="w-5 h-5 text-danger shrink-0 mt-0.5" aria-hidden="true" />
+        <div className="flex-1">
+          <h3 className="font-semibold text-danger-fg">Eroare</h3>
+          <p className="text-sm text-danger-fg mt-1">{error || 'Cursul nu a fost găsit'}</p>
+          <Button variant="secondary" size="sm" className="mt-3" icon={<ArrowLeftIcon />} onClick={() => navigate('/professor')}>
             Înapoi la dashboard
-          </Link>
+          </Button>
         </div>
+      </Card>
+    );
+  }
 
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            {courseStats.course.name}
-          </h1>
-          <div className="flex items-center gap-4 text-sm text-gray-600">
-            <span className="inline-flex items-center gap-1">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-              </svg>
-              {courseStats.course.courseType}
-            </span>
-            <span className="inline-flex items-center gap-1">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-              Semestrul {courseStats.course.semester}
-            </span>
-            <span>{courseStats.course.academicYear}</span>
-          </div>
+  const categories = ['all', ...new Set(stats.questionDistribution.map((q) => q.category))];
+  const filteredQuestions =
+    selectedCategory === 'all'
+      ? stats.questionDistribution
+      : stats.questionDistribution.filter((q) => q.category === selectedCategory);
+
+  const categoryAverages = categories.slice(1).map((category) => {
+    const qs = stats.questionDistribution.filter((q) => q.category === category);
+    const total = qs.reduce((sum, q) => sum + (q.averageScore || 0), 0);
+    const avg = qs.length > 0 ? total / qs.length : 0;
+    return { category, average: avg, count: qs.length };
+  });
+
+  return (
+    <div className="flex flex-col gap-7 max-w-[1280px]">
+      {/* Breadcrumb */}
+      <button
+        onClick={() => navigate('/professor')}
+        className="inline-flex items-center gap-1.5 text-[13px] text-neutral-500 hover:text-neutral-800 self-start focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-400/40 rounded px-1"
+      >
+        <ArrowLeftIcon className="w-3.5 h-3.5" aria-hidden="true" />
+        Înapoi la dashboard
+      </button>
+
+      {/* Header */}
+      <div>
+        <h1 className="font-display text-[30px] font-semibold tracking-tight text-neutral-800">
+          {stats.course.name}
+        </h1>
+        <div className="flex items-center gap-4 mt-2 text-sm text-neutral-500 flex-wrap">
+          <span className="inline-flex items-center gap-1.5">
+            <BookOpenIcon className="w-4 h-4" aria-hidden="true" />
+            {stats.course.courseType}
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <CalendarIcon className="w-4 h-4" aria-hidden="true" />
+            Semestrul {stats.course.semester} · {stats.course.academicYear}
+          </span>
         </div>
+      </div>
 
-        {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          <StatCard
-            title="Total Evaluări"
-            value={courseStats.statistics.totalEvaluations}
-            subtitle="evaluări completate"
-            variant="primary"
-            icon={
-              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-              </svg>
-            }
-          />
+      {/* KPIs */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <KPICard
+          label="Total evaluări"
+          value={stats.statistics.totalEvaluations}
+          footnote="evaluări completate"
+        />
+        <KPICard
+          label="Scor mediu"
+          value={stats.statistics.averageScore != null ? stats.statistics.averageScore.toFixed(2).replace('.', ',') : '—'}
+          suffix={stats.statistics.averageScore != null ? '/ 5,00' : ''}
+        />
+      </div>
 
-          <StatCard
-            title="Scor Mediu"
-            value={courseStats.statistics.averageScore
-              ? courseStats.statistics.averageScore.toFixed(2)
-              : 'N/A'
-            }
-            subtitle="din 5.00"
-            variant={
-              courseStats.statistics.averageScore
-                ? courseStats.statistics.averageScore >= 4.5 ? 'success'
-                : courseStats.statistics.averageScore >= 4.0 ? 'primary'
-                : courseStats.statistics.averageScore >= 3.5 ? 'warning'
-                : 'danger'
-                : 'default'
-            }
-            icon={
-              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-              </svg>
-            }
-          />
-        </div>
-
-        {/* Category Averages */}
-        {categoryAverages.length > 0 && (
-          <div className="bg-white rounded-lg border-2 border-gray-200 p-6 mb-8">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Medii pe Categorii</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {categoryAverages.map((item) => (
-                <div key={item.category} className="bg-gray-50 rounded-lg p-4">
-                  <h3 className="text-sm font-medium text-gray-600 mb-1">{item.category}</h3>
-                  <div className="flex items-baseline gap-2">
-                    <span className={`text-2xl font-bold ${
-                      item.average >= 4.5 ? 'text-green-600' :
-                      item.average >= 4.0 ? 'text-blue-600' :
-                      item.average >= 3.5 ? 'text-yellow-600' :
-                      'text-red-600'
-                    }`}>
-                      {item.average.toFixed(2)}
-                    </span>
-                    <span className="text-sm text-gray-500">/ 5.00</span>
-                  </div>
-                  <p className="text-xs text-gray-500 mt-1">{item.count} întrebări</p>
+      {/* Category averages */}
+      {categoryAverages.length > 0 && (
+        <section>
+          <h2 className="text-xl font-semibold text-neutral-800 mb-4">Medii pe dimensiuni</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {categoryAverages.map((item) => (
+              <Card key={item.category} padding="md">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                    {item.category}
+                  </h3>
+                  <Badge tone={scoreTone(item.average)}>
+                    {item.average >= 4.5
+                      ? 'Excelent'
+                      : item.average >= 4.0
+                        ? 'Foarte bun'
+                        : item.average >= 3.5
+                          ? 'Bun'
+                          : 'Atenție'}
+                  </Badge>
                 </div>
+                <div className="flex items-baseline gap-2">
+                  <span className={`font-display text-3xl font-semibold ${scoreColor(item.average)}`}>
+                    {item.average.toFixed(2).replace('.', ',')}
+                  </span>
+                  <span className="text-sm text-neutral-500">/ 5,00</span>
+                </div>
+                <p className="text-xs text-neutral-400 mt-1.5">{item.count} întrebări</p>
+              </Card>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Distribution chart */}
+      <Card>
+        <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
+          <h2 className="text-xl font-semibold text-neutral-800">Distribuție răspunsuri</h2>
+          <div className="flex items-center gap-3 flex-wrap">
+            <Select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              wrapperClassName="min-w-[160px]"
+            >
+              <option value="all">Toate categoriile</option>
+              {categories.slice(1).map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </Select>
+            <div className="inline-flex p-1 bg-neutral-100 rounded-lg">
+              {[
+                { id: 'stacked' as const, label: 'Semantic' },
+                { id: 'bar' as const, label: 'Bare' },
+                { id: 'pie' as const, label: 'Pie' },
+              ].map((opt) => (
+                <button
+                  key={opt.id}
+                  onClick={() => setChartType(opt.id)}
+                  className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-400/40 ${
+                    chartType === opt.id ? 'bg-white text-neutral-800 shadow-elev-1' : 'text-neutral-500'
+                  }`}
+                >
+                  {opt.label}
+                </button>
               ))}
             </div>
           </div>
-        )}
+        </div>
 
-        {/* Question Distribution Chart */}
-        <div className="bg-white rounded-lg border-2 border-gray-200 p-6 mb-8">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-gray-900">Distribuție Răspunsuri</h2>
-            <div className="flex items-center gap-4">
-              {/* Category Filter */}
-              <select
-                className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-              >
-                <option value="all">Toate categoriile</option>
-                {categories.slice(1).map(category => (
-                  <option key={category} value={category}>{category}</option>
-                ))}
-              </select>
-
-              {/* Chart Type Toggle */}
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setChartType('bar')}
-                  className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
-                    chartType === 'bar'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  Bare
-                </button>
-                <button
-                  onClick={() => setChartType('pie')}
-                  className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
-                    chartType === 'pie'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  Pie
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <ResponseChart
-            data={filteredQuestions}
-            chartType={chartType}
-            showLegend={true}
+        {chartType === 'stacked' ? (
+          <StackedSemanticBar
+            data={filteredQuestions as any}
+            referenceScore={stats.statistics.averageScore}
+            referenceLabel="Media curs"
             height={500}
           />
-        </div>
+        ) : (
+          <ResponseChart data={filteredQuestions} chartType={chartType} showLegend height={500} />
+        )}
+      </Card>
 
-        {/* Question Details Table */}
-        <div className="bg-white rounded-lg border-2 border-gray-200 p-6 mb-8">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">Detalii Întrebări</h2>
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Întrebare
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Categorie
-                  </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Răspunsuri
-                  </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Medie
-                  </th>
+      {/* Question detail table */}
+      <Card padding="none" className="overflow-hidden">
+        <div className="px-6 py-4 border-b border-neutral-100">
+          <h2 className="text-base font-semibold">Detalii întrebări</h2>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="min-w-full">
+            <thead className="bg-neutral-25">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-neutral-500 uppercase tracking-wide">
+                  Întrebare
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-neutral-500 uppercase tracking-wide">
+                  Categorie
+                </th>
+                <th className="px-6 py-3 text-center text-xs font-semibold text-neutral-500 uppercase tracking-wide">
+                  Răspunsuri
+                </th>
+                <th className="px-6 py-3 text-center text-xs font-semibold text-neutral-500 uppercase tracking-wide">
+                  Medie
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredQuestions.map((q, i) => (
+                <tr
+                  key={q.questionId}
+                  className={`hover:bg-neutral-25 ${i < filteredQuestions.length - 1 ? 'border-b border-neutral-100' : ''}`}
+                >
+                  <td className="px-6 py-4 text-sm text-neutral-800">{q.questionText}</td>
+                  <td className="px-6 py-4">
+                    <Badge tone="accent">{q.category}</Badge>
+                  </td>
+                  <td className="px-6 py-4 text-sm text-neutral-800 text-center font-mono">
+                    {q.responseCount}
+                  </td>
+                  <td className="px-6 py-4 text-center">
+                    <span className={`font-display font-semibold ${scoreColor(q.averageScore)}`}>
+                      {q.averageScore != null ? q.averageScore.toFixed(2).replace('.', ',') : '—'}
+                    </span>
+                  </td>
                 </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {filteredQuestions.map((question) => (
-                  <tr key={question.questionId} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 text-sm text-gray-900">
-                      {question.questionText}
-                    </td>
-                    <td className="px-6 py-4 text-sm">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                        {question.category}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-900 text-center">
-                      {question.responseCount}
-                    </td>
-                    <td className="px-6 py-4 text-sm font-semibold text-center">
-                      <span className={`${
-                        question.averageScore && question.averageScore >= 4.5 ? 'text-green-600' :
-                        question.averageScore && question.averageScore >= 4.0 ? 'text-blue-600' :
-                        question.averageScore && question.averageScore >= 3.5 ? 'text-yellow-600' :
-                        'text-red-600'
-                      }`}>
-                        {question.averageScore ? question.averageScore.toFixed(2) : 'N/A'}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+              ))}
+            </tbody>
+          </table>
         </div>
+      </Card>
 
-        {/* Text Feedback */}
-        <div className="bg-white rounded-lg border-2 border-gray-200 p-6 mb-8">
-          <h2 className="text-xl font-bold text-gray-900 mb-6">Feedback Text Anonim</h2>
-          <AnonymizedFeedback
-            responses={courseStats.textFeedback}
-            courseId={courseStats.course.id}
-            courseName={courseStats.course.name}
+      {/* Text feedback */}
+      <Card>
+        <h2 className="text-xl font-semibold text-neutral-800 mb-4">Feedback text anonim</h2>
+        {Array.isArray(stats.textFeedback) && stats.textFeedback.length === 0 ? (
+          <EmptyState
+            title="Niciun comentariu text încă"
+            description="Comentariile vor apărea aici după ce mai mulți studenți completează evaluarea cu texte deschise."
           />
-        </div>
+        ) : (
+          <AnonymizedFeedback
+            responses={stats.textFeedback as any}
+            courseId={stats.course.id}
+            courseName={stats.course.name}
+          />
+        )}
+      </Card>
 
-        {/* Export Button */}
-        <div className="flex justify-end">
-          <button
-            onClick={handleExport}
-            className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            Exportă Date (CSV)
-          </button>
+      {/* Drill-down: evaluări individuale anonime (k≥5) */}
+      <Card>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-display text-[18px] font-semibold text-neutral-800">
+            Evaluări individuale (anonime)
+          </h2>
         </div>
+        <IndividualEvaluations courseId={stats.course.id} />
+      </Card>
+
+      {/* Export */}
+      <div className="flex justify-end">
+        <Button
+          variant="primary"
+          size="lg"
+          icon={<ArrowDownTrayIcon />}
+          onClick={handleExport}
+          loading={exporting}
+        >
+          Exportă date (CSV)
+        </Button>
       </div>
     </div>
   );
-};
-
-export default ProfessorCourseDetails;
+}

@@ -1,6 +1,44 @@
 const { getDatabase } = require('../config/database');
 
 /**
+ * Verifică dacă platforma acceptă noi evaluări (closure + deadline).
+ * Returnează null dacă OK, altfel { status, error }.
+ * NU afectează platform_feedback — acela are propriul flux.
+ */
+function checkPlatformAcceptsEvaluations(db) {
+  const settings = db
+    .prepare(
+      `SELECT is_active, closure_message, evaluation_deadline_enabled,
+              evaluation_deadline_date, auto_close_on_deadline
+       FROM platform_settings WHERE id = 1`,
+    )
+    .get();
+  if (!settings) return null;
+  if (!settings.is_active) {
+    return {
+      status: 403,
+      error: settings.closure_message || 'Platforma de evaluare este închisă.',
+      reason: 'platform_closed',
+    };
+  }
+  if (
+    settings.evaluation_deadline_enabled &&
+    settings.auto_close_on_deadline &&
+    settings.evaluation_deadline_date
+  ) {
+    const deadline = new Date(settings.evaluation_deadline_date).getTime();
+    if (!Number.isNaN(deadline) && Date.now() > deadline) {
+      return {
+        status: 403,
+        error: `Termenul-limită pentru evaluări (${settings.evaluation_deadline_date}) a expirat. Mulțumim pentru participare!`,
+        reason: 'deadline_passed',
+      };
+    }
+  }
+  return null;
+}
+
+/**
  * Obține lista profesorilor care trebuie evaluați de studentul curent
  * GET /api/evaluations/professors
  */
@@ -9,22 +47,33 @@ exports.getProfessorsToEvaluate = (req, res, next) => {
     const db = getDatabase();
     const studentId = req.user.id;
 
-    // Găsim cursurile la care este înscris studentul (prin grup)
-    const professors = db.prepare(`
-      SELECT DISTINCT
+    // Anul academic curent — derivat din cea mai recentă valoare existentă
+    const currentYearRow = db
+      .prepare('SELECT academic_year FROM courses ORDER BY academic_year DESC LIMIT 1')
+      .get();
+    const currentYear = currentYearRow?.academic_year || '2023-2024';
+
+    // UNIQUE constraint = 1 evaluare per (student, curs, profesor) — granularitate
+    // pe disciplină. Dacă un student are 2 cursuri cu același profesor, apar
+    // 2 carduri distincte și fiecare se evaluează separat.
+    const professors = db
+      .prepare(
+        `
+      SELECT
         p.id,
         p.first_name,
         p.last_name,
         p.title,
         p.department,
-        p.type as professor_type,
-        c.id as course_id,
-        c.name as course_name,
-        c.code as course_code,
+        p.type AS professor_type,
+        c.id AS course_id,
+        c.name AS course_name,
+        c.code AS course_code,
         c.semester,
         c.academic_year,
-        COALESCE(e.id, 0) as evaluation_id,
-        COALESCE(e.status, 'not_started') as evaluation_status,
+        c.course_type AS activity_type,
+        COALESCE(e.id, 0) AS evaluation_id,
+        COALESCE(e.status, 'not_started') AS evaluation_status,
         e.started_at,
         e.submitted_at,
         e.deadline
@@ -32,9 +81,10 @@ exports.getProfessorsToEvaluate = (req, res, next) => {
       INNER JOIN groups g ON g.id = u.group_id
       INNER JOIN series s ON s.id = g.series_id
       INNER JOIN study_years sy ON sy.id = s.study_year_id
-      INNER JOIN courses c ON c.study_year_id = sy.id
+      INNER JOIN courses c ON c.study_year_id = sy.id AND c.academic_year = ?
       INNER JOIN professors p ON p.id = c.professor_id
-      LEFT JOIN evaluations e ON e.student_id = u.id
+      LEFT JOIN evaluations e
+        ON e.student_id = u.id
         AND e.course_id = c.id
         AND e.professor_id = p.id
       WHERE u.id = ?
@@ -45,8 +95,12 @@ exports.getProfessorsToEvaluate = (req, res, next) => {
           WHEN e.status = 'draft' THEN 2
           WHEN e.status = 'submitted' THEN 3
         END,
-        p.last_name
-    `).all(studentId);
+        p.last_name,
+        c.semester,
+        c.name
+    `,
+      )
+      .all(currentYear, studentId);
 
     res.json({
       professors: professors.map(p => ({
@@ -90,29 +144,34 @@ exports.createEvaluation = (req, res, next) => {
     const studentId = req.user.id;
     const { courseId, professorId } = req.body;
 
+    const blocked = checkPlatformAcceptsEvaluations(db);
+    if (blocked) return res.status(blocked.status).json({ error: blocked.error, reason: blocked.reason });
+
     if (!courseId || !professorId) {
       return res.status(400).json({ error: 'courseId și professorId sunt obligatorii' });
     }
 
-    // Verificăm dacă există deja o evaluare
-    const existing = db.prepare(`
+    // UNIQUE constraint = (student_id, course_id, professor_id) — un student
+    // evaluează fiecare disciplină distinct (granularitate pe materie).
+    const existing = db
+      .prepare(
+        `
       SELECT id, status FROM evaluations
       WHERE student_id = ? AND course_id = ? AND professor_id = ?
-    `).get(studentId, courseId, professorId);
+    `,
+      )
+      .get(studentId, courseId, professorId);
 
     if (existing) {
-      // Dacă e submitted, nu poate fi modificată
       if (existing.status === 'submitted') {
         return res.status(400).json({
-          error: 'Evaluarea a fost deja trimisă și nu mai poate fi modificată'
+          error: 'Ai evaluat deja această disciplină. Fiecare disciplină se evaluează o singură dată.',
         });
       }
-
-      // Returnează evaluarea existentă (draft)
       return res.json({
         message: 'Evaluare existentă (draft)',
         evaluationId: existing.id,
-        status: existing.status
+        status: existing.status,
       });
     }
 
@@ -160,6 +219,15 @@ exports.getEvaluation = (req, res, next) => {
 
     if (!evaluation) {
       return res.status(404).json({ error: 'Evaluare negăsită' });
+    }
+
+    // Dacă platforma e închisă / deadline depășit, blocăm accesul la draft/not-started.
+    // Submitted rămâne vizibil (istoric).
+    if (evaluation.status !== 'submitted') {
+      const blocked = checkPlatformAcceptsEvaluations(db);
+      if (blocked) {
+        return res.status(blocked.status).json({ error: blocked.error, reason: blocked.reason });
+      }
     }
 
     // Obținem toate întrebările
@@ -228,6 +296,9 @@ exports.saveResponses = (req, res, next) => {
     const studentId = req.user.id;
     const { responses } = req.body;
 
+    const blocked = checkPlatformAcceptsEvaluations(db);
+    if (blocked) return res.status(blocked.status).json({ error: blocked.error, reason: blocked.reason });
+
     // Verificăm că evaluarea aparține studentului și e draft
     const evaluation = db.prepare(`
       SELECT id, status FROM evaluations
@@ -286,6 +357,9 @@ exports.submitEvaluation = (req, res, next) => {
     const evaluationId = req.params.id;
     const studentId = req.user.id;
 
+    const blocked = checkPlatformAcceptsEvaluations(db);
+    if (blocked) return res.status(blocked.status).json({ error: blocked.error, reason: blocked.reason });
+
     // Verificăm că evaluarea aparține studentului și e draft
     const evaluation = db.prepare(`
       SELECT id, status FROM evaluations
@@ -326,6 +400,12 @@ exports.submitEvaluation = (req, res, next) => {
       WHERE id = ?
     `).run(evaluationId);
 
+    // Recalcul achievements pentru user (tolerăm eșec dacă tabelul nu există încă)
+    try {
+      const { recalculateForUser } = require('./achievementsController');
+      recalculateForUser(db, studentId);
+    } catch (_) { /* opțional */ }
+
     res.json({
       message: 'Evaluare trimisă cu succes',
       evaluationId,
@@ -346,18 +426,23 @@ exports.getEvaluationStatus = (req, res, next) => {
     const db = getDatabase();
     const studentId = req.user.id;
 
-    // Total cursuri (perechi profesor-curs) de evaluat
-    // Un profesor poate preda mai multe cursuri (ex: Curs + Lab), fiecare trebuie evaluat separat
+    // Anul academic curent
+    const currentYearRow = db
+      .prepare('SELECT academic_year FROM courses ORDER BY academic_year DESC LIMIT 1')
+      .get();
+    const currentYear = currentYearRow?.academic_year || '2023-2024';
+
+    // Total cursuri (perechi profesor-curs) de evaluat — granularitate per disciplină.
     const total = db.prepare(`
       SELECT COUNT(*) as count
       FROM users u
       INNER JOIN groups g ON g.id = u.group_id
       INNER JOIN series s ON s.id = g.series_id
       INNER JOIN study_years sy ON sy.id = s.study_year_id
-      INNER JOIN courses c ON c.study_year_id = sy.id
+      INNER JOIN courses c ON c.study_year_id = sy.id AND c.academic_year = ?
       INNER JOIN professors p ON p.id = c.professor_id
       WHERE u.id = ? AND p.is_active = 1
-    `).get(studentId);
+    `).get(currentYear, studentId);
 
     // Evaluări completate (submitted)
     const completed = db.prepare(`
@@ -376,12 +461,36 @@ exports.getEvaluationStatus = (req, res, next) => {
     const draftCount = draft.count || 0;
     const notStartedCount = Math.max(0, totalCount - completedCount - draftCount);
 
+    // Breakdown agregat: discipline distincte, cadre didactice unice, defalcare pe tip activitate
+    const breakdown = db.prepare(`
+      SELECT
+        COUNT(DISTINCT c.id) AS discipline,
+        COUNT(DISTINCT p.id) AS cadre_didactice_unice,
+        SUM(CASE WHEN c.course_type = 'curs' THEN 1 ELSE 0 END) AS cursuri,
+        SUM(CASE WHEN c.course_type = 'laborator' THEN 1 ELSE 0 END) AS laboratoare,
+        SUM(CASE WHEN c.course_type = 'seminar' THEN 1 ELSE 0 END) AS seminare
+      FROM users u
+      INNER JOIN groups g ON g.id = u.group_id
+      INNER JOIN series s ON s.id = g.series_id
+      INNER JOIN study_years sy ON sy.id = s.study_year_id
+      INNER JOIN courses c ON c.study_year_id = sy.id AND c.academic_year = ?
+      INNER JOIN professors p ON p.id = c.professor_id
+      WHERE u.id = ? AND p.is_active = 1
+    `).get(currentYear, studentId);
+
     res.json({
       total: totalCount,
       completed: completedCount,
       draft: draftCount,
       notStarted: notStartedCount,
-      completionRate: totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0
+      completionRate: totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0,
+      breakdown: {
+        discipline: breakdown.discipline || 0,
+        cadreDidacticeUnice: breakdown.cadre_didactice_unice || 0,
+        cursuri: breakdown.cursuri || 0,
+        laboratoare: breakdown.laboratoare || 0,
+        seminare: breakdown.seminare || 0,
+      },
     });
 
   } catch (error) {

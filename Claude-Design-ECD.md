@@ -7,7 +7,7 @@
 ## Context fișier
 
 - **Proiect:** ECD — sistem digital de evaluare a cadrelor didactice de către studenți
-- **Localizare cod sursă:** `/Users/anosr/Desktop/test1/AntiGravity/`
+- **Localizare cod sursă:** `/Users/anosr/Desktop/test1/evaluare-cadre-didactice/`
 - **Stack actual:** React 18 + TypeScript + Vite + Tailwind CSS 3 + Recharts + Headless UI + Heroicons
 - **Scop lucrare:** Aplicația este implementarea practică a tezei de disertație "Îmbunătățirea calității procesului de evaluare a activității cadrelor didactice de către studenți" (FAIMA-UNSTPB, 2026)
 
@@ -384,7 +384,7 @@ Aplicația care va implementa designul rulează deja:
 
 ## Anexă: Note pentru implementare după ce primesc designul
 
-După ce designul este livrat de Claude Design, pașii de implementare în aplicația AntiGravity:
+După ce designul este livrat de Claude Design, pașii de implementare în aplicația Evaluarea Cadrelor Didactice:
 
 1. **Setup foundations:**
    - Actualizează `frontend/tailwind.config.js` cu tokens primiți (culori, fonturi, spacing, radii)

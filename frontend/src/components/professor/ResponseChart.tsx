@@ -85,8 +85,8 @@ const ResponseChart: React.FC<ResponseChartProps> = ({
 
   if (data.length === 0) {
     return (
-      <div className="flex items-center justify-center h-64 bg-gray-50 rounded-lg">
-        <p className="text-gray-500">Nu există date disponibile</p>
+      <div className="flex items-center justify-center h-64 bg-neutral-25 rounded-lg">
+        <p className="text-neutral-500">Nu există date disponibile</p>
       </div>
     );
   }

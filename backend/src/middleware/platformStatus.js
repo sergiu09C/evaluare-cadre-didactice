@@ -13,7 +13,15 @@ exports.checkPlatformActive = (req, res, next) => {
     if (
       req.user?.role === 'admin' ||
       req.originalUrl.includes('/auth') ||
-      req.originalUrl.includes('/platform/settings')
+      req.originalUrl.includes('/platform/settings') ||
+      req.originalUrl.includes('/platform/status') ||
+      req.originalUrl.includes('/closing-the-loop') ||
+      req.originalUrl.includes('/notifications') ||
+      req.originalUrl.includes('/guides') ||
+      req.originalUrl.includes('/achievements') ||
+      req.originalUrl.includes('/platform-feedback') ||
+      req.originalUrl.includes('/actions') ||
+      req.originalUrl.includes('/public-stats')
     ) {
       return next();
     }

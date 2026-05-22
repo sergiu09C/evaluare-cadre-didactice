@@ -45,3 +45,10 @@ temp/
 .claude/
 DATE GENERALE ANOSR/
 ECD/
+
+# Playwright
+tests/node_modules/
+tests/test-results/
+tests/playwright-report/
+tests/playwright-report.json
+tests/audit-results.json

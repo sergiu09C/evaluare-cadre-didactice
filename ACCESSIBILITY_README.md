@@ -1,8 +1,8 @@
-# 🌟 AntiGravity - Platformă Accesibilă pentru Evaluarea Cadrelor Didactice
+# 🌟 Evaluarea Cadrelor Didactice - Platformă Accesibilă pentru Evaluarea Cadrelor Didactice
 
 ## 📊 Rezumat Executive
 
-Platforma AntiGravity a fost complet renovată cu focus pe **accesibilitate universală**, atingând conformitate **WCAG 2.1 Level AAA**. Implementarea a durat 8 faze intensive și include:
+Platforma Evaluarea Cadrelor Didactice a fost complet renovată cu focus pe **accesibilitate universală**, atingând conformitate **WCAG 2.1 Level AAA**. Implementarea a durat 8 faze intensive și include:
 
 - ✅ **500+ modificări ARIA** pentru screen reader support complet
 - ✅ **Navigare 100% cu tastatura** cu shortcuts intuitive
@@ -292,7 +292,7 @@ Platforma AntiGravity a fost complet renovată cu focus pe **accesibilitate univ
 ## 📁 Structura Proiectului
 
 ```
-AntiGravity/
+evaluare-cadre-didactice/
 ├── backend/
 │   ├── src/
 │   │   ├── db/
