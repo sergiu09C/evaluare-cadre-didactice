@@ -39,6 +39,9 @@ router.get('/stats/by-year', adminController.getYearStats);
 // GET /api/admin/stats/by-course-type - Statistici pe tipuri de curs (curs/lab/seminar)
 router.get('/stats/by-course-type', adminController.getCourseTypeStats);
 
+// Export ARACIS — CSV agregat (facultate × program × an de studiu)
+router.get('/export/aracis', adminController.exportAracis);
+
 // === USERS CRUD ===
 const adminUsersController = require('../controllers/adminUsersController');
 router.get('/users', adminUsersController.list);

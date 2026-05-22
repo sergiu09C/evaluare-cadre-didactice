@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Button, Input } from '../components/ui';
 import DeadlineTimer from '../components/DeadlineTimer';
+import AccessibleModal from '../components/AccessibleModal';
+import { api } from '../services/api';
 import { EnvelopeIcon, LockClosedIcon, EyeIcon, EyeSlashIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
 import axios from 'axios';
 
@@ -23,9 +25,27 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [stats, setStats] = useState<PublicStats | null>(null);
+  const [forgotOpen, setForgotOpen] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotSent, setForgotSent] = useState<string | null>(null);
+  const [forgotLoading, setForgotLoading] = useState(false);
 
   const { login, user } = useAuth();
   const navigate = useNavigate();
+
+  const handleForgotSubmit = async (ev: React.FormEvent) => {
+    ev.preventDefault();
+    if (!forgotEmail.trim()) return;
+    setForgotLoading(true);
+    try {
+      const r = await api.forgotPassword(forgotEmail.trim());
+      setForgotSent(r.message);
+    } catch (e: any) {
+      setForgotSent(e.response?.data?.error || 'Eroare — încearcă din nou.');
+    } finally {
+      setForgotLoading(false);
+    }
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -237,13 +257,17 @@ export default function LoginPage() {
                   />
                   Ține-mă conectat
                 </label>
-                <a
-                  href="mailto:ceac@faima.pub.ro?subject=Reset%20parol%C4%83%20ECD"
-                  className="text-[13px] text-accent-700 font-medium no-underline hover:underline"
-                  title="Pentru reset parolă, scrie la CEAC FAIMA"
+                <button
+                  type="button"
+                  onClick={() => {
+                    setForgotEmail(email);
+                    setForgotSent(null);
+                    setForgotOpen(true);
+                  }}
+                  className="text-[13px] text-accent-700 font-medium hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-400/40 rounded px-1"
                 >
                   Am uitat parola
-                </a>
+                </button>
               </div>
             </div>
 
@@ -300,6 +324,50 @@ export default function LoginPage() {
           </p>
         </div>
       </main>
+
+      <AccessibleModal
+        isOpen={forgotOpen}
+        onClose={() => setForgotOpen(false)}
+        title="Resetare parolă"
+      >
+        {forgotSent ? (
+          <div className="flex flex-col gap-4 p-1">
+            <p className="text-sm text-neutral-700">{forgotSent}</p>
+            <p className="text-xs text-neutral-500">
+              În mediul de dezvoltare, link-ul de resetare e afișat în consola serverului
+              backend. În producție, verifică emailul (inclusiv folderul de spam).
+            </p>
+            <div className="flex justify-end">
+              <Button variant="primary" onClick={() => setForgotOpen(false)}>
+                Închide
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <form onSubmit={handleForgotSubmit} className="flex flex-col gap-4 p-1">
+            <p className="text-sm text-neutral-600">
+              Introdu emailul cu care te-ai înregistrat. Vei primi un link valabil 1 oră
+              pentru a-ți reseta parola.
+            </p>
+            <Input
+              label="Email"
+              type="email"
+              value={forgotEmail}
+              onChange={(e) => setForgotEmail(e.target.value)}
+              required
+              autoFocus
+            />
+            <div className="flex justify-end gap-2">
+              <Button variant="secondary" type="button" onClick={() => setForgotOpen(false)}>
+                Anulează
+              </Button>
+              <Button variant="primary" type="submit" loading={forgotLoading}>
+                Trimite link
+              </Button>
+            </div>
+          </form>
+        )}
+      </AccessibleModal>
     </div>
   );
 }

@@ -1,4 +1,6 @@
 require('dotenv').config();
+const path = require('path');
+const fs = require('fs');
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -9,6 +11,8 @@ const { authenticateToken } = require('./middleware/auth');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+// Pe Railway / reverse-proxy, X-Forwarded-For ne dă IP real (folosit de rate limiter).
+app.set('trust proxy', 1);
 
 // Middleware
 app.use(helmet()); // Security headers
@@ -75,6 +79,15 @@ app.get('/api/public-stats', (req, res, next) => {
   }
 });
 
+// În producție: servim build-ul React static din backend (single-service deploy).
+// În dev: frontend rulează separat pe :3000 (Vite dev server) — skip această secțiune.
+const FRONTEND_DIST = path.resolve(__dirname, '../../frontend/dist');
+const serveFrontend = process.env.SERVE_FRONTEND === 'true' || process.env.NODE_ENV === 'production';
+if (serveFrontend && fs.existsSync(FRONTEND_DIST)) {
+  app.use(express.static(FRONTEND_DIST));
+  console.log(`📦 Servesc frontend static din ${FRONTEND_DIST}`);
+}
+
 // API Routes
 app.use('/api/auth', require('./routes/auth'));
 // For protected routes: authenticate first, THEN check platform status
@@ -91,6 +104,16 @@ app.use('/api/guides', require('./routes/guides'));
 app.use('/api/achievements', require('./routes/achievements'));
 app.use('/api/platform-feedback', require('./routes/platformFeedback'));
 app.use('/api/actions', require('./routes/actions'));
+
+// SPA fallback — în producție, orice URL non-/api e routat la index.html
+// ca să funcționeze React Router pe deep links (ex. /reset-password?token=...).
+if (serveFrontend && fs.existsSync(FRONTEND_DIST)) {
+  app.get(/^(?!\/api).*/, (req, res, next) => {
+    const indexPath = path.join(FRONTEND_DIST, 'index.html');
+    if (fs.existsSync(indexPath)) res.sendFile(indexPath);
+    else next();
+  });
+}
 
 // Error handlers (must be last)
 app.use(notFoundHandler);

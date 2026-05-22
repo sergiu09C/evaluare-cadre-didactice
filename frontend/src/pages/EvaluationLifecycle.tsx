@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import { TERMS } from '../i18n/glossary';
 import { useReducedMotion } from '../hooks/useReducedMotion';
-import { Card, Badge, KPICard, Select } from '../components/ui';
+import { Card, Badge, KPICard, Select, MultiSelect } from '../components/ui';
 import { useAuth } from '../contexts/AuthContext';
 import DualRadar from '../components/charts/DualRadar';
 import Heatmap from '../components/charts/Heatmap';
@@ -55,11 +55,11 @@ const STAGE_ICONS: Record<string, any> = {
 
 const SCORE_COLORS = ['#EF4444', '#F59E0B', '#FCD34D', '#84CC16', '#10B981'];
 const SCORE_LABELS: Record<number, string> = {
-  1: 'foarte slab',
-  2: 'slab',
-  3: 'mediu',
-  4: 'bun',
-  5: 'excelent',
+  1: 'Foarte slab',
+  2: 'Slab',
+  3: 'Mediu',
+  4: 'Bun',
+  5: 'Excelent',
 };
 const ROLE_COLORS = { student: '#7C3AED', professor: '#0E2233', admin: '#10B981' };
 
@@ -178,7 +178,16 @@ export default function EvaluationLifecycle() {
     const apiParams: any = {};
     for (const [k, v] of Object.entries(filters)) {
       if (v !== undefined && v !== '') {
-        apiParams[k] = ['facultyId', 'programId', 'year', 'days'].includes(k) ? Number(v) : v;
+        // year poate fi multi-value (CSV) — păstrez ca string dacă conține virgulă,
+        // ca să nu producă NaN din Number("1,2")
+        if (['facultyId', 'programId', 'days'].includes(k)) {
+          const n = Number(v);
+          if (!Number.isNaN(n)) apiParams[k] = n;
+        } else if (k === 'year') {
+          apiParams[k] = String(v).includes(',') ? v : Number(v);
+        } else {
+          apiParams[k] = v;
+        }
       }
     }
     const isAdmin = user?.role === 'admin';
@@ -244,7 +253,7 @@ export default function EvaluationLifecycle() {
   }, [data]);
 
   const monthlyData = useMemo(() => {
-    if (!monthly) return [];
+    if (!monthly?.data) return [];
     return monthly.data.map((m) => ({
       month: m.month,
       shortMonth: new Date(m.month + '-15').toLocaleDateString('ro-RO', { month: 'short', year: '2-digit' }),
@@ -373,10 +382,12 @@ export default function EvaluationLifecycle() {
                   setFilter('programId', undefined);
                   return;
                 }
-                // Cascading: dacă program-ul are alt nivel decât filtrul programLevel curent,
-                // curăță programLevel (sau setează-l corect).
+                // Cascading predictibil: când selectez un program, sincronizez ÎNTOTDEAUNA
+                // programLevel cu nivelul programului ales. Așa user-ul nu mai trebuie să
+                // și-l potrivească manual și se elimină starea inconsistentă
+                // (ex: programId=AIA-licenta + programLevel=master).
                 const prog = opts.programs.find((p) => String(p.id) === newProgId);
-                if (prog && filters.programLevel && prog.level !== filters.programLevel) {
+                if (prog) {
                   setFiltersBulk({ programId: newProgId, programLevel: prog.level });
                 } else {
                   setFilter('programId', newProgId);
@@ -477,54 +488,38 @@ export default function EvaluationLifecycle() {
           )}
 
           {relevantFilters.includes('year') && opts && (
-            <Select
+            <MultiSelect
               label="Anul"
-              value={filters.year ?? ''}
-              onChange={(e) => setFilter('year', e.target.value || undefined)}
-              wrapperClassName="min-w-[100px]"
-            >
-              <option value="">Toți</option>
-              {opts.years
-                // master are doar an 1-2; ascunde 3 dacă programLevel=master
+              wrapperClassName="min-w-[140px]"
+              placeholder="Toți anii"
+              value={(filters.year ?? '').split(',').filter(Boolean)}
+              onChange={(arr) => setFilter('year', arr.length ? arr.join(',') : undefined)}
+              options={opts.years
                 .filter((y) => !(filters.programLevel === 'master' && y === 3))
-                .map((y) => (
-                  <option key={y} value={y}>
-                    {y}
-                  </option>
-                ))}
-            </Select>
+                .map((y) => ({ value: String(y), label: `Anul ${y}` }))}
+            />
           )}
 
           {relevantFilters.includes('semester') && opts && (
-            <Select
+            <MultiSelect
               label="Sem"
-              value={filters.semester ?? ''}
-              onChange={(e) => setFilter('semester', e.target.value || undefined)}
-              wrapperClassName="min-w-[100px]"
-            >
-              <option value="">Toate</option>
-              {opts.semesters.map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
-              ))}
-            </Select>
+              wrapperClassName="min-w-[120px]"
+              placeholder="Toate semestrele"
+              value={(filters.semester ?? '').split(',').filter(Boolean)}
+              onChange={(arr) => setFilter('semester', arr.length ? arr.join(',') : undefined)}
+              options={opts.semesters.map((s) => ({ value: String(s), label: `Sem ${s}` }))}
+            />
           )}
 
           {relevantFilters.includes('courseType') && opts && (
-            <Select
+            <MultiSelect
               label="Activitate"
-              value={filters.courseType ?? ''}
-              onChange={(e) => setFilter('courseType', e.target.value || undefined)}
-              wrapperClassName="min-w-[120px]"
-            >
-              <option value="">Toate</option>
-              {opts.courseTypes.map((t) => (
-                <option key={t} value={t}>
-                  {t}
-                </option>
-              ))}
-            </Select>
+              wrapperClassName="min-w-[150px]"
+              placeholder="Toate activitățile"
+              value={(filters.courseType ?? '').split(',').filter(Boolean)}
+              onChange={(arr) => setFilter('courseType', arr.length ? arr.join(',') : undefined)}
+              options={opts.courseTypes.map((t) => ({ value: t, label: t }))}
+            />
           )}
 
           {relevantFilters.includes('category') && opts && (
@@ -1163,7 +1158,7 @@ export default function EvaluationLifecycle() {
               <option value="category">Categorie</option>
               <option value="semester">Semestru</option>
               <option value="year">An</option>
-              <option value="courseType">Tip curs</option>
+              <option value="courseType">Activitate</option>
             </Select>
           </div>
         </div>

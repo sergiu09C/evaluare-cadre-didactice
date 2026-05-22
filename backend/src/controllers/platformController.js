@@ -566,30 +566,41 @@ function buildEvalFilters(query, opts = {}) {
   const { withQuestion = false, withCourse = true } = opts;
   const parts = [];
   const params = [];
+
+  // Helper: parsează „1,2,3" sau „1" în array de string-uri non-empty.
+  const parseList = (v) => {
+    if (v == null) return [];
+    return String(v).split(',').map((s) => s.trim()).filter(Boolean);
+  };
+
   if (query.facultyId) {
     parts.push('p.faculty_id = ?');
     params.push(Number(query.facultyId));
   }
   if (query.departmentId) {
-    // departmentId pe noi e numele departamentului (string) dat fiind că nu există tabel departments
     parts.push('p.department = ?');
     params.push(String(query.departmentId));
   }
   if (withCourse) {
-    if (query.semester) {
+    const semesters = parseList(query.semester);
+    if (semesters.length === 1) {
       parts.push('c.semester = ?');
-      params.push(String(query.semester));
+      params.push(semesters[0]);
+    } else if (semesters.length > 1) {
+      parts.push(`c.semester IN (${semesters.map(() => '?').join(',')})`);
+      params.push(...semesters);
     }
     if (query.academicYear) {
       parts.push('c.academic_year = ?');
       params.push(String(query.academicYear));
     }
-    if (query.courseType) {
+    const courseTypes = parseList(query.courseType);
+    if (courseTypes.length === 1) {
       parts.push('c.course_type = ?');
-      params.push(String(query.courseType));
-    }
-    if (query.programId || query.programLevel || query.year) {
-      // study_year filtering via courses.study_year_id → study_years → programs
+      params.push(courseTypes[0]);
+    } else if (courseTypes.length > 1) {
+      parts.push(`c.course_type IN (${courseTypes.map(() => '?').join(',')})`);
+      params.push(...courseTypes);
     }
   }
   if (query.programId) {
@@ -599,20 +610,38 @@ function buildEvalFilters(query, opts = {}) {
     params.push(Number(query.programId));
   }
   if (query.programLevel) {
-    parts.push(
-      'c.study_year_id IN (SELECT sy.id FROM study_years sy JOIN programs pr ON pr.id=sy.program_id WHERE pr.level = ?)',
-    );
-    params.push(String(query.programLevel));
+    const levels = parseList(query.programLevel);
+    if (levels.length === 1) {
+      parts.push(
+        'c.study_year_id IN (SELECT sy.id FROM study_years sy JOIN programs pr ON pr.id=sy.program_id WHERE pr.level = ?)',
+      );
+      params.push(levels[0]);
+    } else if (levels.length > 1) {
+      parts.push(
+        `c.study_year_id IN (SELECT sy.id FROM study_years sy JOIN programs pr ON pr.id=sy.program_id WHERE pr.level IN (${levels.map(() => '?').join(',')}))`,
+      );
+      params.push(...levels);
+    }
   }
-  if (query.year) {
+  const years = parseList(query.year);
+  if (years.length === 1) {
+    parts.push('c.study_year_id IN (SELECT id FROM study_years WHERE year_number = ?)');
+    params.push(Number(years[0]));
+  } else if (years.length > 1) {
     parts.push(
-      'c.study_year_id IN (SELECT id FROM study_years WHERE year_number = ?)',
+      `c.study_year_id IN (SELECT id FROM study_years WHERE year_number IN (${years.map(() => '?').join(',')}))`,
     );
-    params.push(Number(query.year));
+    params.push(...years.map((y) => Number(y)));
   }
-  if (withQuestion && query.category) {
-    parts.push('q.category = ?');
-    params.push(String(query.category));
+  if (withQuestion) {
+    const cats = parseList(query.category);
+    if (cats.length === 1) {
+      parts.push('q.category = ?');
+      params.push(cats[0]);
+    } else if (cats.length > 1) {
+      parts.push(`q.category IN (${cats.map(() => '?').join(',')})`);
+      params.push(...cats);
+    }
   }
   return {
     sql: parts.length ? ' AND ' + parts.join(' AND ') : '',
@@ -1138,7 +1167,8 @@ exports.getHomeStats = (req, res, next) => {
         programId: req.query.programId ? Number(req.query.programId) : null,
         programLevel: req.query.programLevel || null,
         departmentId: req.query.departmentId || null,
-        year: req.query.year ? Number(req.query.year) : null,
+        // year/semester/courseType/category pot fi multi-value (CSV) — păstrăm raw
+        year: req.query.year || null,
         semester: req.query.semester || null,
         courseType: req.query.courseType || null,
         academicYear: req.query.academicYear || null,

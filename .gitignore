@@ -52,3 +52,4 @@ tests/test-results/
 tests/playwright-report/
 tests/playwright-report.json
 tests/audit-results.json
+backend/test-results/

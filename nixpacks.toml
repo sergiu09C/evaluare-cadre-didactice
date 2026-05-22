@@ -1,0 +1,19 @@
+# Nixpacks build config pentru Railway / Render / Coolify.
+# Forțează Node 20 (versiune folosită local și pe care funcționează better-sqlite3).
+
+[phases.setup]
+nixPkgs = ["nodejs_20", "python3", "pkg-config", "gcc"]
+
+[phases.install]
+cmds = [
+  "npm install --prefix backend",
+  "npm install --prefix frontend"
+]
+
+[phases.build]
+cmds = [
+  "npm run build --prefix frontend"
+]
+
+[start]
+cmd = "npm start"

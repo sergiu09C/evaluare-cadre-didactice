@@ -75,6 +75,16 @@ class ApiService {
     return response.data;
   }
 
+  async forgotPassword(email: string): Promise<{ ok: boolean; message: string }> {
+    const r = await this.api.post('/auth/forgot-password', { email });
+    return r.data;
+  }
+
+  async resetPassword(token: string, password: string): Promise<{ ok: boolean; message: string }> {
+    const r = await this.api.post('/auth/reset-password', { token, password });
+    return r.data;
+  }
+
   // ========== STUDENT EVALUATIONS ENDPOINTS ==========
 
   async getProfessorsToEvaluate(): Promise<{ professors: Professor[] }> {
@@ -971,6 +981,11 @@ class ApiService {
       params,
       responseType: 'blob'
     });
+    return response.data;
+  }
+
+  async exportAracis(): Promise<Blob> {
+    const response = await this.api.get('/admin/export/aracis', { responseType: 'blob' });
     return response.data;
   }
 }

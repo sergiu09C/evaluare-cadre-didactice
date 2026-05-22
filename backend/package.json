@@ -8,7 +8,9 @@
     "dev": "nodemon src/server.js",
     "init-db": "node src/db/init.js",
     "seed": "node src/db/seed-extended.js",
-    "seed-responses": "node src/db/seed-with-responses.js"
+    "seed-responses": "node src/db/seed-with-responses.js",
+    "verify-db": "node src/db/verify-migrations.js",
+    "test": "node --test tests/"
   },
   "keywords": [
     "education",

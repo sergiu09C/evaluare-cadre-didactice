@@ -20,7 +20,7 @@ export default function AdminReports() {
     { id: 'overview' as ReportTab, label: 'Panorama Generală', icon: '📊' },
     { id: 'faculty' as ReportTab, label: 'Pe Facultăți', icon: '🏛️' },
     { id: 'year' as ReportTab, label: 'Pe Ani de Studiu', icon: '📅' },
-    { id: 'courseType' as ReportTab, label: 'Pe Tip Curs', icon: '📚' },
+    { id: 'courseType' as ReportTab, label: 'Pe Activitate', icon: '📚' },
     { id: 'discipline' as ReportTab, label: 'Comparație Discipline', icon: '🔍' },
   ];
 
@@ -185,12 +185,35 @@ export default function AdminReports() {
           <h1 className="text-3xl font-bold text-neutral-800">Rapoarte Avansate</h1>
           <p className="text-neutral-500 mt-1">Analize detaliate și rapoarte personalizate</p>
         </div>
-        <button
-          onClick={handleExportPDF}
-          className="inline-flex items-center gap-2 px-4 h-10 rounded-md bg-white border border-neutral-200 text-neutral-800 font-medium shadow-elev-1 hover:bg-neutral-50 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-400/40 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          📄 Export PDF
-        </button>
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            onClick={handleExportPDF}
+            className="inline-flex items-center gap-2 px-4 h-10 rounded-md bg-white border border-neutral-200 text-neutral-800 font-medium shadow-elev-1 hover:bg-neutral-50 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-400/40 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            📄 Export PDF
+          </button>
+          <button
+            onClick={async () => {
+              try {
+                const blob = await api.exportAracis();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `aracis-export-${new Date().toISOString().split('T')[0]}.csv`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+              } catch (e) {
+                console.error('export aracis fail', e);
+              }
+            }}
+            className="inline-flex items-center gap-2 px-4 h-10 rounded-md bg-accent-600 text-white font-medium shadow-elev-1 hover:bg-accent-700 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-400/40"
+            title="Export agregat per facultate × program × an pentru raportare ARACIS"
+          >
+            📑 Export ARACIS (CSV)
+          </button>
+        </div>
       </div>
 
       {/* Tabs */}

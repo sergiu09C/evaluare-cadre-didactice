@@ -79,21 +79,9 @@ test.describe.serial('v8 — Rich dashboards Acasă', () => {
     await page.screenshot({ path: '/tmp/v8-prof-baseline.png', fullPage: true });
   });
 
-  test('5. Profesor: slider zile schimbă time series', async ({ page }) => {
-    await login(page, PROF);
-    await page.goto(BASE + '/professor');
-    await waitForHomeLoaded(page);
-    const slider = page.locator('input[type="range"]');
-    await expect(slider).toBeVisible();
-    // schimbă valoarea — React controlled input necesită native setter
-    await slider.evaluate((el: HTMLInputElement) => {
-      const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value')?.set;
-      setter?.call(el, '360');
-      el.dispatchEvent(new Event('input', { bubbles: true }));
-    });
-    await page.waitForTimeout(500);
-    expect(page.url()).toContain('days=360');
-  });
+  // [REMOVED] „slider zile" — eliminat din filter bar (decizie produs, nu util).
+  // Filtrarea timpului e gestionată acum prin range-ul implicit + tab Trend.
+  test.skip('5. Profesor: slider zile (eliminat) — placeholder', async () => {});
 
   test('6. Admin: render Acasă + top-N profesori clickable', async ({ page }) => {
     await login(page, ADMIN);

@@ -132,7 +132,7 @@
       "role": "admin",
       "area": "sidebar",
       "severity": "low",
-      "description": "Sidebar admin items: [\"E\",\"Acasă · Călătoria evaluării\",\"Dashboard admin\",\"Gestionare platformă\",\"Closing-the-loop\",\"Editor ghiduri\",\"Editor achievements\",\"Feedback platformă\",\"Rapoarte\",\"Utilizatori\",\"Ghid pentru admin\",\"Deconectare\"]",
+      "description": "Sidebar admin items: [\"E\",\"Acasă · Călătoria evaluării\",\"Dashboard admin\",\"Gestionare platformă\",\"Closing-the-loop\",\"Editor ghiduri\",\"Editor achievements\",\"Șabloane acțiuni\",\"Feedback platformă\",\"Rapoarte\",\"Utilizatori\",\"Ghid pentru admin\",\"Deconectare\"]",
       "page": "/admin"
     },
     {
@@ -192,7 +192,7 @@
       "usesGeistFont": true,
       "usesNeutral25Bg": true,
       "oldClassCount": 21,
-      "newComponentCount": 113,
+      "newComponentCount": 117,
       "designScore": 100,
       "notes": [
         "5× \"bg-gray-*\"",
@@ -211,7 +211,7 @@
       "usesGeistFont": true,
       "usesNeutral25Bg": true,
       "oldClassCount": 20,
-      "newComponentCount": 80,
+      "newComponentCount": 84,
       "designScore": 100,
       "notes": [
         "5× \"bg-gray-*\"",
@@ -230,7 +230,7 @@
       "usesGeistFont": true,
       "usesNeutral25Bg": true,
       "oldClassCount": 22,
-      "newComponentCount": 195,
+      "newComponentCount": 322,
       "designScore": 100,
       "notes": [
         "2× clasă veche \".card\"",
@@ -250,7 +250,7 @@
       "usesGeistFont": true,
       "usesNeutral25Bg": true,
       "oldClassCount": 20,
-      "newComponentCount": 113,
+      "newComponentCount": 117,
       "designScore": 100,
       "notes": [
         "5× \"bg-gray-*\"",
@@ -269,7 +269,7 @@
       "usesGeistFont": true,
       "usesNeutral25Bg": true,
       "oldClassCount": 21,
-      "newComponentCount": 112,
+      "newComponentCount": 115,
       "designScore": 100,
       "notes": [
         "5× \"bg-gray-*\"",
@@ -288,7 +288,7 @@
       "usesGeistFont": true,
       "usesNeutral25Bg": true,
       "oldClassCount": 21,
-      "newComponentCount": 112,
+      "newComponentCount": 115,
       "designScore": 100,
       "notes": [
         "5× \"bg-gray-*\"",
@@ -307,7 +307,7 @@
       "usesGeistFont": true,
       "usesNeutral25Bg": true,
       "oldClassCount": 21,
-      "newComponentCount": 81,
+      "newComponentCount": 85,
       "designScore": 100,
       "notes": [
         "5× \"bg-gray-*\"",
@@ -326,7 +326,7 @@
       "usesGeistFont": true,
       "usesNeutral25Bg": true,
       "oldClassCount": 21,
-      "newComponentCount": 110,
+      "newComponentCount": 113,
       "designScore": 100,
       "notes": [
         "5× \"bg-gray-*\"",
@@ -345,7 +345,7 @@
       "usesGeistFont": true,
       "usesNeutral25Bg": true,
       "oldClassCount": 20,
-      "newComponentCount": 110,
+      "newComponentCount": 117,
       "designScore": 100,
       "notes": [
         "5× \"bg-gray-*\"",
@@ -364,7 +364,7 @@
       "usesGeistFont": true,
       "usesNeutral25Bg": true,
       "oldClassCount": 20,
-      "newComponentCount": 99,
+      "newComponentCount": 122,
       "designScore": 100,
       "notes": [
         "5× \"bg-gray-*\"",
@@ -383,7 +383,7 @@
       "usesGeistFont": true,
       "usesNeutral25Bg": true,
       "oldClassCount": 20,
-      "newComponentCount": 83,
+      "newComponentCount": 86,
       "designScore": 100,
       "notes": [
         "5× \"bg-gray-*\"",
@@ -402,7 +402,7 @@
       "usesGeistFont": true,
       "usesNeutral25Bg": true,
       "oldClassCount": 20,
-      "newComponentCount": 86,
+      "newComponentCount": 89,
       "designScore": 100,
       "notes": [
         "5× \"bg-gray-*\"",

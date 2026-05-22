@@ -72,12 +72,6 @@ export default function PlatformFeedback() {
     loadMessages();
   }, []);
 
-  const countAnswered = () => {
-    return Object.values(responses).filter(
-      (v) => v.likert != null || (v.text && v.text.trim()) || v.choice,
-    ).length;
-  };
-
   const handleSubmit = async () => {
     setSaving(true);
     try {

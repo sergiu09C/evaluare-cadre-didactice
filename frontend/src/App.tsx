@@ -5,6 +5,7 @@ import { AccessibilityProvider } from './contexts/AccessibilityContext';
 import { useKeyboardShortcut } from './hooks/useKeyboardShortcut';
 import { KeyboardShortcutsHelp } from './components/a11y';
 import LoginPage from './pages/LoginPage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
 import StudentDashboard from './pages/StudentDashboard';
 import Layout from './components/Layout';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -19,6 +20,7 @@ const AdminUsers = lazy(() => import('./pages/AdminUsers'));
 const AdminClosingLoop = lazy(() => import('./pages/AdminClosingLoop'));
 const AdminGuides = lazy(() => import('./pages/AdminGuides'));
 const AdminAchievements = lazy(() => import('./pages/AdminAchievements'));
+const AdminActionTemplates = lazy(() => import('./pages/AdminActionTemplates'));
 const AdminPlatformFeedback = lazy(() => import('./pages/AdminPlatformFeedback'));
 const PlatformFeedback = lazy(() => import('./pages/PlatformFeedback'));
 const EvaluationLifecycle = lazy(() => import('./pages/EvaluationLifecycle'));
@@ -161,6 +163,8 @@ function AppRoutes() {
             : <LoginPage />
         }
       />
+
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
 
       {/* Home — Lifecycle pentru toate rolurile (decizie produs:
           studentul/profesorul/adminul vede întâi „călătoria evaluării"). */}
@@ -346,6 +350,16 @@ function AppRoutes() {
           <ProtectedRoute requireAdmin>
             <Layout>
               <AdminAchievements />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/action-templates"
+        element={
+          <ProtectedRoute requireAdmin>
+            <Layout>
+              <AdminActionTemplates />
             </Layout>
           </ProtectedRoute>
         }

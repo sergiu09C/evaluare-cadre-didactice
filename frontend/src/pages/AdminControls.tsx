@@ -874,7 +874,7 @@ export default function AdminControls() {
                       <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Program</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Nivel</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">An</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Tip Curs</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Activitate</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Completări</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Rată %</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Scor Mediu</th>
@@ -949,7 +949,7 @@ export default function AdminControls() {
                       <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Titlu</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Departament</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Facultate</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Tip Curs</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Activitate</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Evaluări</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Rată %</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Scor Mediu</th>

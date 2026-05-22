@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api } from '../services/api';
-import { Card, Badge, Button, Input, Select, EmptyState } from '../components/ui';
+import { Card, Badge, Button, Input, Select, EmptyState, ConfirmDialog } from '../components/ui';
 import AccessibleModal from '../components/AccessibleModal';
 import { PlusIcon, PencilIcon, TrashIcon, EyeIcon, EyeSlashIcon, TrophyIcon } from '@heroicons/react/24/outline';
 
@@ -82,10 +82,19 @@ export default function AdminAchievements() {
     await api.updateAchievementDef(d.id, { is_active: !d.is_active });
     await load();
   };
-  const handleDelete = async (id: number) => {
-    if (!confirm('Ștergi această definiție de achievement?')) return;
-    await api.deleteAchievementDef(id);
-    await load();
+  const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const handleDelete = (id: number) => setPendingDeleteId(id);
+  const performDelete = async () => {
+    if (pendingDeleteId == null) return;
+    setDeleteLoading(true);
+    try {
+      await api.deleteAchievementDef(pendingDeleteId);
+      setPendingDeleteId(null);
+      await load();
+    } finally {
+      setDeleteLoading(false);
+    }
   };
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -248,6 +257,16 @@ export default function AdminAchievements() {
           </div>
         </form>
       </AccessibleModal>
+
+      <ConfirmDialog
+        isOpen={pendingDeleteId !== null}
+        onClose={() => setPendingDeleteId(null)}
+        onConfirm={performDelete}
+        title="Șterge achievement"
+        message="Ștergi această definiție? Achievement-urile deja câștigate de utilizatori nu sunt afectate, dar definiția nu va mai fi disponibilă."
+        confirmLabel="Șterge"
+        loading={deleteLoading}
+      />
     </div>
   );
 }

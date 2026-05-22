@@ -124,9 +124,10 @@ export default function ProfessorStudents() {
         />
       ) : (
         filteredCourses.map((c) => {
+          const students = c.students ?? [];
           const filteredStudents = search.trim()
-            ? c.students.filter((s) => s.name.toLowerCase().includes(search.trim().toLowerCase()))
-            : c.students;
+            ? students.filter((s) => s.name.toLowerCase().includes(search.trim().toLowerCase()))
+            : students;
           return (
             <Card key={c.course_id} padding="none" className="overflow-hidden">
               <div className="px-6 py-5 border-b border-neutral-100">

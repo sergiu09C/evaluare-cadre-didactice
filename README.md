@@ -11,6 +11,38 @@ Platformă web full-stack pentru evaluarea cadrelor didactice universitare, cu *
 
 ---
 
+## 📌 Status curent
+
+**Toate items planificate închise** (17/17 cumulate din rapoartele R1–S4). Sumar:
+
+- **Migrations active**: 16 (cele 2 recente: `015-platform-feedback-submissions`, `016-password-reset`)
+- **Suite Playwright**: 151 passed / 0 failed / 4 skipped (37 spec-uri, ~10 min)
+- **Unit tests backend**: 21 passed (`npm test` în `backend/`)
+- **Componente UI reutilizabile noi**: `ListFilterBar`, `MultiSelect`, `ConfirmDialog`, `LoadingState`
+- **Endpoint-uri noi importante**: `/auth/forgot-password`, `/auth/reset-password`, `/admin/export/aracis`, `/platform-feedback/history/:id`, `/admin/users/:id/professor-profile`
+
+**Comenzi cheie:**
+```bash
+# Backend (port 5001)
+cd backend && npm start
+
+# Frontend (port 3000)
+cd frontend && npm run dev
+
+# Unit tests backend
+cd backend && npm test
+
+# E2E tests
+cd tests && npx playwright test
+
+# Verificare regression: zero erori console pe toate paginile × 3 roluri
+cd tests && npx playwright test e2e/console-clean.spec.ts
+```
+
+Rapoarte recente: `PLAN_V2.md` (planul executat), `RAPORT_S1_S2_S3.md` (livrabile).
+
+---
+
 ## 🌟 Caracteristici Unice
 
 ### ♿ Accesibilitate WCAG 2.1 Level AAA Compliant

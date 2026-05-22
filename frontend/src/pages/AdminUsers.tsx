@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api } from '../services/api';
-import { Card, Badge, Button, Input, Select, Avatar, EmptyState } from '../components/ui';
+import { Card, Badge, Button, Input, Select, Avatar, EmptyState, ListFilterBar, ConfirmDialog } from '../components/ui';
 import { IllUsers } from '../components/illustrations';
 import AccessibleModal from '../components/AccessibleModal';
 import {
@@ -164,7 +164,7 @@ export default function AdminUsers() {
           setProfDepartment(pp.professor.department || '');
         }
         setProfAssignments(
-          pp.courses.map((c) => ({
+          (pp.courses ?? []).map((c) => ({
             course_id: c.id,
             course_name: c.name,
             program: c.program,
@@ -179,10 +179,23 @@ export default function AdminUsers() {
     setShowModal(true);
   };
 
-  const handleDeactivate = async (u: AdminUser) => {
-    if (!confirm(`Dezactivezi contul ${u.firstName} ${u.lastName}?`)) return;
-    await api.deactivateAdminUser(u.id);
-    await load();
+  const [confirmDeactivate, setConfirmDeactivate] = useState<AdminUser | null>(null);
+  const [confirmLoading, setConfirmLoading] = useState(false);
+
+  const handleDeactivate = (u: AdminUser) => {
+    setConfirmDeactivate(u);
+  };
+
+  const performDeactivate = async () => {
+    if (!confirmDeactivate) return;
+    setConfirmLoading(true);
+    try {
+      await api.deactivateAdminUser(confirmDeactivate.id);
+      setConfirmDeactivate(null);
+      await load();
+    } finally {
+      setConfirmLoading(false);
+    }
   };
 
   const handleActivate = async (u: AdminUser) => {
@@ -251,37 +264,29 @@ export default function AdminUsers() {
         </Button>
       </div>
 
-      {/* Filters */}
-      <Card>
-        <div className="flex items-center gap-4 flex-wrap">
-          <div className="flex gap-2 flex-wrap" role="tablist">
-            {(['all', 'student', 'professor', 'admin'] as Role[]).map((r) => (
-              <button
-                key={r}
-                role="tab"
-                aria-selected={filter === r}
-                onClick={() => setFilter(r)}
-                className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-400/40 ${
-                  filter === r
-                    ? 'bg-primary-800 text-white border-primary-800'
-                    : 'bg-white text-neutral-700 border-neutral-200 hover:bg-neutral-50'
-                }`}
-              >
-                {r === 'all' ? 'Toți' : r === 'student' ? 'Studenți' : r === 'professor' ? 'Profesori' : 'Administratori'}
-                <span className="ml-1.5 text-[11px] opacity-75">{counts[r]}</span>
-              </button>
-            ))}
-          </div>
-          <div className="flex-1 min-w-[240px]">
-            <Input
-              prefix={<MagnifyingGlassIcon className="w-4 h-4" />}
-              placeholder="Caută după nume sau email..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </div>
-        </div>
-      </Card>
+      <ListFilterBar
+        tabs={{
+          items: [
+            { key: 'all', label: 'Toți', count: counts.all },
+            { key: 'student', label: 'Studenți', count: counts.student },
+            { key: 'professor', label: 'Profesori', count: counts.professor },
+            { key: 'admin', label: 'Administratori', count: counts.admin },
+          ],
+          value: filter,
+          onChange: (v) => setFilter(v as Role),
+        }}
+        search={{
+          value: search,
+          onChange: setSearch,
+          placeholder: 'Caută după nume sau email...',
+        }}
+        resultCount={{ current: users.length, total: pagination.total }}
+        active={filter !== 'all' || search.trim() !== ''}
+        onClearAll={() => {
+          setFilter('all');
+          setSearch('');
+        }}
+      />
 
       {error && (
         <Card tone="danger">
@@ -577,6 +582,20 @@ export default function AdminUsers() {
           </div>
         </form>
       </AccessibleModal>
+
+      <ConfirmDialog
+        isOpen={confirmDeactivate !== null}
+        onClose={() => setConfirmDeactivate(null)}
+        onConfirm={performDeactivate}
+        title="Dezactivează cont"
+        message={
+          confirmDeactivate
+            ? `Dezactivezi contul lui ${confirmDeactivate.firstName} ${confirmDeactivate.lastName}? Utilizatorul nu va mai putea autentifica până când îl reactivezi.`
+            : ''
+        }
+        confirmLabel="Dezactivează"
+        loading={confirmLoading}
+      />
     </div>
   );
 }

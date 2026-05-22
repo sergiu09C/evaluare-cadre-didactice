@@ -28,16 +28,17 @@ test('#2 ProfessorStudents — full names, fără has_evaluated', async ({ page 
   await login(page, PROF);
   await page.goto(BASE + '/professor/students');
   await page.waitForLoadState('networkidle');
-  // NU trebuie să existe text „a evaluat" sau „nu a evaluat" pe student individual
+  // NU trebuie să existe text „evaluat" pe student individual (privacy by design)
   const pageContent = await page.content();
   expect(pageContent).not.toContain('✓ evaluat');
   expect(pageContent).not.toContain('○ neevaluat');
-  // Trebuie să apară full names (nu doar inițiale tip „A.P.")
-  const firstStudent = await page.locator('ul li').first().textContent();
-  // Un nume valid are spațiu între prenume și nume — inițiale ar fi „A.P."
-  if (firstStudent) {
-    expect(firstStudent).toMatch(/[A-ZȘȚĂÂÎ][a-zșțăâî]+\s+[A-ZȘȚĂÂÎ][a-zșțăâî]+/);
-  }
+  // Caut numele complete din secțiunea principală (#main-content) ca să evit ListFilterBar tabs.
+  // Structura curentă: list-uri grupate per curs; un nume e text-ul direct al unui <span> sau <li>.
+  const main = page.locator('#main-content');
+  await expect(main).toBeVisible();
+  const text = (await main.textContent()) ?? '';
+  // verific că există pattern de 2 cuvinte capitalizate consecutive (prenume + nume)
+  expect(text).toMatch(/[A-ZȘȚĂÂÎ][a-zșțăâî]+\s+[A-ZȘȚĂÂÎ][a-zșțăâî]+/);
   await page.screenshot({ path: '/tmp/v3-prof-students.png', fullPage: false });
 });
 

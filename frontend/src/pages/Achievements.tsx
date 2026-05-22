@@ -40,6 +40,9 @@ function inferTone(_a: Achievement, index: number): Tone {
 }
 
 function inferIcon(a: Achievement): string {
+  // Folosesc icon-ul explicit din achievement_definitions când e prezent (admin l-a setat).
+  // Cad pe heuristic doar pentru achievements legacy fără icon definit.
+  if (a.icon && ICON_MAP[a.icon]) return a.icon;
   const id = a.id.toLowerCase();
   if (id.includes('streak') || id.includes('fire')) return 'fire';
   if (id.includes('complet')) return 'trophy';

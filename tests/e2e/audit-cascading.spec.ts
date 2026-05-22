@@ -41,29 +41,17 @@ test('Cascading: pick master → year=3 dispare din dropdown', async ({ page }) 
 });
 
 test('Cascading: pick programId nou → programLevel se sincronizează', async ({ page }) => {
+  // Selectul de program e al 2-lea select din filter bar (după facultate).
+  // Selectez AIA (id=13) și verific cascada: programLevel devine 'licenta'.
   await loginAdmin(page);
-  // pornesc cu master setat
-  await page.goto(BASE + '/admin?programLevel=master');
+  await page.goto(BASE + '/admin');
   await page.waitForLoadState('networkidle');
-  // Acum pick program licență (AIA id=13) — programLevel ar trebui să devină 'licenta'
-  await page.goto(BASE + '/admin?programLevel=master&programId=13');
-  await page.waitForLoadState('networkidle');
+  await page.waitForTimeout(1000);
+  const allSelects = page.locator('select');
+  const programSelect = allSelects.nth(1);
+  // Folosesc label exact (Playwright cere string, nu regex pe label)
+  await programSelect.selectOption({ label: 'AIA (licenta)' });
   await page.waitForTimeout(500);
-  // Click pe Select Program și schimbă la AIA (id=13) — verifică că URL se actualizează
-  // Simplification: verify URL state
-  // Reality check: navigăm la URL combinat, observăm că cascading nu rulează cu URL direct
-  // În schimb verificăm: dacă scriu programId=13 din UI, programLevel devine 'licenta'
-  // Trebuie testat via select.selectOption
-  await page.goto(BASE + '/admin?programLevel=master');
-  await page.waitForLoadState('networkidle');
-  await page.waitForTimeout(500);
-  // Open program select and pick AIA
-  const programSelect = page.locator('select').filter({ hasText: /AIA|IS|RIA/ }).first();
-  if ((await programSelect.count()) > 0) {
-    await programSelect.selectOption('13');
-    await page.waitForTimeout(500);
-    // URL ar trebui să aibă programId=13 ȘI programLevel=licenta
-    expect(page.url()).toContain('programId=13');
-    expect(page.url()).toContain('programLevel=licenta');
-  }
+  expect(page.url()).toContain('programId=13');
+  expect(page.url()).toContain('programLevel=licenta');
 });

@@ -858,3 +858,93 @@ exports.getCourseTypeStats = (req, res, next) => {
     next(error);
   }
 };
+
+/**
+ * GET /api/admin/export/aracis
+ * Export agregat pentru raportare ARACIS (CSV; UTF-8 cu BOM).
+ */
+exports.exportAracis = (req, res, next) => {
+  try {
+    const db = getDatabase();
+    const rows = db.prepare(`
+      SELECT
+        f.id AS faculty_id, f.name AS faculty,
+        pr.id AS program_id, pr.name AS program, pr.level AS level,
+        sy.id AS sy_id, sy.year_number AS year,
+        (SELECT COUNT(DISTINCT p.id) FROM professors p
+         JOIN courses c2 ON c2.professor_id = p.id WHERE c2.study_year_id = sy.id) AS profesori,
+        (SELECT COUNT(DISTINCT u.id) FROM users u
+         JOIN groups g ON g.id = u.group_id
+         JOIN series s ON s.id = g.series_id
+         WHERE u.role='student' AND u.is_active=1 AND s.study_year_id = sy.id) AS studenti,
+        (SELECT COUNT(*) FROM evaluations e
+         JOIN courses c2 ON c2.id = e.course_id
+         WHERE c2.study_year_id = sy.id AND e.status='submitted') AS evaluari,
+        (
+          (SELECT COUNT(*) FROM courses c2 WHERE c2.study_year_id = sy.id) *
+          (SELECT COUNT(DISTINCT u.id) FROM users u
+           JOIN groups g ON g.id = u.group_id
+           JOIN series s ON s.id = g.series_id
+           WHERE u.role='student' AND u.is_active=1 AND s.study_year_id = sy.id)
+        ) AS evaluari_max,
+        (SELECT AVG(r.response_likert) FROM responses r
+         JOIN evaluations e ON e.id = r.evaluation_id
+         JOIN courses c2 ON c2.id = e.course_id
+         WHERE c2.study_year_id = sy.id AND e.status='submitted' AND r.response_likert IS NOT NULL) AS scor_mediu
+      FROM faculties f
+      JOIN programs pr ON pr.faculty_id = f.id
+      JOIN study_years sy ON sy.program_id = pr.id
+      ORDER BY f.name, pr.name, sy.year_number
+    `).all();
+
+    const catAvg = db.prepare(`
+      SELECT q.category AS cat, AVG(r.response_likert) AS avg
+      FROM responses r
+      JOIN evaluations e ON e.id = r.evaluation_id
+      JOIN courses c ON c.id = e.course_id
+      JOIN questions q ON q.id = r.question_id
+      WHERE c.study_year_id = ? AND e.status='submitted' AND r.response_likert IS NOT NULL
+      GROUP BY q.category
+    `);
+
+    const header = [
+      'Facultate', 'Program', 'Nivel', 'An',
+      'Cadre_didactice', 'Studenti', 'Evaluari_completate', 'Evaluari_max',
+      'Rata_completare_%', 'Scor_mediu_/5',
+      'Didactica_/5', 'Comunicare_/5', 'Organizare_/5', 'Angajament_/5', 'General_/5',
+    ];
+    const lines = [header.join(',')];
+
+    for (const r of rows) {
+      const catRows = catAvg.all(r.sy_id);
+      const catMap = Object.fromEntries(catRows.map((c) => [c.cat, c.avg]));
+      const rata = r.evaluari_max > 0 ? Math.round((r.evaluari / r.evaluari_max) * 100) : 0;
+      const fmt = (v) => (v == null ? '' : Number(v).toFixed(2));
+      const cells = [
+        `"${(r.faculty || '').replace(/"/g, '""')}"`,
+        `"${(r.program || '').replace(/"/g, '""')}"`,
+        r.level || '',
+        r.year,
+        r.profesori,
+        r.studenti,
+        r.evaluari,
+        r.evaluari_max,
+        rata,
+        fmt(r.scor_mediu),
+        fmt(catMap['didactica']),
+        fmt(catMap['comunicare']),
+        fmt(catMap['organizare']),
+        fmt(catMap['angajament']),
+        fmt(catMap['general']),
+      ];
+      lines.push(cells.join(','));
+    }
+    const csv = lines.join('\n');
+    const filename = `aracis-export-${new Date().toISOString().split('T')[0]}.csv`;
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.send('﻿' + csv);
+  } catch (error) {
+    next(error);
+  }
+};

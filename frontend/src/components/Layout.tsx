@@ -103,6 +103,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     { label: 'Closing-the-loop', path: '/admin/closing-loop', icon: FlagIcon },
     { label: 'Editor ghiduri', path: '/admin/guides', icon: ChartBarIcon },
     { label: 'Editor achievements', path: '/admin/achievements', icon: TrophyIcon },
+    { label: 'Șabloane acțiuni', path: '/admin/action-templates', icon: ClipboardDocumentListIcon },
     { label: 'Feedback platformă', path: '/admin/platform-feedback', icon: ChartBarIcon },
     { label: 'Rapoarte', path: '/admin/reports', icon: DocumentChartBarIcon },
     { label: 'Utilizatori', path: '/admin/users', icon: UsersIcon },

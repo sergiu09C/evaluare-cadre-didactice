@@ -48,6 +48,7 @@ function initializeDatabase() {
       '013-backfill-student-program-year.sql',
       '014-platform-feedback-messages.sql',
       '015-platform-feedback-submissions.sql',
+      '016-password-reset.sql',
     ];
     for (const file of migrationFiles) {
       const p = path.join(migrationsDir, file);
