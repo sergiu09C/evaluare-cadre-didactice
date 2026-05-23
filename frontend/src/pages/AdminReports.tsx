@@ -123,10 +123,11 @@ export default function AdminReports() {
   const [disciplineComparison, setDisciplineComparison] = useState<any>(null);
 
   // Chart type per tab — default smart per tab (line pentru trenduri pe ani, bare în rest)
-  const [overviewChart, setOverviewChart] = useState<ChartKind>('bar');
-  const [yearChart, setYearChart] = useState<ChartKind>('line');
-  const [courseTypeChart, setCourseTypeChart] = useState<ChartKind>('bar');
-  const [disciplineChart, setDisciplineChart] = useState<ChartKind>('bar');
+  // Default tabel — cel mai lizibil când datele sunt multe; userul poate trece la chart vizual cu un click
+  const [overviewChart, setOverviewChart] = useState<ChartKind>('table');
+  const [yearChart, setYearChart] = useState<ChartKind>('table');
+  const [courseTypeChart, setCourseTypeChart] = useState<ChartKind>('table');
+  const [disciplineChart, setDisciplineChart] = useState<ChartKind>('table');
 
   // Strategy de agregare adaptivă:
   //  - Fără filtre → grupez per facultate (5 bare clare)
@@ -144,7 +145,10 @@ export default function AdminReports() {
       selectedFaculty ? 'program' :
       'faculty';
 
-    // Aggregate raw rows după cheia de grupare
+    // Aggregate raw rows după cheia de grupare.
+    // Backend trimite: `total_evaluations` (numărul de evaluări CREATE) și
+    // `completed` (subset, status=submitted). `completion_rate` e deja calculat
+    // de backend (% completed / total_evaluations).
     const buckets = new Map<string, {
       key: string; label: string;
       completed: number; total: number; sum_score: number; count_with_score: number;
@@ -165,7 +169,7 @@ export default function AdminReports() {
         faculty_short: facShort,
       };
       bucket.completed += s.completed || 0;
-      bucket.total += s.total || 0;
+      bucket.total += s.total_evaluations || 0;
       if (s.average_score != null) {
         bucket.sum_score += s.average_score;
         bucket.count_with_score++;
@@ -648,58 +652,47 @@ export default function AdminReports() {
                 )}
               </div>
 
-              {/* Data Table — coloane explicite pentru disciplina/programul agregării */}
-              {filteredStats.stats && filteredStats.stats.length > 0 && (
+              {/* Detalii pe rândul brut — afișat doar când există filtre active.
+                  Fără filtre, ar fi 240 rânduri și ar fi neclar; agregarea de sus le rezumă. */}
+              {filteredStats.stats && filteredStats.stats.length > 0 &&
+               filteredStats.stats.length <= 50 &&
+               (selectedFaculty || selectedYear || selectedCourseType) && (
                 <div className="card">
                   <div className="p-6 border-b border-neutral-200">
-                    <h3 className="text-lg font-semibold text-neutral-800">Date Detaliate</h3>
+                    <h3 className="text-lg font-semibold text-neutral-800">Detalii rând cu rând</h3>
                     <p className="text-xs text-neutral-500 mt-1">
-                      Granularitate: facultate × program × an × activitate (curs/laborator/seminar). Pentru comparație între profesori pe aceeași disciplină vezi tab-ul „Comparație Discipline".
+                      {filteredStats.stats.length} combinații facultate × program × an × activitate. Aplică filtre suplimentare pentru și mai puține rânduri.
                     </p>
                   </div>
                   <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-neutral-200">
+                    <table className="min-w-full divide-y divide-neutral-200 text-sm">
                       <thead className="bg-neutral-25">
                         <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Facultate</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Program</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Nivel</th>
-                          <th className="px-6 py-3 text-center text-xs font-medium text-neutral-500 uppercase">An</th>
-                          <th className="px-6 py-3 text-center text-xs font-medium text-neutral-500 uppercase">Activitate</th>
-                          <th className="px-6 py-3 text-center text-xs font-medium text-neutral-500 uppercase">Total</th>
-                          <th className="px-6 py-3 text-center text-xs font-medium text-neutral-500 uppercase">Completate</th>
-                          <th className="px-6 py-3 text-center text-xs font-medium text-neutral-500 uppercase">Rata (%)</th>
-                          <th className="px-6 py-3 text-center text-xs font-medium text-neutral-500 uppercase">Scor Mediu</th>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-neutral-500 uppercase">Facultate</th>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-neutral-500 uppercase">Program</th>
+                          <th className="px-4 py-2 text-center text-xs font-medium text-neutral-500 uppercase">An</th>
+                          <th className="px-4 py-2 text-center text-xs font-medium text-neutral-500 uppercase">Activitate</th>
+                          <th className="px-4 py-2 text-center text-xs font-medium text-neutral-500 uppercase">Completate</th>
+                          <th className="px-4 py-2 text-center text-xs font-medium text-neutral-500 uppercase">Total</th>
+                          <th className="px-4 py-2 text-center text-xs font-medium text-neutral-500 uppercase">Rata</th>
+                          <th className="px-4 py-2 text-center text-xs font-medium text-neutral-500 uppercase">Scor</th>
                         </tr>
                       </thead>
-                      <tbody className="bg-white divide-y divide-neutral-200">
-                        {overviewRows.map((stat: any, index: number) => (
-                          <tr key={index} className="hover:bg-neutral-25">
-                            <td className="px-6 py-4 text-sm text-neutral-800">{stat.faculty_short}</td>
-                            <td className="px-6 py-4 text-sm text-neutral-700">{stat.program_name || '-'}</td>
-                            <td className="px-6 py-4 text-sm text-neutral-500">{stat.level || '-'}</td>
-                            <td className="px-6 py-4 text-sm text-center text-neutral-500">{stat.year_number || '-'}</td>
-                            <td className="px-6 py-4 text-sm text-center text-neutral-500">{stat.course_type || '-'}</td>
-                            <td className="px-6 py-4 text-sm text-center text-neutral-800">{stat.total_evaluations}</td>
-                            <td className="px-6 py-4 text-sm text-center text-green-600 font-medium">{stat.completed}</td>
-                            <td className="px-6 py-4 text-sm text-center">
-                              <span className={`font-semibold ${
-                                stat.completion_rate >= 80 ? 'text-green-600' :
-                                stat.completion_rate >= 60 ? 'text-yellow-600' : 'text-red-600'
-                              }`}>
-                                {stat.completion_rate?.toFixed(1)}%
+                      <tbody className="divide-y divide-neutral-100">
+                        {filteredStats.stats.map((s: any, i: number) => (
+                          <tr key={i} className="hover:bg-neutral-25">
+                            <td className="px-4 py-2 text-neutral-800">{(s.faculty_name || '—').replace(/^Facultatea de\s+/i, '')}</td>
+                            <td className="px-4 py-2 text-neutral-700">{s.program_name || '—'}</td>
+                            <td className="px-4 py-2 text-center">{s.year_number ?? '—'}</td>
+                            <td className="px-4 py-2 text-center">{s.course_type || '—'}</td>
+                            <td className="px-4 py-2 text-center font-mono text-success-fg">{s.completed}</td>
+                            <td className="px-4 py-2 text-center font-mono text-neutral-500">{s.total_evaluations}</td>
+                            <td className="px-4 py-2 text-center font-mono">
+                              <span className={s.completion_rate >= 70 ? 'text-success-fg' : s.completion_rate >= 50 ? 'text-warning-fg' : 'text-danger-fg'}>
+                                {s.completion_rate?.toFixed(1)}%
                               </span>
                             </td>
-                            <td className="px-6 py-4 text-sm text-center">
-                              {stat.average_score ? (
-                                <span className={`font-semibold ${
-                                  stat.average_score >= 4 ? 'text-green-600' :
-                                  stat.average_score >= 3 ? 'text-yellow-600' : 'text-red-600'
-                                }`}>
-                                  {stat.average_score.toFixed(2)}
-                                </span>
-                              ) : '-'}
-                            </td>
+                            <td className="px-4 py-2 text-center font-mono">{s.average_score?.toFixed(2) ?? '—'}</td>
                           </tr>
                         ))}
                       </tbody>
