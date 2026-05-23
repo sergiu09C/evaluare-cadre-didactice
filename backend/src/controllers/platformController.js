@@ -729,7 +729,9 @@ exports.getHomeStats = (req, res, next) => {
     //   possible = câte cursuri din scope ar putea evalua (via study_year chain)
     //   done = câte evaluări A TRANSMIS efectiv pentru cursuri din scope
     //   remaining = possible > done
-    // Folosim alias-uri `c` (courses) și `p` (professors) consistente cu evalF.sql.
+    // FIX: după migrarea 017, e.student_id devine NULL la submit. Folosesc
+    // completion_tokens.user_id care păstrează identitatea pentru tracking de
+    // progres (anonimitatea se aplică doar la nivel de responses).
     const studentsWithRemainingRow = db
       .prepare(
         `WITH per_student AS (
@@ -739,10 +741,11 @@ exports.getHomeStats = (req, res, next) => {
               JOIN groups g_in ON g_in.id = u.group_id
               JOIN series s_in ON s_in.id = g_in.series_id
               WHERE c.study_year_id = s_in.study_year_id ${evalF.sql}) AS possible,
-             (SELECT COUNT(*) FROM evaluations e
+             (SELECT COUNT(*) FROM completion_tokens ct
+              JOIN evaluations e ON e.id = ct.evaluation_id
               JOIN courses c ON c.id = e.course_id
               JOIN professors p ON p.id = e.professor_id
-              WHERE e.student_id = u.id AND e.status='submitted' ${evalF.sql}) AS done
+              WHERE ct.user_id = u.id AND ct.completed_at IS NOT NULL ${evalF.sql}) AS done
            FROM users u WHERE u.role='student' AND u.is_active=1
          )
          SELECT
