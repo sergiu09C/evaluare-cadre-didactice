@@ -6,7 +6,7 @@ import { ArrowRightIcon } from '@heroicons/react/24/outline';
 import { AlertDialog } from '../components/AccessibleModal';
 import type { Professor } from '../types';
 
-type Filter = 'all' | 'pending' | 'draft' | 'submitted';
+type Filter = 'all' | 'pending' | 'draft';
 
 function initialsOf(name: string): string {
   return (
@@ -29,6 +29,8 @@ const statusMeta: Record<
   draft: { label: 'Draft salvat', tone: 'warning' },
   not_started: { label: 'Nedemarat', tone: 'neutral' },
 };
+
+const ACTIVE_STATUSES: Professor['evaluation']['status'][] = ['not_started', 'draft'];
 
 export default function ActiveEvaluations() {
   const navigate = useNavigate();
@@ -57,20 +59,24 @@ export default function ActiveEvaluations() {
       .finally(() => setLoading(false));
   }, []);
 
+  const activeProfessors = useMemo(
+    () => professors.filter((p) => ACTIVE_STATUSES.includes(p.evaluation.status)),
+    [professors],
+  );
+
   const filtered = useMemo(() => {
-    if (filter === 'all') return professors;
-    if (filter === 'pending') return professors.filter((p) => p.evaluation.status === 'not_started');
-    return professors.filter((p) => p.evaluation.status === filter);
-  }, [professors, filter]);
+    if (filter === 'all') return activeProfessors;
+    if (filter === 'pending') return activeProfessors.filter((p) => p.evaluation.status === 'not_started');
+    return activeProfessors.filter((p) => p.evaluation.status === filter);
+  }, [activeProfessors, filter]);
 
   const counts = useMemo(() => {
     return {
-      all: professors.length,
-      pending: professors.filter((p) => p.evaluation.status === 'not_started').length,
-      draft: professors.filter((p) => p.evaluation.status === 'draft').length,
-      submitted: professors.filter((p) => p.evaluation.status === 'submitted').length,
+      all: activeProfessors.length,
+      pending: activeProfessors.filter((p) => p.evaluation.status === 'not_started').length,
+      draft: activeProfessors.filter((p) => p.evaluation.status === 'draft').length,
     };
-  }, [professors]);
+  }, [activeProfessors]);
 
   const handleStart = async (p: Professor) => {
     try {
@@ -105,13 +111,21 @@ export default function ActiveEvaluations() {
       <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 flex-wrap">
         <div>
           <h1 className="font-display text-2xl md:text-[30px] font-semibold tracking-tight text-neutral-800">
-            Toate evaluările
+            Evaluări active
           </h1>
           <p className="mt-1.5 text-neutral-500 text-sm md:text-[15px]">
-            Lista completă a evaluărilor tale din acest semestru.
+            Evaluările pe care le ai de început sau în progres. Cele trimise se mută automat la{' '}
+            <button
+              type="button"
+              onClick={() => navigate('/history')}
+              className="text-accent-700 hover:underline font-medium"
+            >
+              Istoric
+            </button>
+            .
           </p>
         </div>
-        <Badge tone="info">{counts.all} total · {counts.pending + counts.draft} de făcut</Badge>
+        <Badge tone="info">{counts.all} de făcut</Badge>
       </div>
 
       {/* Closed banner — afișat când platforma nu mai acceptă evaluări */}
@@ -132,8 +146,8 @@ export default function ActiveEvaluations() {
       )}
 
       {/* Filter chips */}
-      <div className="flex gap-2 flex-wrap" role="tablist" aria-label="Filtru evaluări">
-        {(['all', 'pending', 'draft', 'submitted'] as Filter[]).map((f) => (
+      <div className="flex gap-2 flex-wrap" role="tablist" aria-label="Filtru evaluări active">
+        {(['all', 'pending', 'draft'] as Filter[]).map((f) => (
           <button
             key={f}
             role="tab"
@@ -145,7 +159,7 @@ export default function ActiveEvaluations() {
                 : 'bg-white text-neutral-700 border-neutral-200 hover:bg-neutral-50'
             }`}
           >
-            {f === 'all' ? 'Toate' : f === 'pending' ? 'De început' : f === 'draft' ? 'Draft' : 'Trimise'}
+            {f === 'all' ? 'Toate' : f === 'pending' ? 'De început' : 'Draft'}
             <span className="ml-1.5 text-[11px] opacity-75">{counts[f]}</span>
           </button>
         ))}

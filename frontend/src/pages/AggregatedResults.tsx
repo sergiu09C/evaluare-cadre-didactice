@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import { api } from '../services/api';
 import { Card, Badge, KPICard, EmptyState } from '../components/ui';
-import { ArrowRightIcon } from '@heroicons/react/24/outline';
+import { ChevronDownIcon } from '@heroicons/react/24/outline';
 import type { ClosingLoopEntry } from '../types';
+
+const INITIAL_VISIBLE = 3;
 
 // Hard-coded reference data for the pilot (matching design mockup).
 // In production these would come from a /api/platform/aggregated-results endpoint.
@@ -15,6 +17,8 @@ export default function AggregatedResults() {
   const [participationRate, setParticipationRate] = useState<number | null>(null);
   const [changes, setChanges] = useState<ClosingLoopEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [showAll, setShowAll] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -260,35 +264,134 @@ export default function AggregatedResults() {
 
       {/* Changes list */}
       <section>
-        <h2 className="text-xl font-semibold mb-4 text-neutral-800">Schimbări implementate</h2>
+        <div className="flex items-baseline justify-between gap-2 mb-4 flex-wrap">
+          <h2 className="text-xl font-semibold text-neutral-800">Schimbări implementate</h2>
+          {changes.length > 0 && (
+            <span className="text-xs text-neutral-500">
+              {changes.length} {changes.length === 1 ? 'schimbare publicată' : 'schimbări publicate'}
+            </span>
+          )}
+        </div>
         {changes.length === 0 ? (
           <EmptyState
             title="Nu există schimbări publicate momentan"
             description="CEAC va publica aici schimbările pe baza evaluărilor tale după închiderea acestui ciclu de evaluare."
           />
         ) : (
-          <div className="flex flex-col gap-3">
-            {changes.map((c) => (
-              <Card key={c.id} className="flex gap-4 items-start">
-                <span
-                  className="w-3 h-3 rounded-full mt-1.5 shrink-0"
-                  style={{ background: c.dot_color }}
-                  aria-hidden="true"
-                />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <h3 className="text-base font-semibold text-neutral-800">{c.title}</h3>
-                    {c.related_dimension && <Badge tone="accent">{c.related_dimension}</Badge>}
-                  </div>
-                  <p className="text-sm text-neutral-500 mt-1.5 leading-relaxed">{c.body}</p>
-                  <div className="text-xs text-neutral-400 mt-2">
-                    Actualizat: {new Date(c.updated_at).toLocaleDateString('ro-RO')}
-                  </div>
-                </div>
-                <ArrowRightIcon className="w-4 h-4 text-neutral-300 shrink-0 mt-1.5" aria-hidden="true" />
-              </Card>
-            ))}
-          </div>
+          <>
+            <div className="flex flex-col gap-3">
+              {(showAll ? changes : changes.slice(0, INITIAL_VISIBLE)).map((c) => {
+                const isOpen = expandedId === c.id;
+                const hasDetails = !!(c.student_said || c.we_did || c.impact_metric || c.triggered_by_semester);
+                return (
+                  <Card key={c.id} padding="none" className="overflow-hidden">
+                    <button
+                      type="button"
+                      onClick={() => setExpandedId(isOpen ? null : c.id)}
+                      aria-expanded={isOpen}
+                      aria-controls={`change-detail-${c.id}`}
+                      className="w-full text-left p-5 sm:p-6 flex gap-3 sm:gap-4 items-start hover:bg-neutral-25 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-400/40"
+                    >
+                      <span
+                        className="w-3 h-3 rounded-full mt-1.5 shrink-0"
+                        style={{ background: c.dot_color }}
+                        aria-hidden="true"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h3 className="text-base font-semibold text-neutral-800">{c.title}</h3>
+                          {c.related_dimension && <Badge tone="accent">{c.related_dimension}</Badge>}
+                        </div>
+                        <p className="text-sm text-neutral-500 mt-1.5 leading-relaxed">{c.body}</p>
+                        <div className="text-xs text-neutral-400 mt-2">
+                          Actualizat: {new Date(c.updated_at).toLocaleDateString('ro-RO')}
+                          {hasDetails && (
+                            <span className="ml-2 text-accent-700 font-medium">
+                              · {isOpen ? 'Ascunde detaliile' : 'Vezi detaliile'}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <ChevronDownIcon
+                        className={`w-4 h-4 text-neutral-400 shrink-0 mt-1.5 transition-transform ${
+                          isOpen ? 'rotate-180' : ''
+                        }`}
+                        aria-hidden="true"
+                      />
+                    </button>
+                    {isOpen && hasDetails && (
+                      <div
+                        id={`change-detail-${c.id}`}
+                        className="px-5 sm:px-6 pb-5 sm:pb-6 pt-1 border-t border-neutral-100 bg-neutral-25/40 grid gap-3 sm:grid-cols-2"
+                      >
+                        {c.student_said && (
+                          <div className="sm:col-span-2">
+                            <div className="text-[11px] uppercase tracking-wide text-neutral-500 font-medium mb-1">
+                              Voi ați spus
+                            </div>
+                            <blockquote className="text-sm text-neutral-700 border-l-2 border-accent-400 pl-3 italic leading-relaxed">
+                              „{c.student_said}"
+                            </blockquote>
+                          </div>
+                        )}
+                        {c.we_did && (
+                          <div className="sm:col-span-2">
+                            <div className="text-[11px] uppercase tracking-wide text-neutral-500 font-medium mb-1">
+                              Noi am acționat
+                            </div>
+                            <p className="text-sm text-neutral-700 leading-relaxed">{c.we_did}</p>
+                          </div>
+                        )}
+                        {c.triggered_by_semester && (
+                          <div>
+                            <div className="text-[11px] uppercase tracking-wide text-neutral-500 font-medium mb-1">
+                              Inițiat în
+                            </div>
+                            <p className="text-sm text-neutral-700">{c.triggered_by_semester}</p>
+                          </div>
+                        )}
+                        {c.impact_metric && (
+                          <div>
+                            <div className="text-[11px] uppercase tracking-wide text-neutral-500 font-medium mb-1">
+                              Impact măsurat
+                            </div>
+                            <p className="text-sm text-neutral-700 font-mono">{c.impact_metric}</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    {isOpen && !hasDetails && (
+                      <div className="px-5 sm:px-6 pb-5 sm:pb-6 pt-1 border-t border-neutral-100 bg-neutral-25/40">
+                        <p className="text-xs text-neutral-500">
+                          Detalii suplimentare urmează să fie publicate de CEAC.
+                        </p>
+                      </div>
+                    )}
+                  </Card>
+                );
+              })}
+            </div>
+            {changes.length > INITIAL_VISIBLE && (
+              <div className="mt-4 flex justify-center">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowAll((v) => !v);
+                    if (showAll) setExpandedId(null);
+                  }}
+                  className="inline-flex items-center gap-2 px-4 h-10 rounded-full bg-white border border-neutral-200 text-neutral-800 text-sm font-medium shadow-elev-1 hover:bg-neutral-50 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-400/40"
+                >
+                  {showAll
+                    ? 'Arată mai puține'
+                    : `Vezi toate (+${changes.length - INITIAL_VISIBLE})`}
+                  <ChevronDownIcon
+                    className={`w-4 h-4 transition-transform ${showAll ? 'rotate-180' : ''}`}
+                    aria-hidden="true"
+                  />
+                </button>
+              </div>
+            )}
+          </>
         )}
       </section>
     </div>

@@ -1,5 +1,16 @@
 const { getDatabase } = require('../config/database');
 
+// Categorii standardizate conform Anexa A1 + migration 018-19-items-questionnaire.sql.
+// Tuplul (category, dimension) reflectă structura validată psihometric:
+//   D1 Predare → didactica, D2 Comunicare → comunicare, D3 Resurse → organizare,
+//   D4 Evaluare/Feedback → general, D5 Disponibilitate → angajament,
+//   item global → global, contextualizare → context.
+const CATEGORY_ENUM = ['didactica', 'comunicare', 'organizare', 'general', 'angajament', 'global', 'context'];
+const DIMENSION_ENUM = ['D1', 'D2', 'D3', 'D4', 'D5', 'GLOBAL', 'CONTEXT', 'COMMENT'];
+
+exports.CATEGORY_ENUM = CATEGORY_ENUM;
+exports.DIMENSION_ENUM = DIMENSION_ENUM;
+
 /**
  * GET /api/questions
  * Get all questions for the questionnaire
@@ -28,7 +39,7 @@ exports.getAllQuestions = (req, res) => {
  */
 exports.createQuestion = (req, res) => {
   try {
-    const { text, type, category, order_index, is_required } = req.body;
+    const { text, type, category, dimension, order_index, is_required, is_contextual } = req.body;
 
     if (!text || !type || !category) {
       return res.status(400).json({ error: 'Text, tip și categorie sunt obligatorii' });
@@ -36,6 +47,18 @@ exports.createQuestion = (req, res) => {
 
     if (!['likert', 'text'].includes(type)) {
       return res.status(400).json({ error: 'Tipul trebuie să fie likert sau text' });
+    }
+
+    if (!CATEGORY_ENUM.includes(category)) {
+      return res.status(400).json({
+        error: `Categorie invalidă. Valori permise: ${CATEGORY_ENUM.join(', ')}`,
+      });
+    }
+
+    if (dimension && !DIMENSION_ENUM.includes(dimension)) {
+      return res.status(400).json({
+        error: `Dimensiune invalidă. Valori permise: ${DIMENSION_ENUM.join(', ')}`,
+      });
     }
 
     const db = getDatabase();
@@ -48,9 +71,17 @@ exports.createQuestion = (req, res) => {
     }
 
     const result = db.prepare(`
-      INSERT INTO questions (text, type, category, order_index, is_required)
-      VALUES (?, ?, ?, ?, ?)
-    `).run(text, type, category, finalOrderIndex, is_required ? 1 : 0);
+      INSERT INTO questions (text, type, category, dimension, is_contextual, order_index, is_required)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      text,
+      type,
+      category,
+      dimension || null,
+      is_contextual ? 1 : 0,
+      finalOrderIndex,
+      is_required ? 1 : 0,
+    );
 
     const newQuestion = db.prepare('SELECT * FROM questions WHERE id = ?').get(result.lastInsertRowid);
 
