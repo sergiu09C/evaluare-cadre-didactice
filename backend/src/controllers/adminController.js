@@ -1041,12 +1041,19 @@ exports.getKPIs = (req, res, next) => {
     }
 
     // === Impact KPIs ===
-    // I1: Δ rată participare (semestru curent vs anterior)
-    // simplificat: comparăm cu o valoare baseline derivată din academic_year
-    const i1 = null; // necesită istoric multi-semestre; placeholder pentru pilot Sem. II
+    // I1, I2: Δ vs semestru anterior — citim din kpi_snapshots
+    // (tabelă populată la sfârșitul fiecărui semestru, vezi migrarea 030)
+    const prevSnapshot = db.prepare(
+      "SELECT * FROM kpi_snapshots ORDER BY recorded_at DESC LIMIT 1"
+    ).get();
 
-    // I2: Δ scor global
-    const i2 = null;
+    // I1: Δ rată participare = P1(curent) − P1(snapshot anterior)
+    const i1 = prevSnapshot ? Math.round((p1 - prevSnapshot.p1_participare) * 10) / 10 : null;
+
+    // I2: Δ scor global = O1(curent) − O1(snapshot anterior)
+    const i2 = prevSnapshot && o1 != null
+      ? Math.round((o1 - prevSnapshot.o1_scor_global) * 100) / 100
+      : null;
 
     // I3: Timp raportare (zile între închiderea colectării și disponibilitatea rapoartelor)
     // În aplicație rapoartele sunt disponibile imediat; valoare reală = 0 zile (real-time)
@@ -1141,13 +1148,17 @@ exports.getKPIs = (req, res, next) => {
         I1: {
           value: i1, unit: 'pp', target: 5,
           label: 'Creștere participare vs. sem. anterior',
-          description: 'Diferența în puncte procentuale între rata participării din acest semestru și cea din semestrul anterior.',
+          description: prevSnapshot
+            ? `Diferența în puncte procentuale față de ${prevSnapshot.semester_label} (P1 atunci: ${prevSnapshot.p1_participare}%).`
+            : 'Diferența în puncte procentuale între rata participării din acest semestru și cea din semestrul anterior.',
           formula: 'P1(semestru curent) − P1(semestru anterior)',
         },
         I2: {
           value: i2, unit: '', target: 0, targetDirection: 'gte',
           label: 'Variație scor global',
-          description: 'Schimbarea scorului mediu instituțional față de semestrul anterior. Pozitiv = îmbunătățire.',
+          description: prevSnapshot
+            ? `Schimbarea scorului mediu instituțional față de ${prevSnapshot.semester_label} (O1 atunci: ${prevSnapshot.o1_scor_global}). Pozitiv = îmbunătățire.`
+            : 'Schimbarea scorului mediu instituțional față de semestrul anterior. Pozitiv = îmbunătățire.',
           formula: 'O1(semestru curent) − O1(semestru anterior)',
         },
         I3: {
