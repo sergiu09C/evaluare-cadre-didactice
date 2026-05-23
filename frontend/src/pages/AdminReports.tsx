@@ -128,36 +128,71 @@ export default function AdminReports() {
   const [courseTypeChart, setCourseTypeChart] = useState<ChartKind>('bar');
   const [disciplineChart, setDisciplineChart] = useState<ChartKind>('bar');
 
-  // Construim un label scurt și unic pentru fiecare rând agregat (facultate + program + an + tip activitate)
-  // — rezolvă problema „peste tot apare doar Facultatea".
+  // Strategy de agregare adaptivă:
+  //  - Fără filtre → grupez per facultate (5 bare clare)
+  //  - Cu facultate selectată → per program (~5-8 bare)
+  //  - Cu program selectat → per an (3-4 bare)
+  //  - Cu an selectat → per activitate (3 bare: curs/seminar/lab)
+  // Astfel graficul are MAXIMUM ~10 bare lizibile în loc de 400 ilizibile.
   const overviewRows = useMemo(() => {
     const rows: any[] = filteredStats?.stats || [];
-    return rows.map((s, idx) => {
+
+    // Determin nivelul de grupare în funcție de filtrele active
+    const groupBy: 'faculty' | 'program' | 'year' | 'courseType' =
+      selectedYear ? 'courseType' :
+      selectedFaculty && selectedLevel ? 'year' :
+      selectedFaculty ? 'program' :
+      'faculty';
+
+    // Aggregate raw rows după cheia de grupare
+    const buckets = new Map<string, {
+      key: string; label: string;
+      completed: number; total: number; sum_score: number; count_with_score: number;
+      faculty_short: string;
+    }>();
+
+    for (const s of rows) {
       const facShort = (s.faculty_name || '—').replace(/^Facultatea de\s+/i, '');
-      const labelParts = [facShort];
-      if (s.program_name) labelParts.push(s.program_name);
-      if (s.year_number != null) labelParts.push(`An ${s.year_number}`);
-      if (s.course_type) labelParts.push(s.course_type);
-      return {
-        ...s,
-        id: idx,
-        display_label: labelParts.join(' · '),
+      let key: string, label: string;
+      switch (groupBy) {
+        case 'faculty':  key = facShort; label = facShort; break;
+        case 'program':  key = s.program_name || '—'; label = s.program_name || '—'; break;
+        case 'year':     key = `An ${s.year_number}`; label = `An ${s.year_number}`; break;
+        case 'courseType': key = s.course_type || '—'; label = s.course_type || '—'; break;
+      }
+      const bucket = buckets.get(key) || {
+        key, label, completed: 0, total: 0, sum_score: 0, count_with_score: 0,
         faculty_short: facShort,
       };
-    });
-  }, [filteredStats]);
-
-  // Pentru pie: agregăm la nivel de facultate (suma submisiilor) — cea mai utilă vizualizare
-  // a distribuției participării.
-  const overviewPieData = useMemo(() => {
-    const byFaculty = new Map<string, { name: string; value: number }>();
-    for (const r of overviewRows) {
-      const key = r.faculty_short || '—';
-      const prev = byFaculty.get(key) || { name: key, value: 0 };
-      prev.value += r.completed || 0;
-      byFaculty.set(key, prev);
+      bucket.completed += s.completed || 0;
+      bucket.total += s.total || 0;
+      if (s.average_score != null) {
+        bucket.sum_score += s.average_score;
+        bucket.count_with_score++;
+      }
+      buckets.set(key, bucket);
     }
-    return Array.from(byFaculty.values()).filter((d) => d.value > 0);
+
+    return Array.from(buckets.values())
+      .map((b, idx) => ({
+        id: idx,
+        display_label: b.label,
+        faculty_short: b.faculty_short,
+        completed: b.completed,
+        total: b.total,
+        completion_rate: b.total > 0 ? Math.round((b.completed / b.total) * 100 * 10) / 10 : 0,
+        average_score: b.count_with_score > 0
+          ? Math.round((b.sum_score / b.count_with_score) * 100) / 100
+          : null,
+      }))
+      .sort((a, b) => b.completion_rate - a.completion_rate);
+  }, [filteredStats, selectedYear, selectedFaculty, selectedLevel]);
+
+  // Pentru pie: folosesc direct overviewRows (deja agregate inteligent) — fiecare felie e o grupă (facultate/program/an/activitate)
+  const overviewPieData = useMemo(() => {
+    return overviewRows
+      .map((r: any) => ({ name: r.display_label, value: r.completed }))
+      .filter((d: any) => d.value > 0);
   }, [overviewRows]);
 
   useEffect(() => {
@@ -505,7 +540,13 @@ export default function AdminReports() {
                       Rata de Completare {filteredStats.filters && Object.keys(filteredStats.filters).length > 0 && '(Filtrate)'}
                     </h3>
                     <p className="text-xs text-neutral-500 mt-1">
-                      Etichetă: <span className="font-medium">Facultate · Program · An · Activitate</span>. Restrânge prin filtre pentru focalizare.
+                      Grupare automată: {
+                        selectedYear ? 'pe activitate (curs/seminar/lab)' :
+                        selectedFaculty && selectedLevel ? 'pe an de studiu' :
+                        selectedFaculty ? 'pe program' :
+                        'pe facultate'
+                      }. <strong>{overviewRows.length}</strong> rânduri afișate.
+                      Aplică filtre suplimentare pentru detaliere.
                     </p>
                   </div>
                   <ChartKindToggle value={overviewChart} onChange={setOverviewChart} />
@@ -513,40 +554,39 @@ export default function AdminReports() {
                 {overviewRows.length > 0 ? (
                   overviewChart === 'bar' ? (
                     <ResponsiveContainer width="100%" height={420}>
-                      <BarChart data={overviewRows} margin={{ bottom: 40 }}>
+                      <BarChart data={overviewRows} margin={{ top: 10, right: 16, left: 8, bottom: 80 }}>
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis
                           dataKey="display_label"
-                          angle={-35}
-                          textAnchor="end"
-                          height={140}
-                          fontSize={10}
+                          angle={overviewRows.length > 5 ? -25 : 0}
+                          textAnchor={overviewRows.length > 5 ? 'end' : 'middle'}
+                          height={overviewRows.length > 5 ? 90 : 40}
+                          fontSize={12}
                           interval={0}
                         />
-                        <YAxis />
+                        <YAxis domain={[0, 100]} />
                         <Tooltip />
-                        <Legend />
-                        <Bar dataKey="completion_rate" fill="#3B82F6" name="Rata completare (%)" />
-                        <Bar dataKey="average_score" fill="#10B981" name="Scor mediu" />
+                        <Legend wrapperStyle={{ paddingTop: 16 }} />
+                        <Bar dataKey="completion_rate" fill="#3B82F6" name="Rata completare (%)" radius={[6, 6, 0, 0]} />
+                        <Bar dataKey="average_score" fill="#10B981" name="Scor mediu (×20)" radius={[6, 6, 0, 0]} />
                       </BarChart>
                     </ResponsiveContainer>
                   ) : overviewChart === 'line' ? (
                     <ResponsiveContainer width="100%" height={420}>
-                      <LineChart data={overviewRows} margin={{ bottom: 40 }}>
+                      <LineChart data={overviewRows} margin={{ top: 10, right: 16, left: 8, bottom: 80 }}>
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis
                           dataKey="display_label"
-                          angle={-35}
-                          textAnchor="end"
-                          height={140}
-                          fontSize={10}
+                          angle={overviewRows.length > 5 ? -25 : 0}
+                          textAnchor={overviewRows.length > 5 ? 'end' : 'middle'}
+                          height={overviewRows.length > 5 ? 90 : 40}
+                          fontSize={12}
                           interval={0}
                         />
-                        <YAxis />
+                        <YAxis domain={[0, 100]} />
                         <Tooltip />
-                        <Legend />
-                        <Line type="monotone" dataKey="completion_rate" stroke="#3B82F6" strokeWidth={2} name="Rata completare (%)" />
-                        <Line type="monotone" dataKey="average_score" stroke="#10B981" strokeWidth={2} name="Scor mediu" />
+                        <Legend wrapperStyle={{ paddingTop: 16 }} />
+                        <Line type="monotone" dataKey="completion_rate" stroke="#3B82F6" strokeWidth={3} dot={{ r: 5 }} name="Rata completare (%)" />
                       </LineChart>
                     </ResponsiveContainer>
                   ) : overviewChart === 'pie' ? (
@@ -578,22 +618,24 @@ export default function AdminReports() {
                       <table className="min-w-full divide-y divide-neutral-200 text-sm">
                         <thead className="bg-neutral-25">
                           <tr>
-                            <th className="px-3 py-2 text-left text-xs font-medium text-neutral-500 uppercase">Facultate</th>
-                            <th className="px-3 py-2 text-left text-xs font-medium text-neutral-500 uppercase">Program</th>
-                            <th className="px-3 py-2 text-center text-xs font-medium text-neutral-500 uppercase">An</th>
-                            <th className="px-3 py-2 text-center text-xs font-medium text-neutral-500 uppercase">Activitate</th>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-neutral-500 uppercase">Grupă</th>
+                            <th className="px-3 py-2 text-center text-xs font-medium text-neutral-500 uppercase">Completate</th>
+                            <th className="px-3 py-2 text-center text-xs font-medium text-neutral-500 uppercase">Total</th>
                             <th className="px-3 py-2 text-center text-xs font-medium text-neutral-500 uppercase">Rata (%)</th>
                             <th className="px-3 py-2 text-center text-xs font-medium text-neutral-500 uppercase">Scor mediu</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-neutral-100">
-                          {overviewRows.map((r, i) => (
-                            <tr key={i}>
-                              <td className="px-3 py-2 text-neutral-800">{r.faculty_short}</td>
-                              <td className="px-3 py-2 text-neutral-500">{r.program_name || '—'}</td>
-                              <td className="px-3 py-2 text-center">{r.year_number ?? '—'}</td>
-                              <td className="px-3 py-2 text-center">{r.course_type || '—'}</td>
-                              <td className="px-3 py-2 text-center font-mono">{r.completion_rate?.toFixed(1) ?? '—'}</td>
+                          {overviewRows.map((r: any, i: number) => (
+                            <tr key={i} className="hover:bg-neutral-25">
+                              <td className="px-3 py-2 text-neutral-800 font-medium">{r.display_label}</td>
+                              <td className="px-3 py-2 text-center font-mono">{r.completed.toLocaleString('ro-RO')}</td>
+                              <td className="px-3 py-2 text-center font-mono text-neutral-500">{r.total.toLocaleString('ro-RO')}</td>
+                              <td className="px-3 py-2 text-center font-mono">
+                                <span className={r.completion_rate >= 70 ? 'text-success-fg' : r.completion_rate >= 50 ? 'text-warning-fg' : 'text-danger-fg'}>
+                                  {r.completion_rate.toFixed(1)}%
+                                </span>
+                              </td>
                               <td className="px-3 py-2 text-center font-mono">{r.average_score?.toFixed(2) ?? '—'}</td>
                             </tr>
                           ))}
