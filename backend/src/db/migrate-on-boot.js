@@ -25,6 +25,8 @@ const INCREMENTAL_MIGRATIONS = [
   '022-audit-log.sql',
   '023-refresh-2026-dates.sql',
   '024-shift-all-dates-may-2026.sql',
+  '025-rebalance-completion-rates.sql',
+  '026-doctorate-programs.sql',
 ];
 
 function isBenign(errMsg) {
