@@ -131,11 +131,11 @@ export default function AdminDashboard() {
       </button>
 
       <div>
-        <h1 className="font-display text-[30px] font-semibold tracking-tight text-neutral-800 flex items-center gap-3">
-          <ChartBarIcon className="w-8 h-8 text-accent-600" aria-hidden="true" />
+        <h1 className="font-display text-2xl md:text-[30px] font-semibold tracking-tight text-neutral-800 flex items-center gap-3">
+          <ChartBarIcon className="w-7 h-7 md:w-8 md:h-8 text-accent-600 shrink-0" aria-hidden="true" />
           Tabel profesori
         </h1>
-        <p className="mt-1.5 text-neutral-500 text-[15px] max-w-[760px]">
+        <p className="mt-1.5 text-neutral-500 text-sm md:text-[15px] max-w-[760px]">
           Lista completă a cadrelor didactice cu medii și rate de completare. Click pe un profesor
           pentru drill-down. Pentru KPI-uri agregate platformă → vezi pagina <button
             onClick={() => navigate('/admin')}
@@ -148,7 +148,7 @@ export default function AdminDashboard() {
 
       <Card>
         <div className="flex items-end gap-3 flex-wrap">
-          <Select label="Facultate" value={faculty} onChange={(e) => setFaculty(e.target.value)} wrapperClassName="min-w-[260px]">
+          <Select label="Facultate" value={faculty} onChange={(e) => setFaculty(e.target.value)} wrapperClassName="w-full sm:w-auto sm:min-w-[260px]">
             <option value="">Toate facultățile</option>
             {faculties.map((f) => (
               <option key={f} value={f}>
@@ -156,7 +156,7 @@ export default function AdminDashboard() {
               </option>
             ))}
           </Select>
-          <div className="flex-1 min-w-[240px]">
+          <div className="flex-1 w-full sm:w-auto sm:min-w-[240px]">
             <Input
               label="Caută profesor sau departament"
               prefix={<MagnifyingGlassIcon className="w-4 h-4" />}

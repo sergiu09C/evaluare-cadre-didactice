@@ -150,7 +150,7 @@ export default function ProfessorCourseDetails() {
 
       {/* Header */}
       <div>
-        <h1 className="font-display text-[30px] font-semibold tracking-tight text-neutral-800">
+        <h1 className="font-display text-2xl md:text-[30px] font-semibold tracking-tight text-neutral-800">
           {stats.course.name}
         </h1>
         <div className="flex items-center gap-4 mt-2 text-sm text-neutral-500 flex-wrap">
@@ -201,7 +201,7 @@ export default function ProfessorCourseDetails() {
                   </Badge>
                 </div>
                 <div className="flex items-baseline gap-2">
-                  <span className={`font-display text-3xl font-semibold ${scoreColor(item.average)}`}>
+                  <span className={`font-display text-2xl md:text-3xl font-semibold ${scoreColor(item.average)}`}>
                     {item.average.toFixed(2).replace('.', ',')}
                   </span>
                   <span className="text-sm text-neutral-500">/ 5,00</span>

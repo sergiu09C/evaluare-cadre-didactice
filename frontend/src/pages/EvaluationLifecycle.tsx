@@ -106,6 +106,14 @@ export default function EvaluationLifecycle() {
   const [topRank, setTopRank] = useState<TopRank | null>(null);
   const [bottomRank, setBottomRank] = useState<TopRank | null>(null);
   const [monthly, setMonthly] = useState<Monthly | null>(null);
+  const [closingLoopEntries, setClosingLoopEntries] = useState<Array<{
+    id: number; title: string; body: string; dot_color: string;
+    related_dimension?: string | null;
+    student_said?: string | null;
+    we_did?: string | null;
+    triggered_by_semester?: string | null;
+    impact_metric?: string | null;
+  }>>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [heatmapRow, setHeatmapRow] = useState<'faculty' | 'program' | 'department'>('faculty');
@@ -169,6 +177,11 @@ export default function EvaluationLifecycle() {
   // load filter options once
   useEffect(() => {
     api.getPublicFilterOptions().then(setOpts);
+    // Încarc entries-urile publice de closing-the-loop pentru afișarea YS/WD
+    api
+      .getClosingLoop()
+      .then((d) => setClosingLoopEntries(d.entries || []))
+      .catch(() => setClosingLoopEntries([]));
   }, []);
 
   // load all charts when filters change
@@ -315,12 +328,12 @@ export default function EvaluationLifecycle() {
   return (
     <div className="flex flex-col gap-7 max-w-[1280px]">
       {/* HEADER */}
-      <div className="flex items-end justify-between flex-wrap gap-4">
+      <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="font-display text-[30px] font-semibold tracking-tight text-neutral-800">
+          <h1 className="font-display text-2xl md:text-[30px] font-semibold tracking-tight text-neutral-800">
             Acasă · Călătoria evaluării
           </h1>
-          <p className="mt-1.5 text-neutral-500 text-[15px] max-w-[760px]">
+          <p className="mt-1.5 text-neutral-500 text-sm md:text-[15px] max-w-[760px]">
             Dashboard complet: cifre platformă, distribuții, heatmap-uri, top-N rankings, trend
             lunar și impact personal. Folosește filtrele pentru a explora orice combinație.
           </p>
@@ -335,8 +348,8 @@ export default function EvaluationLifecycle() {
 
       {/* STICKY FILTER BAR */}
       <div
-        className="sticky z-20 -mx-10 px-10 py-3 border-b border-neutral-100 backdrop-blur"
-        style={{ top: -32, background: 'rgba(255,255,255,0.92)' }}
+        className="sticky z-20 -mx-4 md:-mx-10 px-4 md:px-10 py-3 border-b border-neutral-100 backdrop-blur"
+        style={{ top: -24, background: 'rgba(255,255,255,0.92)' }}
       >
         <div className="flex items-end gap-3 flex-wrap">
           <FunnelIcon className="w-5 h-5 text-accent-600 mb-2.5" aria-hidden="true" />
@@ -1141,7 +1154,7 @@ export default function EvaluationLifecycle() {
 
       {/* HEATMAP — controls + grid */}
       <Card>
-        <div className="flex items-end justify-between mb-3 flex-wrap gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between mb-3 flex-wrap gap-3">
           <div>
             <h2 className="text-base font-semibold text-neutral-800">Heatmap 2D — explorare cross-dimensiune</h2>
             <p className="text-xs text-neutral-500 mt-0.5">
@@ -1176,7 +1189,7 @@ export default function EvaluationLifecycle() {
 
       {/* TOP-N + ranking controls */}
       <Card>
-        <div className="flex items-end justify-between mb-3 flex-wrap gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between mb-3 flex-wrap gap-3">
           <div>
             <h2 className="text-base font-semibold text-neutral-800">Top 10 rankings</h2>
             <p className="text-xs text-neutral-500 mt-0.5">
@@ -1382,7 +1395,7 @@ export default function EvaluationLifecycle() {
           Cât de aproape de 100% e raportul „răspunsuri admin / mesaje primite".
         </p>
         <div className="flex items-baseline gap-3 mb-2">
-          <span className="text-3xl font-bold text-neutral-800 tabular-nums">{closingPct}%</span>
+          <span className="text-2xl md:text-3xl font-bold text-neutral-800 tabular-nums">{closingPct}%</span>
           <span className="text-sm text-neutral-500">
             {(data.closing_loop.messages_answered + (data.closing_loop.messages_closed ?? 0)).toLocaleString('ro-RO')}{' '}
             rezolvate din{' '}
@@ -1414,6 +1427,62 @@ export default function EvaluationLifecycle() {
           />
         </div>
       </Card>
+
+      {/* YS/WD — „Ați spus / Noi am făcut" (mecanismul central al modelului propus în Cap. 1.4.4) */}
+      {closingLoopEntries.filter((e) => e.student_said && e.we_did).length > 0 && (
+        <Card>
+          <div className="flex items-start justify-between flex-wrap gap-2 mb-4">
+            <div>
+              <h2 className="text-base font-semibold text-neutral-800">
+                Ați evaluat. Noi am acționat.
+              </h2>
+              <p className="text-sm text-neutral-500 mt-1 max-w-[640px]">
+                Iată schimbările concrete generate de feedback-ul vostru în semestrele anterioare.
+                Fiecare intrare leagă o problemă raportată de o acțiune măsurabilă.
+              </p>
+            </div>
+            <Badge tone="accent">closing-the-loop</Badge>
+          </div>
+          <ul className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {closingLoopEntries
+              .filter((e) => e.student_said && e.we_did)
+              .map((e) => (
+                <li
+                  key={e.id}
+                  className="border border-neutral-100 rounded-lg p-4 flex flex-col gap-3 bg-neutral-25"
+                >
+                  <div>
+                    <div className="text-[11px] uppercase tracking-wide text-neutral-500 font-semibold mb-1">
+                      Ați spus
+                    </div>
+                    <p className="text-sm text-neutral-700 italic leading-relaxed">
+                      „{e.student_said}"
+                    </p>
+                    {e.triggered_by_semester && (
+                      <p className="text-[11px] text-neutral-400 mt-1">
+                        din evaluarea {e.triggered_by_semester}
+                      </p>
+                    )}
+                  </div>
+                  <div className="border-t border-neutral-100 pt-3">
+                    <div className="text-[11px] uppercase tracking-wide text-success-fg font-semibold mb-1">
+                      Noi am făcut
+                    </div>
+                    <p className="text-sm text-neutral-800 leading-relaxed">{e.we_did}</p>
+                    {e.impact_metric && (
+                      <p className="text-[11px] text-accent-700 font-medium mt-2">
+                        Impact măsurat: {e.impact_metric}
+                      </p>
+                    )}
+                  </div>
+                  {e.related_dimension && (
+                    <Badge tone="neutral">{e.related_dimension}</Badge>
+                  )}
+                </li>
+              ))}
+          </ul>
+        </Card>
+      )}
       </div>
       )}
     </div>

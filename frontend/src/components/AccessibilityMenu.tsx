@@ -50,7 +50,7 @@ export default function AccessibilityMenu() {
         leaveFrom="transform opacity-100 scale-100"
         leaveTo="transform opacity-0 scale-95"
       >
-        <Menu.Items className="absolute right-0 mt-2 w-80 origin-top-right bg-white rounded-lg shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
+        <Menu.Items className="absolute right-0 mt-2 w-[calc(100vw-2rem)] sm:w-80 max-w-[20rem] origin-top-right bg-white rounded-lg shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
           <div className="p-4 space-y-4">
             <h3 className="text-lg font-semibold text-gray-900">
               Setări Accesibilitate

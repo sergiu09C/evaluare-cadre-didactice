@@ -46,10 +46,10 @@ export default function ProfessorStudents() {
   return (
     <div className="flex flex-col gap-7 max-w-[1280px]">
       <div>
-        <h1 className="font-display text-[30px] font-semibold tracking-tight text-neutral-800">
+        <h1 className="font-display text-2xl md:text-[30px] font-semibold tracking-tight text-neutral-800">
           Studenți per disciplină
         </h1>
-        <p className="mt-1.5 text-neutral-500 text-[15px]">
+        <p className="mt-1.5 text-neutral-500 text-sm md:text-[15px]">
           Lista studenților înrolați la cursurile tale, cu nume complet. Statusul individual al
           evaluării NU este afișat — protejăm anonimitatea autorilor feedback-ului.
         </p>

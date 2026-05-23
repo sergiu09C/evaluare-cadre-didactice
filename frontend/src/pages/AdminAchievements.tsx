@@ -124,12 +124,12 @@ export default function AdminAchievements() {
 
   return (
     <div className="flex flex-col gap-7 max-w-[1280px]">
-      <div className="flex items-end justify-between flex-wrap gap-4">
+      <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="font-display text-[30px] font-semibold tracking-tight text-neutral-800">
+          <h1 className="font-display text-2xl md:text-[30px] font-semibold tracking-tight text-neutral-800">
             Editor achievements
           </h1>
-          <p className="mt-1.5 text-neutral-500 text-[15px]">
+          <p className="mt-1.5 text-neutral-500 text-sm md:text-[15px]">
             Definițiile sunt re-evaluate la fiecare submit de evaluare; pragurile se aplică dinamic la toți utilizatorii.
           </p>
         </div>
@@ -217,7 +217,7 @@ export default function AdminAchievements() {
               className="w-full p-3 text-sm rounded-md border border-neutral-200 shadow-elev-1 focus:outline-none focus:ring-[3px] focus:ring-accent-400/30 focus:border-accent-400"
             />
           </div>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <Select label="Icon" value={form.icon} onChange={(e) => setForm({ ...form, icon: e.target.value })}>
               {ICONS.map((i) => <option key={i} value={i}>{i}</option>)}
             </Select>

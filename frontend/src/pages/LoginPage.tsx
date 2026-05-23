@@ -88,7 +88,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex bg-neutral-25 font-sans">
       {/* ── LEFT · Brand panel ──────────────────────────────────── */}
       <aside
-        className="relative overflow-hidden text-white px-16 py-14 flex flex-col justify-between hidden md:flex"
+        className="relative overflow-hidden text-white px-10 py-12 lg:px-16 lg:py-14 flex flex-col justify-between hidden md:flex"
         style={{
           flex: '0 0 46%',
           background: 'linear-gradient(165deg, #0E2233 0%, #143049 55%, #1B3A57 100%)',
@@ -146,10 +146,7 @@ export default function LoginPage() {
 
         {/* Hero */}
         <div className="relative z-10">
-          <h1
-            className="font-display font-semibold leading-[1.1] tracking-tight max-w-[520px]"
-            style={{ fontSize: 44 }}
-          >
+          <h1 className="font-display font-semibold leading-[1.1] tracking-tight max-w-[520px] text-[34px] lg:text-[44px]">
             Vocea ta contează.
             <br />
             <span style={{ color: '#C4B5FD' }}>Anonim. Sigur. Util.</span>
@@ -160,14 +157,14 @@ export default function LoginPage() {
           </p>
 
           {/* Stat row — LIVE din /api/public-stats */}
-          <div className="mt-9 grid grid-cols-3 gap-6 max-w-[480px]">
+          <div className="mt-9 grid grid-cols-3 gap-4 lg:gap-6 max-w-[480px]">
             {[
               [`${stats?.participation_rate ?? '—'}%`, 'rată de participare'],
               [stats ? stats.avg_score.toFixed(2).replace('.', ',') : '—', 'scor mediu / 5,00'],
               [stats ? stats.submitted_count.toLocaleString('ro-RO') : '—', 'evaluări completate'],
             ].map(([v, l]) => (
               <div key={l}>
-                <div className="font-display text-[28px] font-semibold text-white tracking-tight">{v}</div>
+                <div className="font-display text-[22px] lg:text-[28px] font-semibold text-white tracking-tight">{v}</div>
                 <div className="text-xs mt-1" style={{ color: 'rgba(255,255,255,.55)' }}>
                   {l}
                 </div>
@@ -198,10 +195,28 @@ export default function LoginPage() {
       </aside>
 
       {/* ── RIGHT · Form ────────────────────────────────────────── */}
-      <main className="flex-1 flex items-center justify-center p-12 relative">
-        <div className="w-full max-w-[400px] flex flex-col gap-7">
+      <main className="flex-1 flex items-center justify-center px-5 py-8 sm:p-10 md:p-12 relative">
+        <div className="w-full max-w-[400px] flex flex-col gap-6 sm:gap-7">
+          {/* Mobile-only brand strip (left aside is hidden < md) */}
+          <div className="md:hidden flex items-center gap-3">
+            <div
+              className="w-10 h-10 rounded-xl flex items-center justify-center font-display font-bold text-lg text-white"
+              style={{
+                background: 'linear-gradient(135deg, #7C3AED, #A78BFA)',
+                boxShadow: '0 4px 12px rgba(124,58,237,.3)',
+              }}
+              aria-hidden="true"
+            >
+              E
+            </div>
+            <div>
+              <div className="font-display font-bold text-lg tracking-tight text-neutral-800 leading-none">ECD</div>
+              <div className="text-[11px] text-neutral-500 mt-0.5">Evaluarea Cadrelor Didactice</div>
+            </div>
+          </div>
+
           <div>
-            <h2 className="text-[30px] font-semibold tracking-tight font-display text-neutral-800">
+            <h2 className="text-2xl sm:text-[28px] md:text-[30px] font-semibold tracking-tight font-display text-neutral-800">
               Bun venit înapoi
             </h2>
             <p className="mt-2 text-neutral-500 text-sm">
@@ -298,7 +313,7 @@ export default function LoginPage() {
           {/* Demo credentials */}
           <div className="pt-6 border-t border-neutral-100">
             <p className="text-[13px] text-neutral-500 mb-2 font-medium">Credențiale demo:</p>
-            <div className="text-xs text-neutral-500 space-y-1 font-mono">
+            <div className="text-[11px] sm:text-xs text-neutral-500 space-y-1 font-mono break-all">
               <p>
                 <strong className="text-neutral-700">Student:</strong> student1@univ.ro / password123
               </p>

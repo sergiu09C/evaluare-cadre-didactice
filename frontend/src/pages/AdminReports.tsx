@@ -174,7 +174,7 @@ export default function AdminReports() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-start">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
         <div>
           <button
             onClick={() => navigate('/admin')}
@@ -182,8 +182,8 @@ export default function AdminReports() {
           >
             ← Înapoi la Dashboard
           </button>
-          <h1 className="text-3xl font-bold text-neutral-800">Rapoarte Avansate</h1>
-          <p className="text-neutral-500 mt-1">Analize detaliate și rapoarte personalizate</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-neutral-800">Rapoarte Avansate</h1>
+          <p className="text-neutral-500 mt-1 text-sm md:text-base">Analize detaliate și rapoarte personalizate</p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           <button
@@ -348,7 +348,7 @@ export default function AdminReports() {
                     setSelectedCourseName(e.target.value);
                     if (e.target.value) loadReportData();
                   }}
-                  className="px-3 py-1.5 border border-neutral-200 rounded-md text-sm min-w-[250px]"
+                  className="px-3 py-1.5 border border-neutral-200 rounded-md text-sm w-full sm:min-w-[250px] sm:w-auto"
                 >
                   <option value="">Selectează o disciplină...</option>
                   {courseNames.map((course) => (
@@ -532,7 +532,7 @@ export default function AdminReports() {
           {activeTab === 'discipline' && (
             <div className="space-y-6">
               {!selectedCourseName ? (
-                <div className="bg-white border border-neutral-100 rounded-xl shadow-elev-1 p-12 text-center">
+                <div className="bg-white border border-neutral-100 rounded-xl shadow-elev-1 p-6 md:p-12 text-center">
                   <p className="text-neutral-500 mb-2">Selectează o disciplină din filtrul de mai sus pentru a vedea comparația între profesori.</p>
                   <p className="text-sm text-neutral-500">Sunt afișate doar disciplinele predate de mai mulți profesori.</p>
                 </div>
@@ -610,7 +610,7 @@ export default function AdminReports() {
                   </div>
                 </>
               ) : (
-                <div className="bg-white border border-neutral-100 rounded-xl shadow-elev-1 p-12 text-center">
+                <div className="bg-white border border-neutral-100 rounded-xl shadow-elev-1 p-6 md:p-12 text-center">
                   <p className="text-neutral-500">Nu există date pentru disciplina selectată.</p>
                 </div>
               )}

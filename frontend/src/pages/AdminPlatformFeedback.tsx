@@ -173,12 +173,12 @@ export default function AdminPlatformFeedback() {
 
   return (
     <div className="flex flex-col gap-7 max-w-[1280px]">
-      <div className="flex items-end justify-between flex-wrap gap-4">
+      <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="font-display text-[30px] font-semibold tracking-tight text-neutral-800">
+          <h1 className="font-display text-2xl md:text-[30px] font-semibold tracking-tight text-neutral-800">
             Feedback despre platformă
           </h1>
-          <p className="mt-1.5 text-neutral-500 text-[15px]">
+          <p className="mt-1.5 text-neutral-500 text-sm md:text-[15px]">
             Chestionar separat de evaluarea profesorilor — pentru a colecta feedback despre platforma însăși.
           </p>
         </div>

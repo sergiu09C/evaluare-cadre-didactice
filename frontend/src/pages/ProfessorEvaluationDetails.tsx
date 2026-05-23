@@ -85,7 +85,7 @@ export default function ProfessorEvaluationDetails() {
           <Badge tone="neutral">Evaluare individuală</Badge>
           <span className="font-mono text-[11px] text-neutral-400">{data.anon_id}</span>
         </div>
-        <h1 className="font-display text-[28px] font-semibold tracking-tight text-neutral-800">
+        <h1 className="font-display text-xl md:text-[28px] font-semibold tracking-tight text-neutral-800">
           {data.course.name}
         </h1>
         <p className="text-[13px] text-neutral-500 mt-1 flex flex-wrap items-center gap-x-4 gap-y-1">

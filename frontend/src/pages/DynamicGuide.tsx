@@ -109,7 +109,7 @@ export default function DynamicGuide({ role }: { role: 'student' | 'professor' |
           <ArrowLeftIcon className="w-3.5 h-3.5" aria-hidden="true" />
           Înapoi la pagina principală
         </Link>
-        <h1 className="font-display text-[30px] font-semibold tracking-tight text-neutral-800">{guide.title}</h1>
+        <h1 className="font-display text-2xl md:text-[30px] font-semibold tracking-tight text-neutral-800">{guide.title}</h1>
         <p className="text-xs text-neutral-400 mt-2">
           Actualizat: {new Date(guide.updated_at).toLocaleDateString('ro-RO', { day: 'numeric', month: 'long', year: 'numeric' })}
         </p>

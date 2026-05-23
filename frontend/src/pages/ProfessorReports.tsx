@@ -132,10 +132,10 @@ export default function ProfessorReports() {
 
       {/* Header */}
       <div>
-        <h1 className="font-display text-[30px] font-semibold tracking-tight text-neutral-800">
+        <h1 className="font-display text-2xl md:text-[30px] font-semibold tracking-tight text-neutral-800">
           Rapoarte evaluări
         </h1>
-        <p className="mt-1.5 text-neutral-500 text-[15px]">
+        <p className="mt-1.5 text-neutral-500 text-sm md:text-[15px]">
           Vizualizează și exportă toate evaluările primite cu filtrare avansată.
         </p>
       </div>

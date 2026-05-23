@@ -102,12 +102,12 @@ export default function ActiveEvaluations() {
   return (
     <div className="flex flex-col gap-7 max-w-[1280px]">
       {/* Header */}
-      <div className="flex items-end justify-between flex-wrap gap-4">
+      <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="font-display text-[30px] font-semibold tracking-tight text-neutral-800">
+          <h1 className="font-display text-2xl md:text-[30px] font-semibold tracking-tight text-neutral-800">
             Toate evaluările
           </h1>
-          <p className="mt-1.5 text-neutral-500 text-[15px]">
+          <p className="mt-1.5 text-neutral-500 text-sm md:text-[15px]">
             Lista completă a evaluărilor tale din acest semestru.
           </p>
         </div>
@@ -166,27 +166,29 @@ export default function ActiveEvaluations() {
             return (
               <div
                 key={`${p.id}-${p.course.id}`}
-                className={`px-6 py-[18px] flex items-center gap-4 transition-colors duration-fast ${
+                className={`px-4 sm:px-6 py-4 sm:py-[18px] flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 transition-colors duration-fast ${
                   i < filtered.length - 1 ? 'border-b border-neutral-100' : ''
                 }`}
               >
-                <Avatar initials={initialsOf(p.name)} tone={tone} size={44} />
-                <div className="flex-1 min-w-0">
-                  <div className="text-[15px] font-semibold text-neutral-800 tracking-tight truncate">
-                    {p.course.name}
-                  </div>
-                  <div className="text-[13px] text-neutral-500 mt-0.5">
-                    {p.name}
-                    {p.type ? ` · ${p.type}` : ''} · {p.department}
-                  </div>
-                  {isDraft && (
-                    <div className="mt-2 flex items-center gap-2">
-                      <Progress value={8} max={19} height={4} color="accent" className="max-w-[200px]" />
-                      <span className="text-[11px] text-neutral-400">8/19 itemi</span>
+                <div className="flex items-center gap-3 sm:gap-4 w-full sm:w-auto sm:flex-1 min-w-0">
+                  <Avatar initials={initialsOf(p.name)} tone={tone} size={44} />
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[15px] font-semibold text-neutral-800 tracking-tight truncate">
+                      {p.course.name}
                     </div>
-                  )}
+                    <div className="text-[13px] text-neutral-500 mt-0.5 break-words">
+                      {p.name}
+                      {p.type ? ` · ${p.type}` : ''} · {p.department}
+                    </div>
+                    {isDraft && (
+                      <div className="mt-2 flex items-center gap-2">
+                        <Progress value={8} max={19} height={4} color="accent" className="max-w-[200px]" />
+                        <span className="text-[11px] text-neutral-400">8/19 itemi</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <div className="flex flex-col items-end gap-2 shrink-0">
+                <div className="flex items-center justify-between sm:flex-col sm:items-end gap-2 sm:shrink-0">
                   <Badge tone={meta.tone}>{meta.label}</Badge>
                   {p.evaluation.deadline && !isSubmitted && (
                     <span className="text-[11px] text-neutral-400">
@@ -208,6 +210,7 @@ export default function ActiveEvaluations() {
                       ? navigate(`/evaluation/${p.evaluation.id}`)
                       : handleStart(p)
                   }
+                  className="w-full sm:w-auto"
                   aria-label={`${isDraft ? 'Continuă' : isSubmitted ? 'Vizualizează' : 'Începe'} evaluarea pentru ${p.name}, ${p.course.name}`}
                 >
                   {isSubmitted ? 'Vizualizează' : closedInfo ? 'Închis' : isDraft ? 'Continuă' : 'Începe'}

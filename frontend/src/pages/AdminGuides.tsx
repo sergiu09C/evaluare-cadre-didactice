@@ -89,10 +89,10 @@ export default function AdminGuides() {
   return (
     <div className="flex flex-col gap-6 max-w-[1280px]">
       <div>
-        <h1 className="font-display text-[30px] font-semibold tracking-tight text-neutral-800">
+        <h1 className="font-display text-2xl md:text-[30px] font-semibold tracking-tight text-neutral-800">
           Editor ghiduri
         </h1>
-        <p className="mt-1.5 text-neutral-500 text-[15px]">
+        <p className="mt-1.5 text-neutral-500 text-sm md:text-[15px]">
           Editează cele 3 ghiduri (studenți, profesori, admin) — markdown simplu cu <code className="font-mono text-xs px-1 bg-neutral-100 rounded">## titlu</code>, <code className="font-mono text-xs px-1 bg-neutral-100 rounded">- item</code>, <code className="font-mono text-xs px-1 bg-neutral-100 rounded">**bold**</code>.
         </p>
       </div>

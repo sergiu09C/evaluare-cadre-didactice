@@ -434,16 +434,16 @@ export default function AdminControls() {
   return (
     <div className="space-y-6">
       {/* Header with Back Button */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-neutral-800">Panou Control Platformă</h1>
-        <button onClick={() => navigate('/admin')} className="inline-flex items-center gap-2 px-4 h-10 rounded-md bg-white border border-neutral-200 text-neutral-800 font-medium shadow-elev-1 hover:bg-neutral-50 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-400/40 disabled:opacity-50 disabled:cursor-not-allowed">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <h1 className="text-2xl md:text-3xl font-bold text-neutral-800">Panou Control Platformă</h1>
+        <button onClick={() => navigate('/admin')} className="self-start sm:self-auto inline-flex items-center gap-2 px-4 h-10 rounded-md bg-white border border-neutral-200 text-neutral-800 font-medium shadow-elev-1 hover:bg-neutral-50 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-400/40 disabled:opacity-50 disabled:cursor-not-allowed">
           ← Înapoi la Dashboard
         </button>
       </div>
 
       {/* Tabs */}
-      <div className="border-b border-neutral-200">
-        <nav ref={tablistRef} className="-mb-px flex space-x-8" role="tablist" aria-label="Secțiuni panou control administrare">
+      <div className="border-b border-neutral-200 -mx-4 md:mx-0 px-4 md:px-0 overflow-x-auto">
+        <nav ref={tablistRef} className="-mb-px flex gap-4 md:gap-0 md:space-x-8 min-w-max" role="tablist" aria-label="Secțiuni panou control administrare">
           <button
             onClick={() => setActiveTab('platform')}
             role="tab"

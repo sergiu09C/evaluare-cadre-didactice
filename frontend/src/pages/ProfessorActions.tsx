@@ -81,11 +81,11 @@ export default function ProfessorActions() {
   return (
     <div className="flex flex-col gap-7 max-w-[1080px]">
       <div>
-        <h1 className="font-display text-[30px] font-semibold tracking-tight text-neutral-800 flex items-center gap-3">
+        <h1 className="font-display text-2xl md:text-[30px] font-semibold tracking-tight text-neutral-800 flex items-center gap-3">
           <InboxIcon className="w-8 h-8 text-accent-600" aria-hidden="true" />
           Acțiuni propuse pentru tine
         </h1>
-        <p className="mt-1.5 text-neutral-500 text-[15px]">
+        <p className="mt-1.5 text-neutral-500 text-sm md:text-[15px]">
           CEAC îți propune acțiuni concrete pe baza evaluărilor. Acceptă-le, refuză-le sau marchează-le ca finalizate.
         </p>
       </div>

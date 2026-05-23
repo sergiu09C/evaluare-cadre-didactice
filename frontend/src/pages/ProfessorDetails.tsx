@@ -79,13 +79,13 @@ export default function ProfessorDetails() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-neutral-800">{data.professor.name}</h1>
-          <p className="text-lg text-neutral-500 mt-1">{data.professor.department}</p>
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="text-2xl md:text-3xl font-bold text-neutral-800 break-words">{data.professor.name}</h1>
+          <p className="text-base md:text-lg text-neutral-500 mt-1">{data.professor.department}</p>
           <p className="text-sm text-neutral-500">{data.professor.faculty}</p>
         </div>
-        <button onClick={() => navigate('/admin')} className="inline-flex items-center gap-2 px-4 h-10 rounded-md bg-white border border-neutral-200 text-neutral-800 font-medium shadow-elev-1 hover:bg-neutral-50 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-400/40 disabled:opacity-50 disabled:cursor-not-allowed">
+        <button onClick={() => navigate('/admin')} className="self-start sm:self-auto shrink-0 inline-flex items-center gap-2 px-4 h-10 rounded-md bg-white border border-neutral-200 text-neutral-800 font-medium shadow-elev-1 hover:bg-neutral-50 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-400/40 disabled:opacity-50 disabled:cursor-not-allowed">
           ← Înapoi
         </button>
       </div>
@@ -94,20 +94,20 @@ export default function ProfessorDetails() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="bg-white border border-neutral-100 rounded-xl shadow-elev-1 p-6" role="region" aria-labelledby="stat-evaluations">
           <div id="stat-evaluations" className="text-sm text-neutral-500 mb-1">Evaluări primite</div>
-          <div className="text-3xl font-bold text-primary-800" aria-label={`${data.statistics.evaluations.completed} evaluări completate din ${data.statistics.evaluations.total_assigned} atribuite`}>
+          <div className="text-2xl md:text-3xl font-bold text-primary-800" aria-label={`${data.statistics.evaluations.completed} evaluări completate din ${data.statistics.evaluations.total_assigned} atribuite`}>
             {data.statistics.evaluations.completed} / {data.statistics.evaluations.total_assigned}
           </div>
         </div>
         <div className="bg-white border border-neutral-100 rounded-xl shadow-elev-1 p-6" role="region" aria-labelledby="stat-completion">
           <div id="stat-completion" className="text-sm text-neutral-500 mb-1">Rată completare</div>
-          <div className="text-3xl font-bold text-info-fg" aria-label={`Rată de completare: ${data.statistics.evaluations.completion_rate} procente`}>
+          <div className="text-2xl md:text-3xl font-bold text-info-fg" aria-label={`Rată de completare: ${data.statistics.evaluations.completion_rate} procente`}>
             {data.statistics.evaluations.completion_rate}%
           </div>
         </div>
         <div className="bg-white border border-neutral-100 rounded-xl shadow-elev-1 p-6" role="region" aria-labelledby="stat-average">
           <div id="stat-average" className="text-sm text-neutral-500 mb-1">Scor mediu general</div>
           <div
-            className={`text-3xl font-bold ${
+            className={`text-2xl md:text-3xl font-bold ${
               data.statistics.overallAverage
                 ? data.statistics.overallAverage >= 4
                   ? 'text-green-600'
@@ -256,7 +256,7 @@ export default function ProfessorDetails() {
                 {category.category.replace('_', ' ')}
               </h3>
               <div className="flex items-end justify-between" aria-labelledby={`category-${category.category}`}>
-                <div className="text-3xl font-bold text-primary-800" aria-label={`Medie: ${category.average.toFixed(2)}`}>
+                <div className="text-2xl md:text-3xl font-bold text-primary-800" aria-label={`Medie: ${category.average.toFixed(2)}`}>
                   {category.average.toFixed(2)}
                 </div>
                 <div className="text-sm text-neutral-500" aria-label={`Bazat pe ${category.responseCount} răspunsuri`}>{category.responseCount} răspunsuri</div>

@@ -164,11 +164,11 @@ export default function PlatformFeedback() {
   return (
     <div className="flex flex-col gap-7 max-w-[860px]">
       <div>
-        <h1 className="font-display text-[30px] font-semibold tracking-tight text-neutral-800 flex items-center gap-3">
+        <h1 className="font-display text-2xl md:text-[30px] font-semibold tracking-tight text-neutral-800 flex items-center gap-3">
           <ChatBubbleLeftRightIcon className="w-8 h-8 text-accent-600" aria-hidden="true" />
           Feedback despre platformă
         </h1>
-        <p className="mt-1.5 text-neutral-500 text-[15px]">
+        <p className="mt-1.5 text-neutral-500 text-sm md:text-[15px]">
           Ne ajuți să îmbunătățim platforma — răspunsurile tale sunt agregate anonim și ne ghidează în deciziile de produs.
         </p>
       </div>

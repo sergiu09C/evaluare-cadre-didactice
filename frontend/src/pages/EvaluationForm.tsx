@@ -268,9 +268,9 @@ export default function EvaluationForm() {
   const minutesRemaining = Math.max(1, Math.ceil(((total - completedCount) * 12) / 60));
 
   return (
-    <div className="-mx-10 -mt-8 flex flex-col bg-neutral-25 min-h-[calc(100vh-64px)]">
+    <div className="-mx-4 md:-mx-10 -mt-6 md:-mt-8 flex flex-col bg-neutral-25 min-h-[calc(100vh-64px)]">
       {/* Sticky sub-header */}
-      <header className="px-12 pt-5 pb-[18px] bg-white border-b border-neutral-100 sticky top-0 z-[5] flex flex-col gap-3.5">
+      <header className="px-4 md:px-12 pt-4 md:pt-5 pb-4 md:pb-[18px] bg-white border-b border-neutral-100 sticky top-0 z-[5] flex flex-col gap-3.5">
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div className="flex items-center gap-3.5 flex-wrap">
             <button
@@ -360,8 +360,8 @@ export default function EvaluationForm() {
       </header>
 
       {/* Question card */}
-      <div className="flex-1 overflow-auto flex justify-center px-12 py-10">
-        <div className="w-full max-w-[720px] flex flex-col gap-7">
+      <div className="flex-1 overflow-auto flex justify-center px-4 md:px-12 py-6 md:py-10">
+        <div className="w-full max-w-[720px] flex flex-col gap-6 md:gap-7">
           <div>
             {currentQ.category && (
               <Badge tone="accent" className="mb-4">
@@ -370,7 +370,7 @@ export default function EvaluationForm() {
             )}
             <h1
               id={`question-${currentQ.id}`}
-              className="font-display text-[28px] font-semibold tracking-tight leading-[1.3] text-neutral-800"
+              className="font-display text-xl md:text-[28px] font-semibold tracking-tight leading-[1.3] text-neutral-800"
             >
               {currentQ.text}
               {currentQ.isRequired && (

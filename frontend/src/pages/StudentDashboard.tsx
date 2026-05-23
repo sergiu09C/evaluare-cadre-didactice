@@ -74,10 +74,10 @@ export default function StudentDashboard() {
       </button>
 
       <div>
-        <h1 className="font-display text-[30px] font-semibold tracking-tight text-neutral-800">
+        <h1 className="font-display text-2xl md:text-[30px] font-semibold tracking-tight text-neutral-800">
           Dashboard student — {user?.firstName ?? 'profilul tău'}
         </h1>
-        <p className="mt-1.5 text-neutral-500 text-[15px] max-w-[640px]">
+        <p className="mt-1.5 text-neutral-500 text-sm md:text-[15px] max-w-[640px]">
           Profilul tău personal: cum ai evoluat de la semestrul anterior și streak-ul de
           participare. Pentru date generale platformă, vezi <Link to="/" className="text-accent-600 hover:underline">pagina Acasă</Link>.
         </p>

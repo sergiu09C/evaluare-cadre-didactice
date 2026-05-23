@@ -96,13 +96,13 @@ export default function AdminActionTemplates() {
 
   return (
     <div className="flex flex-col gap-7 max-w-[1100px]">
-      <div className="flex items-end justify-between flex-wrap gap-4">
+      <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="font-display text-[30px] font-semibold tracking-tight text-neutral-800 flex items-center gap-3">
+          <h1 className="font-display text-2xl md:text-[30px] font-semibold tracking-tight text-neutral-800 flex items-center gap-3">
             <ClipboardDocumentListIcon className="w-8 h-8 text-accent-600" aria-hidden="true" />
             Șabloane acțiuni CEAC
           </h1>
-          <p className="mt-1.5 text-neutral-500 text-[15px] max-w-[640px]">
+          <p className="mt-1.5 text-neutral-500 text-sm md:text-[15px] max-w-[640px]">
             Gestionează șabloanele standard din care propui acțiuni de îmbunătățire către profesori
             (din pagina detaliată a fiecărui profesor). Acțiunile deja propuse rămân chiar dacă
             ștergi șablonul.

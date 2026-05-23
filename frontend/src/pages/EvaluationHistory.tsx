@@ -64,10 +64,10 @@ export default function EvaluationHistory() {
     <div className="flex flex-col gap-7 max-w-[1280px]">
       {/* Header */}
       <div>
-        <h1 className="font-display text-[30px] font-semibold tracking-tight text-neutral-800">
+        <h1 className="font-display text-2xl md:text-[30px] font-semibold tracking-tight text-neutral-800">
           Istoric evaluări
         </h1>
-        <p className="mt-1.5 text-neutral-500 text-[15px]">
+        <p className="mt-1.5 text-neutral-500 text-sm md:text-[15px]">
           Toate evaluările tale completate și în progres.
         </p>
       </div>

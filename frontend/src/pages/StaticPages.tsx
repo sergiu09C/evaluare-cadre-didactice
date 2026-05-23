@@ -13,7 +13,7 @@ function StaticShell({ title, children }: { title: string; children: React.React
           <ArrowLeftIcon className="w-3.5 h-3.5" aria-hidden="true" />
           Înapoi la pagina principală
         </Link>
-        <h1 className="font-display text-[30px] font-semibold tracking-tight text-neutral-800">{title}</h1>
+        <h1 className="font-display text-2xl md:text-[30px] font-semibold tracking-tight text-neutral-800">{title}</h1>
       </div>
       <Card className="prose prose-sm max-w-none">{children}</Card>
     </div>

@@ -84,7 +84,7 @@ export default function NotificationsDropdown() {
             leaveFrom="opacity-100"
             leaveTo="opacity-0"
           >
-            <Popover.Panel className="absolute right-0 top-full mt-2 w-[360px] bg-white rounded-xl shadow-elev-3 border border-neutral-100 z-50">
+            <Popover.Panel className="absolute right-0 top-full mt-2 w-[calc(100vw-2rem)] sm:w-[360px] max-w-[360px] bg-white rounded-xl shadow-elev-3 border border-neutral-100 z-50">
               <div className="px-4 py-3 border-b border-neutral-100 flex items-center justify-between">
                 <h3 className="font-semibold text-sm text-neutral-800">Notificări</h3>
                 {unread > 0 && (

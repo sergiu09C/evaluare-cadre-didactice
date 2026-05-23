@@ -269,19 +269,22 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             aria-label="Deschide paleta de comenzi"
             className="flex-1 max-w-[440px] h-9 flex items-center gap-2.5 px-3.5 bg-neutral-50 rounded-md text-[13px] text-neutral-400 hover:bg-neutral-100 cursor-pointer transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-400/40"
           >
-            <MagnifyingGlassIcon className="w-4 h-4" aria-hidden="true" />
-            <span className="flex-1 truncate text-left">Caută o disciplină sau un profesor...</span>
-            <span className="font-mono text-[11px] px-1.5 py-0.5 bg-white border border-neutral-200 rounded">⌘ K</span>
+            <MagnifyingGlassIcon className="w-4 h-4 shrink-0" aria-hidden="true" />
+            <span className="flex-1 truncate text-left hidden sm:inline">Caută o disciplină sau un profesor...</span>
+            <span className="flex-1 truncate text-left sm:hidden">Caută...</span>
+            <span className="font-mono text-[11px] px-1.5 py-0.5 bg-white border border-neutral-200 rounded hidden sm:inline">⌘ K</span>
           </button>
 
-          <div className="flex-1" />
+          <div className="flex-1 hidden md:block" />
 
           {(platformStatus?.deadline || (platformStatus && !platformStatus.is_active)) && (
-            <DeadlineTimer
-              deadline={platformStatus.deadline}
-              platformClosed={!platformStatus.is_active}
-              variant="inline"
-            />
+            <div className="hidden lg:block">
+              <DeadlineTimer
+                deadline={platformStatus.deadline}
+                platformClosed={!platformStatus.is_active}
+                variant="inline"
+              />
+            </div>
           )}
 
           <AccessibilityMenu />
