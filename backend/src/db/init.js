@@ -55,6 +55,7 @@ function initializeDatabase() {
       '020-closing-loop-yswd.sql',
       '021-cleanup-old-questions.sql',
       '022-audit-log.sql',
+      '024-shift-all-dates-may-2026.sql',
     ];
     for (const file of migrationFiles) {
       const p = path.join(migrationsDir, file);

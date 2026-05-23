@@ -116,41 +116,61 @@ export function exportElementToPDF(
 </body>
 </html>`;
 
-  // 2. Creăm iframe ascuns same-origin
+  // Strategie nouă (mai robustă): deschidem o fereastră nouă same-origin.
+  // Browserele blochează `print()` din iframe ascuns în multe cazuri (Chrome,
+  // Safari), dar permit din ferestre noi inițiate de user gesture.
+  // Fallback la iframe doar dacă popup-ul e blocat.
+  const popup = window.open('', '_blank', 'width=900,height=700');
+  if (popup && !popup.closed) {
+    popup.document.open();
+    popup.document.write(documentHtml);
+    popup.document.close();
+    // Așteptăm să se randeze înainte de print
+    const tryPrint = () => {
+      try {
+        popup.focus();
+        popup.print();
+      } catch (e) {
+        console.error('[pdfExport] popup print failed', e);
+      }
+    };
+    if (popup.document.readyState === 'complete') {
+      setTimeout(tryPrint, 400);
+    } else {
+      popup.addEventListener('load', () => setTimeout(tryPrint, 400));
+      // Failsafe
+      setTimeout(tryPrint, 1500);
+    }
+    return;
+  }
+
+  // FALLBACK: popup blocat → iframe ascuns
+  console.warn('[pdfExport] popup blocat de browser, folosesc iframe fallback');
   const iframe = document.createElement('iframe');
   iframe.setAttribute('aria-hidden', 'true');
   iframe.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden;';
   document.body.appendChild(iframe);
 
-  const cleanup = () => {
-    setTimeout(() => iframe.remove(), 100);
-  };
+  const cleanup = () => setTimeout(() => iframe.remove(), 100);
 
   iframe.onload = () => {
     try {
       const win = iframe.contentWindow;
-      if (!win) {
-        cleanup();
-        return;
-      }
+      if (!win) { cleanup(); return; }
       win.addEventListener('afterprint', cleanup);
-      // Fallback dacă afterprint nu se emite
       setTimeout(cleanup, 60_000);
-      // Lăsăm un tick să se aplice CSS-ul și să se randeze SVG-urile din clone
-      setTimeout(() => {
-        win.focus();
-        win.print();
-      }, 200);
+      setTimeout(() => { win.focus(); win.print(); }, 200);
     } catch (err) {
       console.error('[pdfExport] iframe print failed', err);
       cleanup();
+      alert('Browserul nu permite generarea PDF. Activează pop-up-urile sau folosește Ctrl+P pe pagină.');
     }
   };
 
   const doc = iframe.contentDocument || iframe.contentWindow?.document;
   if (!doc) {
     iframe.remove();
-    alert('Browserul nu permite generarea PDF. Verifică setările pentru pop-up-uri și iframe-uri.');
+    alert('Browserul nu permite generarea PDF. Activează pop-up-urile sau folosește Ctrl+P pe pagină.');
     return;
   }
   doc.open();

@@ -132,7 +132,7 @@
       "role": "admin",
       "area": "sidebar",
       "severity": "low",
-      "description": "Sidebar admin items: [\"E\",\"Acasă · Călătoria evaluării\",\"Dashboard admin\",\"Gestionare platformă\",\"Closing-the-loop\",\"Editor ghiduri\",\"Editor achievements\",\"Șabloane acțiuni\",\"Feedback platformă\",\"Rapoarte\",\"Utilizatori\",\"Ghid pentru admin\",\"Deconectare\"]",
+      "description": "Sidebar admin items: [\"E\",\"Acasă · Călătoria evaluării\",\"Dashboard admin\",\"Gestionare platformă\",\"Closing-the-loop\",\"Editor ghiduri\",\"Editor achievements\",\"Șabloane acțiuni\",\"Feedback platformă\",\"KPI instituționali\",\"Audit log\",\"Rapoarte\",\"Utilizatori\",\"Ghid pentru admin\",\"Deconectare\"]",
       "page": "/admin"
     },
     {
@@ -153,13 +153,13 @@
       "role": "admin",
       "area": "questions-CRUD",
       "severity": "low",
-      "description": "Admin poate citi 13 întrebări din chestionar"
+      "description": "Admin poate citi 24 întrebări din chestionar"
     },
     {
       "role": "cross",
       "area": "questions-data-correlation",
       "severity": "low",
-      "description": "OK: admin vede 13 întrebări, studentul primește 13"
+      "description": "OK: admin vede 24 întrebări, studentul primește 24"
     },
     {
       "role": "cross",
@@ -192,7 +192,7 @@
       "usesGeistFont": true,
       "usesNeutral25Bg": true,
       "oldClassCount": 21,
-      "newComponentCount": 117,
+      "newComponentCount": 131,
       "designScore": 100,
       "notes": [
         "5× \"bg-gray-*\"",
@@ -211,7 +211,7 @@
       "usesGeistFont": true,
       "usesNeutral25Bg": true,
       "oldClassCount": 20,
-      "newComponentCount": 84,
+      "newComponentCount": 87,
       "designScore": 100,
       "notes": [
         "5× \"bg-gray-*\"",
@@ -230,7 +230,7 @@
       "usesGeistFont": true,
       "usesNeutral25Bg": true,
       "oldClassCount": 22,
-      "newComponentCount": 322,
+      "newComponentCount": 329,
       "designScore": 100,
       "notes": [
         "2× clasă veche \".card\"",
@@ -250,7 +250,7 @@
       "usesGeistFont": true,
       "usesNeutral25Bg": true,
       "oldClassCount": 20,
-      "newComponentCount": 117,
+      "newComponentCount": 120,
       "designScore": 100,
       "notes": [
         "5× \"bg-gray-*\"",
@@ -269,7 +269,7 @@
       "usesGeistFont": true,
       "usesNeutral25Bg": true,
       "oldClassCount": 21,
-      "newComponentCount": 115,
+      "newComponentCount": 127,
       "designScore": 100,
       "notes": [
         "5× \"bg-gray-*\"",
@@ -288,7 +288,7 @@
       "usesGeistFont": true,
       "usesNeutral25Bg": true,
       "oldClassCount": 21,
-      "newComponentCount": 115,
+      "newComponentCount": 127,
       "designScore": 100,
       "notes": [
         "5× \"bg-gray-*\"",
@@ -307,7 +307,7 @@
       "usesGeistFont": true,
       "usesNeutral25Bg": true,
       "oldClassCount": 21,
-      "newComponentCount": 85,
+      "newComponentCount": 86,
       "designScore": 100,
       "notes": [
         "5× \"bg-gray-*\"",
@@ -326,7 +326,7 @@
       "usesGeistFont": true,
       "usesNeutral25Bg": true,
       "oldClassCount": 21,
-      "newComponentCount": 113,
+      "newComponentCount": 125,
       "designScore": 100,
       "notes": [
         "5× \"bg-gray-*\"",
@@ -345,7 +345,7 @@
       "usesGeistFont": true,
       "usesNeutral25Bg": true,
       "oldClassCount": 20,
-      "newComponentCount": 117,
+      "newComponentCount": 125,
       "designScore": 100,
       "notes": [
         "5× \"bg-gray-*\"",
@@ -364,7 +364,7 @@
       "usesGeistFont": true,
       "usesNeutral25Bg": true,
       "oldClassCount": 20,
-      "newComponentCount": 122,
+      "newComponentCount": 115,
       "designScore": 100,
       "notes": [
         "5× \"bg-gray-*\"",
@@ -383,7 +383,7 @@
       "usesGeistFont": true,
       "usesNeutral25Bg": true,
       "oldClassCount": 20,
-      "newComponentCount": 86,
+      "newComponentCount": 93,
       "designScore": 100,
       "notes": [
         "5× \"bg-gray-*\"",
@@ -402,7 +402,7 @@
       "usesGeistFont": true,
       "usesNeutral25Bg": true,
       "oldClassCount": 20,
-      "newComponentCount": 89,
+      "newComponentCount": 90,
       "designScore": 100,
       "notes": [
         "5× \"bg-gray-*\"",
