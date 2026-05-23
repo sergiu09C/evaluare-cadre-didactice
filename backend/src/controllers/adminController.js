@@ -10,6 +10,9 @@ exports.getCompletionStats = (req, res, next) => {
     const db = getDatabase();
     const { facultyId, programId, yearId, seriesId, groupId } = req.query;
 
+    // FIX: după migrarea 017 (anonimitate), e.student_id devine NULL la submit.
+    // JOIN-ul prin student_id era stricat → 0 evaluări submitted pe alocuri.
+    // Soluție: leg evaluările de structura academică prin courses.study_year_id.
     let query = `
       SELECT
         f.name as faculty_name,
@@ -26,8 +29,8 @@ exports.getCompletionStats = (req, res, next) => {
       LEFT JOIN study_years sy ON sy.program_id = pr.id
       LEFT JOIN series s ON s.study_year_id = sy.id
       LEFT JOIN groups g ON g.series_id = s.id
-      LEFT JOIN users u ON u.group_id = g.id AND u.role = 'student'
-      LEFT JOIN evaluations e ON e.student_id = u.id
+      LEFT JOIN courses c ON c.study_year_id = sy.id
+      LEFT JOIN evaluations e ON e.course_id = c.id
       WHERE 1=1
     `;
 
@@ -419,10 +422,8 @@ exports.getDashboardStats = (req, res, next) => {
       FROM faculties f
       LEFT JOIN programs pr ON pr.faculty_id = f.id
       LEFT JOIN study_years sy ON sy.program_id = pr.id
-      LEFT JOIN series s ON s.study_year_id = sy.id
-      LEFT JOIN groups g ON g.series_id = s.id
-      LEFT JOIN users u ON u.group_id = g.id
-      LEFT JOIN evaluations e ON e.student_id = u.id
+      LEFT JOIN courses c ON c.study_year_id = sy.id
+      LEFT JOIN evaluations e ON e.course_id = c.id
       WHERE 1=1
     `;
 
@@ -725,15 +726,20 @@ exports.getYearStats = (req, res, next) => {
 
     const db = getDatabase();
 
+    // FIX: după migrarea 017 (anonimitate), e.student_id devine NULL la submit.
+    // Leg evaluări de structura academică prin courses.study_year_id (nu prin user).
     let query = `
       SELECT
         f.name as faculty_name,
         p.level,
         sy.year_number,
-        COUNT(DISTINCT u.id) as total_students,
+        (SELECT COUNT(DISTINCT u.id) FROM users u
+           JOIN groups g ON g.id = u.group_id
+           JOIN series s ON s.id = g.series_id
+           WHERE s.study_year_id = sy.id AND u.role = 'student') as total_students,
         COUNT(DISTINCT e.id) as total_evaluations,
         SUM(CASE WHEN e.status = 'submitted' THEN 1 ELSE 0 END) as completed,
-        ROUND(100.0 * SUM(CASE WHEN e.status = 'submitted' THEN 1 ELSE 0 END) / COUNT(DISTINCT e.id), 2) as completion_rate,
+        ROUND(100.0 * SUM(CASE WHEN e.status = 'submitted' THEN 1 ELSE 0 END) / NULLIF(COUNT(DISTINCT e.id), 0), 2) as completion_rate,
         AVG(CASE WHEN e.status = 'submitted' THEN
           (SELECT AVG(r.response_likert)
            FROM responses r
@@ -742,10 +748,8 @@ exports.getYearStats = (req, res, next) => {
       FROM faculties f
       INNER JOIN programs p ON p.faculty_id = f.id
       INNER JOIN study_years sy ON sy.program_id = p.id
-      INNER JOIN series s ON s.study_year_id = sy.id
-      INNER JOIN groups g ON g.series_id = s.id
-      INNER JOIN users u ON u.group_id = g.id AND u.role = 'student'
-      LEFT JOIN evaluations e ON e.student_id = u.id
+      LEFT JOIN courses c ON c.study_year_id = sy.id
+      LEFT JOIN evaluations e ON e.course_id = c.id
       WHERE 1=1
     `;
     const params = [];
