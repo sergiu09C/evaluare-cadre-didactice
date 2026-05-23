@@ -1,0 +1,20 @@
+import { test, devices } from '@playwright/test';
+const URL = 'http://localhost:3000';
+test.use({ ...devices['iPhone 13'] });
+test('@mobile reports widget per facultate', async ({ page }) => {
+  await page.goto(URL + '/login');
+  await page.fill('input[autocomplete="email"]', 'admin@univ.ro');
+  await page.fill('input[autocomplete="current-password"]', 'password123');
+  await page.click('button[type="submit"]');
+  await page.waitForURL((u: URL) => !u.pathname.includes('/login'));
+  await page.goto(URL + '/admin/reports');
+  await page.waitForLoadState('networkidle');
+  await page.waitForTimeout(2500);
+  await page.screenshot({ path: '/tmp/reports-widgets-top.png', fullPage: false });
+  await page.evaluate(() => window.scrollBy(0, 800));
+  await page.waitForTimeout(500);
+  await page.screenshot({ path: '/tmp/reports-widgets-mid.png', fullPage: false });
+  await page.evaluate(() => window.scrollBy(0, 1200));
+  await page.waitForTimeout(500);
+  await page.screenshot({ path: '/tmp/reports-widgets-bot.png', fullPage: false });
+});

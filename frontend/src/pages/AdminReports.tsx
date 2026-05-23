@@ -199,6 +199,53 @@ export default function AdminReports() {
       .filter((d: any) => d.value > 0);
   }, [overviewRows]);
 
+  // Per-facultate cu detalii programe (folosit în vederea fără filtre)
+  const facultyWidgets = useMemo(() => {
+    const rows: any[] = filteredStats?.stats || [];
+    const byFac = new Map<string, {
+      faculty: string;
+      completed: number;
+      total: number;
+      sum_score: number;
+      count_score: number;
+      programs: Map<string, { name: string; completed: number; total: number }>;
+    }>();
+    for (const s of rows) {
+      const facShort = (s.faculty_name || '—').replace(/^Facultatea de\s+/i, '');
+      const bucket = byFac.get(facShort) || {
+        faculty: facShort,
+        completed: 0, total: 0, sum_score: 0, count_score: 0,
+        programs: new Map(),
+      };
+      bucket.completed += s.completed || 0;
+      bucket.total += s.total_evaluations || 0;
+      if (s.average_score != null) {
+        bucket.sum_score += s.average_score;
+        bucket.count_score++;
+      }
+      const progName = s.program_name || '—';
+      const p = bucket.programs.get(progName) || { name: progName, completed: 0, total: 0 };
+      p.completed += s.completed || 0;
+      p.total += s.total_evaluations || 0;
+      bucket.programs.set(progName, p);
+      byFac.set(facShort, bucket);
+    }
+    return Array.from(byFac.values()).map((b) => ({
+      faculty: b.faculty,
+      completed: b.completed,
+      total: b.total,
+      completion_rate: b.total > 0 ? (b.completed / b.total) * 100 : 0,
+      average_score: b.count_score > 0 ? b.sum_score / b.count_score : null,
+      programs: Array.from(b.programs.values()).map((p) => ({
+        ...p,
+        rate: p.total > 0 ? (p.completed / p.total) * 100 : 0,
+      })).sort((a, b) => b.rate - a.rate),
+    })).sort((a, b) => b.completion_rate - a.completion_rate);
+  }, [filteredStats]);
+
+  // Vederea „widget per facultate" se aplică doar când nu există filtre active
+  const showFacultyWidgets = !selectedFaculty && !selectedLevel && !selectedYear && !selectedCourseType && !selectedSemester;
+
   useEffect(() => {
     loadFilterOptions();
     loadCourseNames();
@@ -536,7 +583,106 @@ export default function AdminReports() {
           {/* Overview & Faculty Tab */}
           {(activeTab === 'overview' || activeTab === 'faculty') && filteredStats && (
             <div className="space-y-6">
-              {/* Chart */}
+              {/* Comparație rezumat — apare DOAR când nu există filtre, pentru
+                  o privire de ansamblu rapidă pe toate facultățile. */}
+              {showFacultyWidgets && facultyWidgets.length > 0 && (
+                <div className="bg-white border border-neutral-100 rounded-xl shadow-elev-1 p-6">
+                  <h3 className="text-lg font-semibold text-neutral-800 mb-1">
+                    Comparație între facultăți
+                  </h3>
+                  <p className="text-xs text-neutral-500 mb-4">
+                    Rata de completare per facultate, sortată descrescător.
+                  </p>
+                  <div className="space-y-3">
+                    {facultyWidgets.map((f, i) => (
+                      <div key={f.faculty} className="flex items-center gap-3">
+                        <span className="text-xs font-mono text-neutral-400 w-5">{i + 1}.</span>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-baseline justify-between gap-2 mb-1">
+                            <span className="text-sm font-medium text-neutral-800 truncate">{f.faculty}</span>
+                            <span className={`text-sm font-mono font-semibold ${f.completion_rate >= 70 ? 'text-success-fg' : f.completion_rate >= 50 ? 'text-warning-fg' : 'text-danger-fg'}`}>
+                              {f.completion_rate.toFixed(1)}%
+                            </span>
+                          </div>
+                          <div className="h-2 rounded-full bg-neutral-100 overflow-hidden">
+                            <div
+                              className="h-full transition-all duration-500"
+                              style={{
+                                width: `${Math.min(100, f.completion_rate)}%`,
+                                background: f.completion_rate >= 70 ? '#10B981' : f.completion_rate >= 50 ? '#F59E0B' : '#EF4444',
+                              }}
+                            />
+                          </div>
+                          <div className="text-[11px] text-neutral-500 mt-1">
+                            {f.completed.toLocaleString('ro-RO')} / {f.total.toLocaleString('ro-RO')} evaluări
+                            {f.average_score != null && (
+                              <span className="ml-2">· scor mediu: <strong>{f.average_score.toFixed(2)}/5</strong></span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Widget per facultate — cu drill-down pe programe. Apare doar fără filtre. */}
+              {showFacultyWidgets && facultyWidgets.length > 0 && (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  {facultyWidgets.map((f) => (
+                    <div key={f.faculty} className="bg-white border border-neutral-100 rounded-xl shadow-elev-1 p-5">
+                      <div className="flex items-start justify-between gap-3 mb-3">
+                        <h4 className="text-base font-semibold text-neutral-800 leading-tight">{f.faculty}</h4>
+                        <span className={`text-2xl font-bold tabular-nums ${f.completion_rate >= 70 ? 'text-success-fg' : f.completion_rate >= 50 ? 'text-warning-fg' : 'text-danger-fg'}`}>
+                          {f.completion_rate.toFixed(0)}%
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2 mb-4 text-center">
+                        <div>
+                          <div className="text-[10px] text-neutral-400 uppercase tracking-wide">Completate</div>
+                          <div className="text-base font-semibold text-neutral-800">{f.completed.toLocaleString('ro-RO')}</div>
+                        </div>
+                        <div>
+                          <div className="text-[10px] text-neutral-400 uppercase tracking-wide">Total</div>
+                          <div className="text-base font-semibold text-neutral-500">{f.total.toLocaleString('ro-RO')}</div>
+                        </div>
+                        <div>
+                          <div className="text-[10px] text-neutral-400 uppercase tracking-wide">Scor mediu</div>
+                          <div className="text-base font-semibold text-neutral-800">
+                            {f.average_score != null ? f.average_score.toFixed(2) : '—'}
+                          </div>
+                        </div>
+                      </div>
+                      {f.programs.length > 0 && (
+                        <div>
+                          <div className="text-[11px] text-neutral-500 uppercase tracking-wide font-medium mb-2">
+                            Programe ({f.programs.length})
+                          </div>
+                          <div className="space-y-1.5">
+                            {f.programs.slice(0, 5).map((p) => (
+                              <div key={p.name} className="flex items-center gap-2 text-xs">
+                                <span className="flex-1 min-w-0 truncate text-neutral-700">{p.name}</span>
+                                <span className="font-mono text-neutral-500 shrink-0">{p.completed}/{p.total}</span>
+                                <span className={`font-mono font-medium w-12 text-right shrink-0 ${p.rate >= 70 ? 'text-success-fg' : p.rate >= 50 ? 'text-warning-fg' : 'text-danger-fg'}`}>
+                                  {p.rate.toFixed(0)}%
+                                </span>
+                              </div>
+                            ))}
+                            {f.programs.length > 5 && (
+                              <div className="text-[11px] text-neutral-400 italic">
+                                +{f.programs.length - 5} alte programe — aplică filtre pentru vedere completă
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Chart agregat — apare DOAR când există filtre active (focus pe ce a filtrat user-ul) */}
+              {!showFacultyWidgets && (
               <div className="bg-white border border-neutral-100 rounded-xl shadow-elev-1 p-6">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
                   <div>
@@ -651,6 +797,7 @@ export default function AdminReports() {
                   <p className="text-neutral-500 text-center py-8">Nu există date pentru filtrele selectate</p>
                 )}
               </div>
+              )}
 
               {/* Detalii pe rândul brut — afișat doar când există filtre active.
                   Fără filtre, ar fi 240 rânduri și ar fi neclar; agregarea de sus le rezumă. */}
