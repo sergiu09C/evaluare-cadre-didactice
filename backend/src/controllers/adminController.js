@@ -958,14 +958,15 @@ exports.getKPIs = (req, res, next) => {
     const db = getDatabase();
 
     // === Process KPIs ===
-    // P1: Rată participare = studenți cu cel puțin 1 completare / total studenți eligibili
-    const totalEligible = db.prepare(
-      "SELECT COUNT(*) AS n FROM users WHERE role='student' AND is_active=1"
+    // P1: Rată completare evaluări = #submitted / #create
+    // (aliniat cu indicatorul din admin/reports — sursă unică de adevăr)
+    const totalEvals = db.prepare(
+      "SELECT COUNT(*) AS n FROM evaluations"
     ).get().n;
-    const activeStudents = db.prepare(
-      `SELECT COUNT(DISTINCT user_id) AS n FROM completion_tokens`
+    const submittedEvals = db.prepare(
+      "SELECT COUNT(*) AS n FROM evaluations WHERE status='submitted'"
     ).get().n;
-    const p1 = totalEligible > 0 ? Math.round((activeStudents / totalEligible) * 100) : 0;
+    const p1 = totalEvals > 0 ? Math.round((submittedEvals / totalEvals) * 100) : 0;
 
     // P2: Timp mediu completare per chestionar (în minute)
     const avgTime = db.prepare(`
@@ -1070,10 +1071,10 @@ exports.getKPIs = (req, res, next) => {
     res.json({
       process: {
         P1: {
-          value: p1, unit: '%', target: 55,
-          label: 'Participare studenți',
-          description: 'Procentul studenților care au completat cel puțin o evaluare în perioada curentă.',
-          formula: 'studenți cu ≥1 evaluare / total studenți eligibili',
+          value: p1, unit: '%', targetMin: 50, targetMax: 70,
+          label: 'Rată completare evaluări',
+          description: 'Procentul evaluărilor create care au fost efectiv completate de studenți. Sursă unică de adevăr cu raportul Rapoarte → Panorama Generală.',
+          formula: 'evaluări cu status=submitted / total evaluări create',
         },
         P2: {
           value: avgTime ? Number(avgTime.toFixed(1)) : null, unit: 'min', targetMin: 3, targetMax: 5,
