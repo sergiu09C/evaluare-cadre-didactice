@@ -767,6 +767,7 @@ export default function AdminControls() {
                     <option value="">Toate</option>
                     <option value="licenta">Licență</option>
                     <option value="master">Master</option>
+                    <option value="doctorat">Doctorat</option>
                   </select>
                 </div>
 
@@ -847,6 +848,7 @@ export default function AdminControls() {
                   <option value="">Toate nivelurile</option>
                   <option value="licenta">Licență</option>
                   <option value="master">Master</option>
+                  <option value="doctorat">Doctorat</option>
                 </select>
 
                 <select
