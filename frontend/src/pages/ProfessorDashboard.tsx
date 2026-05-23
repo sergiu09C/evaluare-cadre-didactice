@@ -199,7 +199,7 @@ export default function ProfessorDashboard() {
             {courses.map((c, i) => (
               <button
                 key={c.id}
-                onClick={() => navigate(`/professor/courses/${c.id}`)}
+                onClick={() => navigate(`/professor/course/${c.id}`)}
                 className={`w-full text-left px-6 py-4 flex items-center gap-4 hover:bg-neutral-25 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-400/40 ${
                   i < courses.length - 1 ? 'border-b border-neutral-100' : ''
                 }`}
