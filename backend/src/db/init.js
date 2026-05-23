@@ -53,6 +53,7 @@ function initializeDatabase() {
       '018-19-items-questionnaire.sql',
       '019-reminders-log-cols.sql',
       '020-closing-loop-yswd.sql',
+      '021-cleanup-old-questions.sql',
     ];
     for (const file of migrationFiles) {
       const p = path.join(migrationsDir, file);

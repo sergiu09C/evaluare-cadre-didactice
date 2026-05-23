@@ -8,8 +8,10 @@ exports.getAllQuestions = (req, res) => {
   try {
     const db = getDatabase();
     const questions = db.prepare(`
-      SELECT id, text, type, category, order_index, is_required
+      SELECT id, text, type, category, dimension, is_contextual,
+             order_index, is_required
       FROM questions
+      WHERE is_active = 1
       ORDER BY order_index ASC
     `).all();
 
