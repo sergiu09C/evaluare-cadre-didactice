@@ -29,6 +29,7 @@ const INCREMENTAL_MIGRATIONS = [
   '026-doctorate-programs.sql',
   '027-fix-data-consistency.sql',
   '028-regenerate-responses-on-active-questions.sql',
+  '029-doctorate-students.sql',
 ];
 
 function isBenign(errMsg) {
