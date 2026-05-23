@@ -19,7 +19,7 @@ import {
 import { generatePrintableReport } from '../utils/pdfExport';
 import { useTabNavigation } from '../hooks/useTabNavigation';
 
-type ReportTab = 'overview' | 'faculty' | 'year' | 'courseType' | 'discipline';
+type ReportTab = 'overview' | 'year' | 'courseType' | 'discipline';
 type ChartKind = 'bar' | 'line' | 'pie' | 'table';
 
 const CHART_KIND_LABELS: Record<ChartKind, string> = {
@@ -80,7 +80,6 @@ export default function AdminReports() {
   // Tab order for keyboard navigation
   const tabs = [
     { id: 'overview' as ReportTab, label: 'Panorama Generală', icon: '📊' },
-    { id: 'faculty' as ReportTab, label: 'Pe Facultăți', icon: '🏛️' },
     { id: 'year' as ReportTab, label: 'Pe Ani de Studiu', icon: '📅' },
     { id: 'courseType' as ReportTab, label: 'Pe Activitate', icon: '📚' },
     { id: 'discipline' as ReportTab, label: 'Comparație Discipline', icon: '🔍' },
@@ -287,7 +286,6 @@ export default function AdminReports() {
 
       switch (activeTab) {
         case 'overview':
-        case 'faculty':
           const data = await api.getFilteredStats(filters);
           setFilteredStats(data);
           break;
@@ -395,9 +393,9 @@ export default function AdminReports() {
               }
             }}
             className="inline-flex items-center gap-2 px-4 h-10 rounded-md bg-accent-600 text-white font-medium shadow-elev-1 hover:bg-accent-700 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-400/40"
-            title="Export agregat per facultate × program × an pentru raportare ARACIS"
+            title="Export agregat per facultate × program × an (CSV)"
           >
-            📑 Export ARACIS (CSV)
+            📑 Export
           </button>
         </div>
       </div>
@@ -452,7 +450,7 @@ export default function AdminReports() {
             )}
 
             {/* Level Filter */}
-            {(activeTab === 'overview' || activeTab === 'faculty' || activeTab === 'year') && (
+            {(activeTab === 'overview' || activeTab === 'year') && (
               <div className="flex items-center gap-2">
                 <label className="text-sm text-neutral-500">Nivel:</label>
                 <select
@@ -471,7 +469,7 @@ export default function AdminReports() {
             )}
 
             {/* Year Filter */}
-            {(activeTab === 'overview' || activeTab === 'faculty' || activeTab === 'courseType') && (
+            {(activeTab === 'overview' || activeTab === 'courseType') && (
               <div className="flex items-center gap-2">
                 <label className="text-sm text-neutral-500">An:</label>
                 <select
@@ -490,7 +488,7 @@ export default function AdminReports() {
             )}
 
             {/* Course Type Filter */}
-            {(activeTab === 'overview' || activeTab === 'faculty') && (
+            {activeTab === 'overview' && (
               <div className="flex items-center gap-2">
                 <label className="text-sm text-neutral-500">Tip:</label>
                 <select
@@ -509,7 +507,7 @@ export default function AdminReports() {
             )}
 
             {/* Semester Filter */}
-            {(activeTab === 'overview' || activeTab === 'faculty') && (
+            {activeTab === 'overview' && (
               <div className="flex items-center gap-2">
                 <label className="text-sm text-neutral-500">Semestru:</label>
                 <select
@@ -581,7 +579,7 @@ export default function AdminReports() {
       {!loading && !error && (
         <div ref={reportContentRef}>
           {/* Overview & Faculty Tab */}
-          {(activeTab === 'overview' || activeTab === 'faculty') && filteredStats && (
+          {activeTab === 'overview' && filteredStats && (
             <div className="space-y-6">
               {/* Comparație rezumat — apare DOAR când nu există filtre, pentru
                   o privire de ansamblu rapidă pe toate facultățile. */}
