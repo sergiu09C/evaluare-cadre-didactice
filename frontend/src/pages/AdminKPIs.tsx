@@ -12,6 +12,8 @@ interface KPI {
   targetMax?: number;
   targetDirection?: string;
   label: string;
+  description?: string;
+  formula?: string;
 }
 
 interface KPIData {
@@ -74,9 +76,21 @@ function KPICard({ code, kpi }: { code: string; kpi: KPI }) {
         <Badge tone="accent">{code}</Badge>
         <StatusBadge status={status} />
       </div>
-      <div className="text-xs text-neutral-500">{kpi.label}</div>
-      <div className="text-2xl font-bold text-neutral-800 tabular-nums">{displayValue}</div>
-      <div className="text-[11px] text-neutral-400">Țintă: {targetTxt}</div>
+      <div className="text-sm font-semibold text-neutral-700 leading-snug">{kpi.label}</div>
+      {kpi.description && (
+        <div className="text-[12px] text-neutral-500 leading-snug">{kpi.description}</div>
+      )}
+      <div className="text-2xl font-bold text-neutral-800 tabular-nums mt-1">{displayValue}</div>
+      <div className="flex flex-col gap-0.5 mt-0.5">
+        <div className="text-[11px] text-neutral-500">
+          <span className="font-medium">Țintă:</span> {targetTxt}
+        </div>
+        {kpi.formula && (
+          <div className="text-[11px] text-neutral-400 italic" title={kpi.formula}>
+            Formulă: {kpi.formula}
+          </div>
+        )}
+      </div>
     </Card>
   );
 }
@@ -146,7 +160,12 @@ export default function AdminKPIs() {
       </div>
 
       <section>
-        <h2 className="text-lg font-semibold text-neutral-800 mb-3">P. Indicatori de proces</h2>
+        <div className="mb-3">
+          <h2 className="text-lg font-semibold text-neutral-800">P. Indicatori de proces</h2>
+          <p className="text-sm text-neutral-500 mt-0.5">
+            Măsoară <strong>funcționarea sistemului</strong>: câți studenți participă, cât durează un chestionar, cât de bine acoperim cursurile.
+          </p>
+        </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {Object.entries(data.process).map(([k, v]) => (
             <KPICard key={k} code={k} kpi={v} />
@@ -155,7 +174,12 @@ export default function AdminKPIs() {
       </section>
 
       <section>
-        <h2 className="text-lg font-semibold text-neutral-800 mb-3">O. Indicatori de output</h2>
+        <div className="mb-3">
+          <h2 className="text-lg font-semibold text-neutral-800">O. Indicatori de output</h2>
+          <p className="text-sm text-neutral-500 mt-0.5">
+            Măsoară <strong>rezultatele evaluării</strong>: scoruri medii, distribuția cadrelor pe niveluri de performanță, variabilitatea.
+          </p>
+        </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {Object.entries(data.output).map(([k, v]) => (
             <KPICard key={k} code={k} kpi={v} />
@@ -164,7 +188,12 @@ export default function AdminKPIs() {
       </section>
 
       <section>
-        <h2 className="text-lg font-semibold text-neutral-800 mb-3">I. Indicatori de impact</h2>
+        <div className="mb-3">
+          <h2 className="text-lg font-semibold text-neutral-800">I. Indicatori de impact</h2>
+          <p className="text-sm text-neutral-500 mt-0.5">
+            Măsoară <strong>schimbarea reală</strong> pe care o produce evaluarea: evoluție vs. semestrul anterior, viteza de raportare, închiderea buclei (You Said / We Did).
+          </p>
+        </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {Object.entries(data.impact).map(([k, v]) => (
             <KPICard key={k} code={k} kpi={v} />

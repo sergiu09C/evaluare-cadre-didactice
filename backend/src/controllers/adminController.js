@@ -1069,25 +1069,100 @@ exports.getKPIs = (req, res, next) => {
 
     res.json({
       process: {
-        P1: { value: p1, unit: '%', target: 55, label: 'Rată participare' },
-        P2: { value: avgTime ? Number(avgTime.toFixed(1)) : null, unit: 'min', targetMin: 3, targetMax: 5, label: 'Timp mediu completare' },
-        P3: { value: p3, unit: '%', target: 100, label: 'Rată cursuri activate' },
-        P4: { value: p4, unit: '%', target: 90, label: 'Rată cursuri valide (≥5 răsp.)' },
-        P5: { value: p5, unit: '%', target: 99.5, label: 'Uptime sistem' },
+        P1: {
+          value: p1, unit: '%', target: 55,
+          label: 'Participare studenți',
+          description: 'Procentul studenților care au completat cel puțin o evaluare în perioada curentă.',
+          formula: 'studenți cu ≥1 evaluare / total studenți eligibili',
+        },
+        P2: {
+          value: avgTime ? Number(avgTime.toFixed(1)) : null, unit: 'min', targetMin: 3, targetMax: 5,
+          label: 'Timp mediu de răspuns',
+          description: 'Cât durează în medie un student să completeze un chestionar (19 itemi Likert + 3 context + 1 comentariu).',
+          formula: 'Σ (submitted_at − started_at) / număr evaluări',
+        },
+        P3: {
+          value: p3, unit: '%', target: 100,
+          label: 'Acoperire cursuri',
+          description: 'Procentul cursurilor active din semestru care au cel puțin o evaluare creată (chiar dacă nu completată).',
+          formula: 'cursuri cu ≥1 evaluare / total cursuri active',
+        },
+        P4: {
+          value: p4, unit: '%', target: 90,
+          label: 'Eșantion valid (≥5 răspunsuri)',
+          description: 'Procentul cursurilor care au strâns suficiente răspunsuri pentru ca scorul să fie statistic credibil (prag ARACIS: 5 răspunsuri).',
+          formula: 'cursuri cu ≥5 răspunsuri submitted / total cursuri active',
+        },
+        P5: {
+          value: p5, unit: '%', target: 99.5,
+          label: 'Disponibilitate platformă',
+          description: 'Procentul de timp în care aplicația a funcționat fără întreruperi (uptime).',
+          formula: 'În producție: monitor extern. În dev: placeholder 99.95%.',
+        },
       },
       output: {
-        O1: { value: o1 ? Number(o1.toFixed(2)) : null, unit: '/5', target: 3.70, label: 'Scor global instituțional' },
-        O2: { value: o2.map((d) => ({ dim: d.dimension, avg: d.avg ? Number(d.avg.toFixed(2)) : null })), target: 3.50, label: 'Scor pe dimensiuni' },
-        O3: { value: o3, unit: '%', target: 10, targetDirection: 'less', label: '% cadre alertă roșie (<2.5)' },
-        O4: { value: o4, unit: '%', target: 20, targetDirection: 'less', label: '% cadre alertă galbenă (2.5-3.5)' },
-        O5: { value: o5 ? Number(o5.toFixed(2)) : null, unit: '', target: 0.8, targetDirection: 'less', label: 'Deviație standard scor' },
+        O1: {
+          value: o1 ? Number(o1.toFixed(2)) : null, unit: '/5', target: 3.70,
+          label: 'Scor mediu universitate',
+          description: 'Media tuturor scorurilor Likert (1-5) date de studenți pe toate dimensiunile, întreaga universitate.',
+          formula: 'Σ scoruri / număr răspunsuri Likert',
+        },
+        O2: {
+          value: o2.map((d) => ({ dim: d.dimension, avg: d.avg ? Number(d.avg.toFixed(2)) : null })), target: 3.50,
+          label: 'Scor mediu per dimensiune',
+          description: 'Media pe fiecare dintre cele 5 dimensiuni: D1 Predare, D2 Comunicare, D3 Resurse, D4 Feedback, D5 Disponibilitate.',
+          formula: 'Σ scoruri pe dim / număr răspunsuri pe dim',
+        },
+        O3: {
+          value: o3, unit: '%', target: 10, targetDirection: 'less',
+          label: 'Cadre cu scor critic (<2.5/5)',
+          description: 'Procentul cadrelor didactice cu scor mediu sub 2.5, care necesită intervenție imediată (mentorat, formare, audit).',
+          formula: 'cadre cu medie <2.5 / total cadre evaluate',
+        },
+        O4: {
+          value: o4, unit: '%', target: 20, targetDirection: 'less',
+          label: 'Cadre cu scor mediu (2.5-3.5/5)',
+          description: 'Procentul cadrelor cu performanță acceptabilă dar îmbunătățibilă — candidate pentru plan de dezvoltare.',
+          formula: 'cadre cu medie 2.5-3.5 / total cadre evaluate',
+        },
+        O5: {
+          value: o5 ? Number(o5.toFixed(2)) : null, unit: '', target: 0.8, targetDirection: 'less',
+          label: 'Variabilitate scoruri cadre',
+          description: 'Deviația standard a scorurilor medii pe profesori. Mică = scoruri apropiate (omogenitate). Mare = variație puternică între cadre.',
+          formula: 'σ(scoruri medii per profesor)',
+        },
       },
       impact: {
-        I1: { value: i1, unit: 'pp', target: 5, label: 'Δ rată participare (vs sem. anterior)' },
-        I2: { value: i2, unit: '', target: 0, targetDirection: 'gte', label: 'Δ scor global' },
-        I3: { value: i3, unit: 'zile', target: 14, targetDirection: 'less', label: 'Timp raportare' },
-        I4: { value: i4, unit: 'zile', target: 35, targetDirection: 'less', label: 'Timp closing-the-loop' },
-        I5: { value: i5 ? Number(i5.toFixed(2)) : null, unit: '/5', target: 4.0, label: 'Satisfacție studenți cu procesul' },
+        I1: {
+          value: i1, unit: 'pp', target: 5,
+          label: 'Creștere participare vs. sem. anterior',
+          description: 'Diferența în puncte procentuale între rata participării din acest semestru și cea din semestrul anterior.',
+          formula: 'P1(semestru curent) − P1(semestru anterior)',
+        },
+        I2: {
+          value: i2, unit: '', target: 0, targetDirection: 'gte',
+          label: 'Variație scor global',
+          description: 'Schimbarea scorului mediu instituțional față de semestrul anterior. Pozitiv = îmbunătățire.',
+          formula: 'O1(semestru curent) − O1(semestru anterior)',
+        },
+        I3: {
+          value: i3, unit: 'zile', target: 14, targetDirection: 'less',
+          label: 'Timp publicare rapoarte',
+          description: 'Numărul de zile între închiderea perioadei de evaluare și momentul când profesorii primesc rapoartele agregate.',
+          formula: 'data publicare − data închidere colectare',
+        },
+        I4: {
+          value: i4, unit: 'zile', target: 35, targetDirection: 'less',
+          label: 'Timp închiderea buclei (You Said / We Did)',
+          description: 'Numărul de zile între închiderea colectării și momentul când universitatea publică acțiunile concrete în răspuns la feedback (closing-the-loop).',
+          formula: 'data publicare acțiuni − data închidere colectare',
+        },
+        I5: {
+          value: i5 ? Number(i5.toFixed(2)) : null, unit: '/5', target: 4.0,
+          label: 'Satisfacție cu procesul de evaluare',
+          description: 'Cât de mulțumiți sunt studenții cu însuși mecanismul de evaluare (chestionar separat post-completare).',
+          formula: 'media răspunsurilor feedback platformă (1-5)',
+        },
       },
     });
   } catch (error) {
