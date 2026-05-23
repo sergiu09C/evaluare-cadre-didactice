@@ -21,18 +21,21 @@ exports.getFeedbackStats = (req, res, next) => {
       return res.status(404).json({ error: 'Student not found' });
     }
 
-    // Stats per faculty (anonymous)
+    // Stats per faculty (anonim) — folosim completion_tokens pentru a număra
+    // studenții care au evaluat (legătura student_id e NULL post-submit).
     const facultyStats = db.prepare(`
       SELECT
-        COUNT(DISTINCT u.id) as total_students,
-        COUNT(DISTINCT CASE WHEN e.status = 'submitted' THEN e.student_id END) as active_students,
-        COUNT(CASE WHEN e.status = 'submitted' THEN 1 END) as completed_evaluations,
-        COUNT(e.id) as total_evaluations
-      FROM users u
-      LEFT JOIN programs p ON p.id = u.program_id
-      LEFT JOIN evaluations e ON e.student_id = u.id
-      WHERE p.faculty_id = ? AND u.role = 'student'
-    `).get(student.faculty_id);
+        (SELECT COUNT(DISTINCT u.id) FROM users u JOIN programs p ON p.id=u.program_id
+         WHERE p.faculty_id = ? AND u.role='student') AS total_students,
+        (SELECT COUNT(DISTINCT ct.user_id) FROM completion_tokens ct
+         JOIN users u ON u.id = ct.user_id
+         JOIN programs p ON p.id = u.program_id
+         WHERE p.faculty_id = ? AND u.role='student') AS active_students,
+        (SELECT COUNT(*) FROM evaluations e JOIN professors pr ON pr.id=e.professor_id
+         WHERE pr.faculty_id = ? AND e.status='submitted') AS completed_evaluations,
+        (SELECT COUNT(*) FROM evaluations e JOIN professors pr ON pr.id=e.professor_id
+         WHERE pr.faculty_id = ?) AS total_evaluations
+    `).get(student.faculty_id, student.faculty_id, student.faculty_id, student.faculty_id);
 
     // CORECT: submitted_per_faculty / max_possible_per_faculty (NU submitted/total_evals)
     const facMaxRow = db
@@ -62,15 +65,15 @@ exports.getFeedbackStats = (req, res, next) => {
     const completionRate =
       facMaxRow?.max_evals > 0 ? Math.round((facSubmitted / facMaxRow.max_evals) * 100) : 0;
 
-    // Stats per program (anonymous)
+    // Stats per program (anonim) — folosim completion_tokens.
     const programStats = db.prepare(`
       SELECT
-        COUNT(DISTINCT u.id) as total_students,
-        COUNT(DISTINCT CASE WHEN e.status = 'submitted' THEN e.student_id END) as active_students
-      FROM users u
-      LEFT JOIN evaluations e ON e.student_id = u.id AND e.status = 'submitted'
-      WHERE u.program_id = ? AND u.year = ?
-    `).get(student.program_id, student.year);
+        (SELECT COUNT(DISTINCT u.id) FROM users u
+         WHERE u.program_id = ? AND u.year = ? AND u.role='student') AS total_students,
+        (SELECT COUNT(DISTINCT ct.user_id) FROM completion_tokens ct
+         JOIN users u ON u.id = ct.user_id
+         WHERE u.program_id = ? AND u.year = ? AND u.role='student') AS active_students
+    `).get(student.program_id, student.year, student.program_id, student.year);
 
     // Global platform stats
     const globalStats = db.prepare(`
@@ -82,13 +85,14 @@ exports.getFeedbackStats = (req, res, next) => {
     `).get();
 
     // === byCategory pentru DualRadar (tu vs facultate) — categorii Likert ===
+    // Anonimitate: evaluations.student_id e NULL după submit, folosim completion_tokens.
     const studentByCategory = db
       .prepare(
         `SELECT q.category, AVG(r.response_likert) AS avg
-         FROM responses r
+         FROM completion_tokens ct
+         JOIN responses r ON r.evaluation_id = ct.evaluation_id
          JOIN questions q ON q.id = r.question_id
-         JOIN evaluations e ON e.id = r.evaluation_id
-         WHERE e.student_id = ? AND e.status='submitted' AND r.response_likert IS NOT NULL
+         WHERE ct.user_id = ? AND r.response_likert IS NOT NULL
          GROUP BY q.category`,
       )
       .all(req.user.id);
@@ -151,16 +155,23 @@ exports.getAchievements = (req, res, next) => {
     const db = getDatabase();
     const studentId = req.user.id;
 
-    // Check evaluations status
-    const evaluations = db.prepare(`
-      SELECT
-        COUNT(*) as total,
-        COUNT(CASE WHEN status = 'submitted' THEN 1 END) as completed,
-        COUNT(CASE WHEN status = 'draft' THEN 1 END) as draft,
-        MIN(CASE WHEN status = 'submitted' THEN submitted_at END) as first_submission
-      FROM evaluations
-      WHERE student_id = ?
-    `).get(studentId);
+    // Check evaluations status — submitted via completion_tokens, draft direct
+    const draftRow = db.prepare(
+      `SELECT COUNT(*) AS n FROM evaluations WHERE student_id = ? AND status = 'draft'`,
+    ).get(studentId);
+    const completedRow = db.prepare(
+      `SELECT COUNT(*) AS completed,
+              MIN(e.submitted_at) AS first_submission
+       FROM completion_tokens ct
+       JOIN evaluations e ON e.id = ct.evaluation_id
+       WHERE ct.user_id = ?`,
+    ).get(studentId);
+    const evaluations = {
+      total: draftRow.n + completedRow.completed,
+      draft: draftRow.n,
+      completed: completedRow.completed,
+      first_submission: completedRow.first_submission,
+    };
 
     const achievements = [];
 
@@ -173,9 +184,10 @@ exports.getAchievements = (req, res, next) => {
         icon: '🏆',
         earned: true,
         earnedAt: db.prepare(`
-          SELECT MAX(submitted_at) as last_submission
-          FROM evaluations
-          WHERE student_id = ? AND status = 'submitted'
+          SELECT MAX(e.submitted_at) as last_submission
+          FROM completion_tokens ct
+          JOIN evaluations e ON e.id = ct.evaluation_id
+          WHERE ct.user_id = ?
         `).get(studentId).last_submission
       });
     }
@@ -186,13 +198,15 @@ exports.getAchievements = (req, res, next) => {
         SELECT program_id, year FROM users WHERE id = ?
       `).get(studentId);
 
+      // EarlyBird: căutăm dacă alți studenți din aceeași program/an au completat mai devreme.
+      // Folosim completion_tokens (anonimitate-friendly): user_id → users.program_id/year, submission timestamp din evaluations
       const isEarlyBird = db.prepare(`
         SELECT COUNT(*) as count
-        FROM evaluations e
-        INNER JOIN users u ON u.id = e.student_id
+        FROM completion_tokens ct
+        JOIN evaluations e ON e.id = ct.evaluation_id
+        JOIN users u ON u.id = ct.user_id
         WHERE u.program_id = ?
           AND u.year = ?
-          AND e.status = 'submitted'
           AND e.submitted_at < ?
       `).get(student.program_id, student.year, evaluations.first_submission).count === 0;
 
@@ -211,10 +225,10 @@ exports.getAchievements = (req, res, next) => {
     // Badge 3: Fast Responder (completed within 7 days)
     const fastResponses = db.prepare(`
       SELECT COUNT(*) as count
-      FROM evaluations
-      WHERE student_id = ?
-        AND status = 'submitted'
-        AND julianday(submitted_at) - julianday(started_at) <= 7
+      FROM completion_tokens ct
+      JOIN evaluations e ON e.id = ct.evaluation_id
+      WHERE ct.user_id = ?
+        AND julianday(e.submitted_at) - julianday(e.started_at) <= 7
     `).get(studentId).count;
 
     if (fastResponses >= 5) {
@@ -231,10 +245,10 @@ exports.getAchievements = (req, res, next) => {
     // Badge 4: Detailed Feedback (provided text responses)
     const textResponses = db.prepare(`
       SELECT COUNT(*) as count
-      FROM responses r
-      INNER JOIN evaluations e ON e.id = r.evaluation_id
+      FROM completion_tokens ct
+      JOIN responses r ON r.evaluation_id = ct.evaluation_id
       INNER JOIN questions q ON q.id = r.question_id
-      WHERE e.student_id = ?
+      WHERE ct.user_id = ?
         AND q.type = 'text'
         AND LENGTH(r.response_text) > 50
     `).get(studentId).count;
@@ -269,13 +283,14 @@ exports.getAchievements = (req, res, next) => {
       }
     };
 
-    // Streak = numărul de semestre distincte cu submission
+    // Streak = numărul de semestre distincte cu submission (din completion_tokens)
     const streak = db
       .prepare(
         `SELECT COUNT(DISTINCT c.academic_year || '-' || c.semester) AS n
-         FROM evaluations e
+         FROM completion_tokens ct
+         JOIN evaluations e ON e.id = ct.evaluation_id
          JOIN courses c ON c.id = e.course_id
-         WHERE e.student_id = ? AND e.status = 'submitted'`,
+         WHERE ct.user_id = ?`,
       )
       .get(studentId).n;
 
@@ -301,36 +316,45 @@ exports.getEvaluationHistory = (req, res, next) => {
     const db = getDatabase();
     const studentId = req.user.id;
 
+    // ANONIMITATE: după submit, evaluations.student_id e NULL. Pentru istoricul
+    // studentului folosim UNION între:
+    //  - draft-uri (legate prin evaluations.student_id)
+    //  - submitted (legate prin completion_tokens.user_id)
     const history = db.prepare(`
       SELECT
-        e.id,
-        e.status,
-        e.started_at,
-        e.submitted_at,
-        e.deadline,
-        p.id as professor_id,
-        p.first_name,
-        p.last_name,
-        p.title,
-        p.type as professor_type,
-        c.id as course_id,
-        c.name as course_name,
-        c.code as course_code,
+        e.id, e.status, e.started_at, e.submitted_at, e.deadline,
+        p.id as professor_id, p.first_name, p.last_name, p.title, p.type as professor_type,
+        c.id as course_id, c.name as course_name, c.code as course_code,
         COUNT(r.id) as responses_count
       FROM evaluations e
       INNER JOIN professors p ON p.id = e.professor_id
       INNER JOIN courses c ON c.id = e.course_id
       LEFT JOIN responses r ON r.evaluation_id = e.id
-      WHERE e.student_id = ?
+      WHERE e.status = 'draft' AND e.student_id = ?
       GROUP BY e.id
-      ORDER BY
-        CASE
-          WHEN e.status = 'draft' THEN 1
-          WHEN e.status = 'submitted' THEN 2
-        END,
-        e.submitted_at DESC,
-        e.started_at DESC
-    `).all(studentId);
+      UNION ALL
+      SELECT
+        e.id, e.status, e.started_at, e.submitted_at, e.deadline,
+        p.id as professor_id, p.first_name, p.last_name, p.title, p.type as professor_type,
+        c.id as course_id, c.name as course_name, c.code as course_code,
+        COUNT(r.id) as responses_count
+      FROM completion_tokens ct
+      INNER JOIN evaluations e ON e.id = ct.evaluation_id
+      INNER JOIN professors p ON p.id = e.professor_id
+      INNER JOIN courses c ON c.id = e.course_id
+      LEFT JOIN responses r ON r.evaluation_id = e.id
+      WHERE ct.user_id = ?
+      GROUP BY e.id
+    `).all(studentId, studentId);
+    // Ordering done in JS pentru a evita ambiguități între cele 2 ramuri UNION
+    history.sort((a, b) => {
+      const aPri = a.status === 'draft' ? 1 : 2;
+      const bPri = b.status === 'draft' ? 1 : 2;
+      if (aPri !== bPri) return aPri - bPri;
+      const aT = a.submitted_at || a.started_at || '';
+      const bT = b.submitted_at || b.started_at || '';
+      return bT.localeCompare(aT);
+    });
 
     res.json({
       history: history.map(item => ({
@@ -440,7 +464,7 @@ exports.getNotifications = (req, res, next) => {
       });
     });
 
-    // Congratulations for completed evaluations (recent)
+    // Congratulations for completed evaluations (recent) — via completion_tokens
     const recentSubmissions = db.prepare(`
       SELECT
         e.id,
@@ -448,11 +472,11 @@ exports.getNotifications = (req, res, next) => {
         p.first_name,
         p.last_name,
         c.name as course_name
-      FROM evaluations e
+      FROM completion_tokens ct
+      INNER JOIN evaluations e ON e.id = ct.evaluation_id
       INNER JOIN professors p ON p.id = e.professor_id
       INNER JOIN courses c ON c.id = e.course_id
-      WHERE e.student_id = ?
-        AND e.status = 'submitted'
+      WHERE ct.user_id = ?
         AND julianday('now') - julianday(e.submitted_at) <= 1
       ORDER BY e.submitted_at DESC
       LIMIT 2

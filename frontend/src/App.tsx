@@ -21,6 +21,7 @@ const AdminClosingLoop = lazy(() => import('./pages/AdminClosingLoop'));
 const AdminGuides = lazy(() => import('./pages/AdminGuides'));
 const AdminAchievements = lazy(() => import('./pages/AdminAchievements'));
 const AdminActionTemplates = lazy(() => import('./pages/AdminActionTemplates'));
+const AdminKPIs = lazy(() => import('./pages/AdminKPIs'));
 const AdminPlatformFeedback = lazy(() => import('./pages/AdminPlatformFeedback'));
 const PlatformFeedback = lazy(() => import('./pages/PlatformFeedback'));
 const EvaluationLifecycle = lazy(() => import('./pages/EvaluationLifecycle'));
@@ -360,6 +361,16 @@ function AppRoutes() {
           <ProtectedRoute requireAdmin>
             <Layout>
               <AdminActionTemplates />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/kpis"
+        element={
+          <ProtectedRoute requireAdmin>
+            <Layout>
+              <AdminKPIs />
             </Layout>
           </ProtectedRoute>
         }

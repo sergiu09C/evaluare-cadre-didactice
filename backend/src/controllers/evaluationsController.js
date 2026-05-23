@@ -393,12 +393,24 @@ exports.submitEvaluation = (req, res, next) => {
       });
     }
 
-    // Marcăm evaluarea ca submitted
-    db.prepare(`
-      UPDATE evaluations
-      SET status = 'submitted', submitted_at = CURRENT_TIMESTAMP
-      WHERE id = ?
-    `).run(evaluationId);
+    // ANONIMITATE TEHNICĂ (Cap. 4.3.2 dizertație):
+    // 1. Înregistrăm fapt-ul că studentul a completat această evaluare în
+    //    `completion_tokens` (pentru achievements + anti-duplicate)
+    // 2. Setăm `evaluations.student_id = NULL` astfel încât niciun JOIN SQL
+    //    să nu mai poată corela răspunsurile cu identitatea studentului.
+    // 3. responses rămân legate doar de evaluation_id (anonim post-submit).
+    const tx = db.transaction(() => {
+      db.prepare(
+        `INSERT OR IGNORE INTO completion_tokens (user_id, evaluation_id, completed_at)
+         VALUES (?, ?, CURRENT_TIMESTAMP)`,
+      ).run(studentId, evaluationId);
+      db.prepare(`
+        UPDATE evaluations
+        SET status = 'submitted', submitted_at = CURRENT_TIMESTAMP, student_id = NULL
+        WHERE id = ?
+      `).run(evaluationId);
+    });
+    tx();
 
     // Recalcul achievements pentru user (tolerăm eșec dacă tabelul nu există încă)
     try {

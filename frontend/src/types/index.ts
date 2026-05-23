@@ -310,6 +310,11 @@ export interface ClosingLoopEntry {
   related_dimension?: string | null;
   sort_order: number;
   updated_at: string;
+  // Format YS/WD (You Said / We Did) — Cap. 1.4.4 dizertație
+  student_said?: string | null;
+  we_did?: string | null;
+  triggered_by_semester?: string | null;
+  impact_metric?: string | null;
 }
 
 export interface ClosingLoopEntryAdmin extends ClosingLoopEntry {

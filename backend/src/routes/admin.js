@@ -42,6 +42,9 @@ router.get('/stats/by-course-type', adminController.getCourseTypeStats);
 // Export ARACIS — CSV agregat (facultate × program × an de studiu)
 router.get('/export/aracis', adminController.exportAracis);
 
+// KPI dashboard cu 15 indicatori structurați P1-P5, O1-O5, I1-I5 (Cap. 3.4 dizertație)
+router.get('/kpis', adminController.getKPIs);
+
 // === USERS CRUD ===
 const adminUsersController = require('../controllers/adminUsersController');
 router.get('/users', adminUsersController.list);

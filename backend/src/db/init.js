@@ -49,6 +49,10 @@ function initializeDatabase() {
       '014-platform-feedback-messages.sql',
       '015-platform-feedback-submissions.sql',
       '016-password-reset.sql',
+      '017-anonymity-separation.sql',
+      '018-19-items-questionnaire.sql',
+      '019-reminders-log-cols.sql',
+      '020-closing-loop-yswd.sql',
     ];
     for (const file of migrationFiles) {
       const p = path.join(migrationsDir, file);

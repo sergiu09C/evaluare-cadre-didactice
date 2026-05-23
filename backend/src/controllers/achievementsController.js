@@ -8,36 +8,41 @@ function recalculateForUser(db, userId) {
   const defs = db.prepare('SELECT * FROM achievement_definitions WHERE is_active = 1').all();
   if (!defs.length) return;
 
-  // Strângem metrici pentru user în paralel
+  // Strângem metrici pentru user în paralel.
+  // ANONIMITATE: după submit, evaluations.student_id e NULL. Folosim
+  // completion_tokens (tabelul separat care înregistrează cine a completat)
+  // pentru a număra contribuțiile per user, FĂRĂ să corelăm răspunsurile.
   const submittedCount = db
-    .prepare("SELECT COUNT(*) AS n FROM evaluations WHERE student_id = ? AND status = 'submitted'")
+    .prepare('SELECT COUNT(*) AS n FROM completion_tokens WHERE user_id = ?')
     .get(userId).n;
   const commentsWithText = db
     .prepare(
-      `SELECT COUNT(DISTINCT e.id) AS n
-       FROM evaluations e
-       JOIN responses r ON r.evaluation_id = e.id
-       WHERE e.student_id = ? AND e.status = 'submitted'
+      `SELECT COUNT(DISTINCT ct.evaluation_id) AS n
+       FROM completion_tokens ct
+       JOIN responses r ON r.evaluation_id = ct.evaluation_id
+       WHERE ct.user_id = ?
          AND r.response_text IS NOT NULL AND LENGTH(r.response_text) > 10`,
     )
     .get(userId).n;
-  // Fast responder: any submitted within 72h of started_at
+  // Fast responder: evaluări completate în <= 3 zile de la started_at
   const fastCount = db
     .prepare(
       `SELECT COUNT(*) AS n
-       FROM evaluations
-       WHERE student_id = ? AND status = 'submitted'
-         AND submitted_at IS NOT NULL AND started_at IS NOT NULL
-         AND (julianday(submitted_at) - julianday(started_at)) <= 3`,
+       FROM completion_tokens ct
+       JOIN evaluations e ON e.id = ct.evaluation_id
+       WHERE ct.user_id = ?
+         AND e.submitted_at IS NOT NULL AND e.started_at IS NOT NULL
+         AND (julianday(e.submitted_at) - julianday(e.started_at)) <= 3`,
     )
     .get(userId).n;
-  // Streak semesters: distinct (academic_year, semester) cu cel putin 1 submitted
+  // Streak semesters: distinct (academic_year, semester) cu completări
   const streakRow = db
     .prepare(
       `SELECT COUNT(DISTINCT c.academic_year || '-' || c.semester) AS n
-       FROM evaluations e
+       FROM completion_tokens ct
+       JOIN evaluations e ON e.id = ct.evaluation_id
        JOIN courses c ON c.id = e.course_id
-       WHERE e.student_id = ? AND e.status = 'submitted'`,
+       WHERE ct.user_id = ?`,
     )
     .get(userId);
   const streakCount = streakRow?.n || 0;

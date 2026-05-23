@@ -988,6 +988,15 @@ class ApiService {
     const response = await this.api.get('/admin/export/aracis', { responseType: 'blob' });
     return response.data;
   }
+
+  async getAdminKPIs(): Promise<{
+    process: Record<string, any>;
+    output: Record<string, any>;
+    impact: Record<string, any>;
+  }> {
+    const r = await this.api.get('/admin/kpis');
+    return r.data;
+  }
 }
 
 export const api = new ApiService();

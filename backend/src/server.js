@@ -119,6 +119,12 @@ if (serveFrontend && fs.existsSync(FRONTEND_DIST)) {
 app.use(notFoundHandler);
 app.use(errorHandler);
 
+// Start reminder scheduler (Cap. 3.3 dizertație, CF-06).
+// În dev rulează o dată la 5 minute pentru testabilitate; în prod la fiecare oră.
+const { startReminderScheduler } = require('./services/reminderScheduler');
+const reminderInterval = process.env.NODE_ENV === 'production' ? 60 * 60 * 1000 : 5 * 60 * 1000;
+startReminderScheduler({ intervalMs: reminderInterval });
+
 // Start server
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
