@@ -973,11 +973,14 @@ exports.getHomeStats = (req, res, next) => {
     // Personal: pentru profesor, studenții care l-au evaluat vs cei care puteau
     let participationMe = null;
     if (role === 'professor' && myProfessorId) {
+      // FIX: e.student_id e NULL după anonimizare (migrarea 017).
+      // Folosesc completion_tokens.user_id (păstrat pentru tracking).
       const meWho = db
         .prepare(
-          `SELECT COUNT(DISTINCT e.student_id) AS n
-           FROM evaluations e
-           WHERE e.status='submitted' AND e.professor_id = ?`,
+          `SELECT COUNT(DISTINCT ct.user_id) AS n
+           FROM completion_tokens ct
+           JOIN evaluations e ON e.id = ct.evaluation_id
+           WHERE ct.completed_at IS NOT NULL AND e.professor_id = ?`,
         )
         .get(myProfessorId).n;
       const meEligible = db

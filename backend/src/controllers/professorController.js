@@ -31,10 +31,12 @@ exports.getDashboard = (req, res, next) => {
       : null;
 
     // Număr studenți unici care au evaluat
+    // FIX: e.student_id e NULL după anonimizare → folosesc completion_tokens.user_id
     const uniqueStudentsResult = db.prepare(`
-      SELECT COUNT(DISTINCT student_id) as count
-      FROM evaluations
-      WHERE professor_id = ? AND status = 'submitted'
+      SELECT COUNT(DISTINCT ct.user_id) as count
+      FROM completion_tokens ct
+      JOIN evaluations e ON e.id = ct.evaluation_id
+      WHERE e.professor_id = ? AND ct.completed_at IS NOT NULL
     `).get(professorId);
 
     const uniqueStudents = uniqueStudentsResult.count;
@@ -538,16 +540,18 @@ exports.getStudentsList = (req, res, next) => {
              u.last_name,
              u.program_id,
              u.year,
-             CASE WHEN e.id IS NOT NULL THEN 1 ELSE 0 END AS has_evaluated
+             CASE WHEN ct.user_id IS NOT NULL THEN 1 ELSE 0 END AS has_evaluated
            FROM users u
            INNER JOIN groups g ON g.id = u.group_id
            INNER JOIN series s ON s.id = g.series_id
            INNER JOIN study_years sy ON sy.id = s.study_year_id
-           LEFT JOIN evaluations e
-             ON e.student_id = u.id
-             AND e.course_id = ?
-             AND e.professor_id = ?
-             AND e.status = 'submitted'
+           LEFT JOIN completion_tokens ct
+             ON ct.user_id = u.id
+             AND ct.completed_at IS NOT NULL
+             AND ct.evaluation_id IN (
+               SELECT e.id FROM evaluations e
+               WHERE e.course_id = ? AND e.professor_id = ?
+             )
            WHERE u.role = 'student'
              AND sy.id = (SELECT study_year_id FROM courses WHERE id = ?)
            ORDER BY u.last_name, u.first_name`,
@@ -581,12 +585,16 @@ exports.getStudentsList = (req, res, next) => {
     for (const c of courses) {
       const ids = db
         .prepare(
-          `SELECT u.id, CASE WHEN e.id IS NOT NULL THEN 1 ELSE 0 END AS has_eval
+          `SELECT u.id, CASE WHEN ct.user_id IS NOT NULL THEN 1 ELSE 0 END AS has_eval
            FROM users u
            INNER JOIN groups g ON g.id = u.group_id
            INNER JOIN series s ON s.id = g.series_id
            INNER JOIN study_years sy ON sy.id = s.study_year_id
-           LEFT JOIN evaluations e ON e.student_id = u.id AND e.course_id = ? AND e.professor_id = ? AND e.status = 'submitted'
+           LEFT JOIN completion_tokens ct ON ct.user_id = u.id
+             AND ct.completed_at IS NOT NULL
+             AND ct.evaluation_id IN (
+               SELECT e.id FROM evaluations e WHERE e.course_id = ? AND e.professor_id = ?
+             )
            WHERE u.role = 'student'
              AND sy.id = (SELECT study_year_id FROM courses WHERE id = ?)`,
         )
