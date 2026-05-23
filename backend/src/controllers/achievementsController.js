@@ -12,15 +12,18 @@ function recalculateForUser(db, userId) {
   // ANONIMITATE: după submit, evaluations.student_id e NULL. Folosim
   // completion_tokens (tabelul separat care înregistrează cine a completat)
   // pentru a număra contribuțiile per user, FĂRĂ să corelăm răspunsurile.
+  // BUG FIX: filtrez completed_at IS NOT NULL — tokens cu completed_at=NULL
+  // sunt drafturi în desfășurare, NU evaluări trimise. Înainte achievement-urile
+  // se acordau și pentru drafturi → contraintuitiv (ex. Explorator la 8/10).
   const submittedCount = db
-    .prepare('SELECT COUNT(*) AS n FROM completion_tokens WHERE user_id = ?')
+    .prepare('SELECT COUNT(*) AS n FROM completion_tokens WHERE user_id = ? AND completed_at IS NOT NULL')
     .get(userId).n;
   const commentsWithText = db
     .prepare(
       `SELECT COUNT(DISTINCT ct.evaluation_id) AS n
        FROM completion_tokens ct
        JOIN responses r ON r.evaluation_id = ct.evaluation_id
-       WHERE ct.user_id = ?
+       WHERE ct.user_id = ? AND ct.completed_at IS NOT NULL
          AND r.response_text IS NOT NULL AND LENGTH(r.response_text) > 10`,
     )
     .get(userId).n;
@@ -30,7 +33,7 @@ function recalculateForUser(db, userId) {
       `SELECT COUNT(*) AS n
        FROM completion_tokens ct
        JOIN evaluations e ON e.id = ct.evaluation_id
-       WHERE ct.user_id = ?
+       WHERE ct.user_id = ? AND ct.completed_at IS NOT NULL
          AND e.submitted_at IS NOT NULL AND e.started_at IS NOT NULL
          AND (julianday(e.submitted_at) - julianday(e.started_at)) <= 3`,
     )
@@ -42,7 +45,7 @@ function recalculateForUser(db, userId) {
        FROM completion_tokens ct
        JOIN evaluations e ON e.id = ct.evaluation_id
        JOIN courses c ON c.id = e.course_id
-       WHERE ct.user_id = ?`,
+       WHERE ct.user_id = ? AND ct.completed_at IS NOT NULL`,
     )
     .get(userId);
   const streakCount = streakRow?.n || 0;
@@ -81,6 +84,16 @@ function recalculateForUser(db, userId) {
     }
   }
 }
+
+// POST /api/achievements/recalc-all (admin) — re-evaluează toți userii
+exports.recalcAll = (req, res, next) => {
+  try {
+    const db = getDatabase();
+    const users = db.prepare("SELECT id FROM users WHERE role='student' AND is_active=1").all();
+    for (const u of users) recalculateForUser(db, u.id);
+    res.json({ ok: true, recalculated: users.length });
+  } catch (e) { next(e); }
+};
 
 // GET /api/achievements/definitions (admin)
 exports.listDefinitions = (req, res, next) => {

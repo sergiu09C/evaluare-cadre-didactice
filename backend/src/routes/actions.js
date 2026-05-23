@@ -12,6 +12,7 @@ router.delete('/templates/:id', authenticateToken, requireAdmin, ctrl.deleteTemp
 router.post('/propose', authenticateToken, requireAdmin, ctrl.proposeAction);
 router.get('/admin/list', authenticateToken, requireAdmin, ctrl.adminListActions);
 router.get('/admin/summary', authenticateToken, requireAdmin, ctrl.aggregatedSummary);
+router.get('/admin/by-dimension', authenticateToken, requireAdmin, ctrl.actionsByDimension);
 
 // Professor: vizualizare + accept/reject/complete
 router.get('/my', authenticateToken, ctrl.professorListActions);

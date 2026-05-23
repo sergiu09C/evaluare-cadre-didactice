@@ -11,5 +11,6 @@ router.get('/definitions', authenticateToken, requireAdmin, ctrl.listDefinitions
 router.post('/definitions', authenticateToken, requireAdmin, ctrl.createDefinition);
 router.put('/definitions/:id', authenticateToken, requireAdmin, ctrl.updateDefinition);
 router.delete('/definitions/:id', authenticateToken, requireAdmin, ctrl.removeDefinition);
+router.post('/recalc-all', authenticateToken, requireAdmin, ctrl.recalcAll);
 
 module.exports = router;

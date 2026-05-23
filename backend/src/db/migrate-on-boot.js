@@ -31,6 +31,7 @@ const INCREMENTAL_MIGRATIONS = [
   '028-regenerate-responses-on-active-questions.sql',
   '029-doctorate-students.sql',
   '030-kpi-historical-snapshots.sql',
+  '031-actions-related-dimension.sql',
 ];
 
 function isBenign(errMsg) {

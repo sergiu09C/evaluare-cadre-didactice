@@ -31,12 +31,15 @@ exports.deleteTemplate = (req, res, next) => {
 // ========== ADMIN: propunere acțiune pentru un profesor ==========
 exports.proposeAction = (req, res, next) => {
   try {
-    const { professor_id, template_id, title, description, category } = req.body || {};
+    const { professor_id, template_id, title, description, category, related_dimension } = req.body || {};
     if (!professor_id || !title) return res.status(400).json({ error: 'professor_id și title obligatorii' });
+    // Validare dimensiune (opțională): D1..D5, CONTEXT, GLOBAL sau NULL
+    const validDims = ['D1','D2','D3','D4','D5','CONTEXT','GLOBAL'];
+    const dim = related_dimension && validDims.includes(related_dimension) ? related_dimension : null;
     const result = getDatabase()
       .prepare(
-        `INSERT INTO professor_actions (professor_id, template_id, title, description, category, status, proposed_by_user_id)
-         VALUES (?, ?, ?, ?, ?, 'proposed', ?)`,
+        `INSERT INTO professor_actions (professor_id, template_id, title, description, category, related_dimension, status, proposed_by_user_id)
+         VALUES (?, ?, ?, ?, ?, ?, 'proposed', ?)`,
       )
       .run(
         Number(professor_id),
@@ -44,9 +47,47 @@ exports.proposeAction = (req, res, next) => {
         title,
         description || null,
         category || null,
+        dim,
         req.user.id,
       );
     res.status(201).json({ id: result.lastInsertRowid });
+  } catch (e) { next(e); }
+};
+
+// ========== ADMIN: sumar acțiuni per dimensiune D1-D5 ==========
+// Leagă vizibil închiderea buclei (acțiuni) de scorurile per dimensiune (D1-D5).
+exports.actionsByDimension = (req, res, next) => {
+  try {
+    const db = getDatabase();
+    // Distribuție status per dimensiune
+    const breakdown = db.prepare(
+      `SELECT
+         COALESCE(related_dimension, '—') AS dimension,
+         SUM(CASE WHEN status='proposed'  THEN 1 ELSE 0 END) AS proposed,
+         SUM(CASE WHEN status='accepted'  THEN 1 ELSE 0 END) AS accepted,
+         SUM(CASE WHEN status='completed' THEN 1 ELSE 0 END) AS completed,
+         SUM(CASE WHEN status='rejected'  THEN 1 ELSE 0 END) AS rejected,
+         COUNT(*) AS total
+       FROM professor_actions
+       GROUP BY dimension
+       ORDER BY dimension`
+    ).all();
+    // Asociez fiecare dimensiune cu scorul mediu curent (din responses)
+    const dimAvg = db.prepare(
+      `SELECT q.dimension AS dim, ROUND(AVG(r.response_likert), 2) AS avg_score
+       FROM responses r JOIN questions q ON q.id = r.question_id
+       WHERE r.response_likert IS NOT NULL AND q.dimension IN ('D1','D2','D3','D4','D5')
+       GROUP BY q.dimension`
+    ).all();
+    const scoreMap = Object.fromEntries(dimAvg.map(r => [r.dim, r.avg_score]));
+    const labels = { D1:'Predare', D2:'Comunicare', D3:'Resurse', D4:'Feedback', D5:'Disponibilitate', CONTEXT:'Context', GLOBAL:'Global' };
+    res.json({
+      breakdown: breakdown.map(r => ({
+        ...r,
+        label: labels[r.dimension] || r.dimension,
+        current_score: scoreMap[r.dimension] ?? null,
+      })),
+    });
   } catch (e) { next(e); }
 };
 
