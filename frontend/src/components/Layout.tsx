@@ -147,9 +147,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       {/* ── Sidebar ─────────────────────────────────────────── */}
       <nav
         aria-label="Navigare principală"
-        className={`w-[248px] shrink-0 bg-white border-r border-neutral-100 flex flex-col gap-1 px-3.5 py-5 sticky top-0 h-screen z-40 transition-transform duration-200 md:translate-x-0 ${
+        className={`w-[248px] shrink-0 bg-white border-r border-neutral-100 flex flex-col gap-1 px-3.5 py-5 h-screen z-40 transition-transform duration-200 fixed md:sticky inset-y-0 left-0 top-0 md:translate-x-0 ${
           mobileNavOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
-        } fixed md:sticky inset-y-0 left-0`}
+        }`}
       >
         {/* Brand */}
         <button
