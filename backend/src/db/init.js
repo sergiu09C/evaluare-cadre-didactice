@@ -54,6 +54,7 @@ function initializeDatabase() {
       '019-reminders-log-cols.sql',
       '020-closing-loop-yswd.sql',
       '021-cleanup-old-questions.sql',
+      '022-audit-log.sql',
     ];
     for (const file of migrationFiles) {
       const p = path.join(migrationsDir, file);
@@ -243,11 +244,11 @@ function seedDatabase(db) {
     `);
 
     const courses = [
-      { name: 'Algoritmi și Structuri de Date', code: 'ASD', professor_id: 1, study_year_id: 1, semester: '1', academic_year: '2023-2024' },
-      { name: 'Baze de Date', code: 'BD', professor_id: 2, study_year_id: 2, semester: '1', academic_year: '2023-2024' },
-      { name: 'Programare Orientată Obiect', code: 'POO', professor_id: 3, study_year_id: 2, semester: '2', academic_year: '2023-2024' },
-      { name: 'Inteligență Artificială', code: 'IA', professor_id: 4, study_year_id: 3, semester: '1', academic_year: '2023-2024' },
-      { name: 'Rețele de Calculatoare', code: 'RC', professor_id: 5, study_year_id: 3, semester: '2', academic_year: '2023-2024' },
+      { name: 'Algoritmi și Structuri de Date', code: 'ASD', professor_id: 1, study_year_id: 1, semester: '1', academic_year: '2025-2026' },
+      { name: 'Baze de Date', code: 'BD', professor_id: 2, study_year_id: 2, semester: '1', academic_year: '2025-2026' },
+      { name: 'Programare Orientată Obiect', code: 'POO', professor_id: 3, study_year_id: 2, semester: '2', academic_year: '2025-2026' },
+      { name: 'Inteligență Artificială', code: 'IA', professor_id: 4, study_year_id: 3, semester: '1', academic_year: '2025-2026' },
+      { name: 'Rețele de Calculatoare', code: 'RC', professor_id: 5, study_year_id: 3, semester: '2', academic_year: '2025-2026' },
     ];
 
     courses.forEach(c => {
@@ -338,9 +339,9 @@ function seedDatabase(db) {
     const endDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
     periodInsert.run(
-      'Evaluare Semestrul I - 2023/2024',
-      '2023-2024',
-      '1',
+      'Evaluare Semestrul II - 2025/2026',
+      '2025-2026',
+      '2',
       startDate.toISOString(),
       endDate.toISOString(),
       1

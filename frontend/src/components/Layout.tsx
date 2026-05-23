@@ -106,6 +106,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     { label: 'Șabloane acțiuni', path: '/admin/action-templates', icon: ClipboardDocumentListIcon },
     { label: 'Feedback platformă', path: '/admin/platform-feedback', icon: ChartBarIcon },
     { label: 'KPI instituționali', path: '/admin/kpis', icon: ChartBarIcon },
+    { label: 'Audit log', path: '/admin/audit-log', icon: FlagIcon },
     { label: 'Rapoarte', path: '/admin/reports', icon: DocumentChartBarIcon },
     { label: 'Utilizatori', path: '/admin/users', icon: UsersIcon },
     { label: 'Ghid pentru admin', path: '/guide/admin', icon: TrophyIcon },

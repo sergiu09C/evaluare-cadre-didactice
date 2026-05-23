@@ -45,6 +45,12 @@ router.get('/export/aracis', adminController.exportAracis);
 // KPI dashboard cu 15 indicatori structurați P1-P5, O1-O5, I1-I5 (Cap. 3.4 dizertație)
 router.get('/kpis', adminController.getKPIs);
 
+// Audit log — CF-14 dizertație
+router.get('/audit-log', adminController.listAuditLog);
+
+// Validare psihometrică — Cronbach α pe D1-D5 + global (Cap. 3.6.1)
+router.get('/psychometry', adminController.getPsychometry);
+
 // === USERS CRUD ===
 const adminUsersController = require('../controllers/adminUsersController');
 router.get('/users', adminUsersController.list);

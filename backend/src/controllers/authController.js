@@ -173,6 +173,11 @@ exports.forgotPassword = (req, res, next) => {
       const resetUrl = `${req.protocol}://${req.get('host').replace(':5001', ':3000')}/reset-password?token=${token}`;
       console.log(`[reset-password] token pentru ${user.email}: ${token}`);
       console.log(`[reset-password] URL: ${resetUrl}`);
+      // Trimite emailul real dacă SMTP e configurat; altfel rămâne logat în consolă.
+      try {
+        const emailService = require('../services/emailService');
+        emailService.sendPasswordReset(user.email, resetUrl).catch(() => {});
+      } catch (_) { /* opțional */ }
     }
     // Răspuns generic — nu spunem dacă emailul există sau nu
     res.json({

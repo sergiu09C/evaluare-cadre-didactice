@@ -1,5 +1,6 @@
 const bcrypt = require('bcryptjs');
 const { getDatabase } = require('../config/database');
+const { auditLog } = require('../middleware/auditLog');
 
 exports.list = (req, res, next) => {
   try {
@@ -133,6 +134,7 @@ exports.create = async (req, res, next) => {
       applyProfessorAssignments(db, resolvedProfessorId, assignments);
     }
 
+    auditLog(req, 'user.create', 'user', result.lastInsertRowid, { email, role });
     res.status(201).json({ id: result.lastInsertRowid, professor_id: resolvedProfessorId });
   } catch (e) {
     next(e);
@@ -296,6 +298,7 @@ exports.deactivate = (req, res, next) => {
     const db = getDatabase();
     const id = Number(req.params.id);
     db.prepare('UPDATE users SET is_active = 0 WHERE id = ?').run(id);
+    auditLog(req, 'user.deactivate', 'user', id);
     res.json({ ok: true });
   } catch (e) {
     next(e);

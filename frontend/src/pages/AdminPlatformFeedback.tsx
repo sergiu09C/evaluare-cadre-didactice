@@ -31,6 +31,16 @@ const emptyForm = {
 
 const COLORS = ['#EF4444', '#F59E0B', '#8A92A3', '#10B981', '#0E2233'];
 
+// Categorii standardizate pentru chestionarul de feedback al platformei,
+// conform migration 011-platform-feedback.sql. Folosite la agregarea în rapoarte.
+const PF_CATEGORY_OPTIONS: { value: string; label: string }[] = [
+  { value: 'usability',   label: 'Usability — ușurința de utilizare' },
+  { value: 'content',     label: 'Content — relevanța conținutului' },
+  { value: 'design',      label: 'Design — aspect și ergonomie' },
+  { value: 'suggestions', label: 'Suggestions — sugestii de îmbunătățire' },
+  { value: 'praise',      label: 'Praise — feedback pozitiv' },
+];
+
 const MESSAGE_STATUS_META: Record<string, { label: string; tone: 'warning' | 'info' | 'success' | 'neutral' }> = {
   open: { label: 'Deschis', tone: 'warning' },
   in_progress: { label: 'În analiză', tone: 'info' },
@@ -468,7 +478,19 @@ export default function AdminPlatformFeedback() {
               <option value="text">Text liber</option>
               <option value="choice">Multi-choice</option>
             </Select>
-            <Input label="Categorie" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} hint="ex: usability, design, content" />
+            <Select
+              label="Categorie"
+              value={form.category}
+              onChange={(e) => setForm({ ...form, category: e.target.value })}
+              hint="Categorie standardizată — agregă răspunsurile în rapoarte."
+            >
+              <option value="">Selectează o categorie...</option>
+              {PF_CATEGORY_OPTIONS.map((c) => (
+                <option key={c.value} value={c.value}>
+                  {c.label}
+                </option>
+              ))}
+            </Select>
           </div>
           {form.type === 'choice' && (
             <Input

@@ -57,7 +57,7 @@ try {
     // (altfel MAX(academic_year) filtrează celelalte cursuri din endpoint-uri).
     const academicYear = db
       .prepare('SELECT academic_year FROM courses GROUP BY academic_year ORDER BY COUNT(*) DESC LIMIT 1')
-      .get()?.academic_year || '2023-2024';
+      .get()?.academic_year || '2025-2026';
     const result = insertCourse.run(
       a.name,
       code,

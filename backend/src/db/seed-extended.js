@@ -255,7 +255,7 @@ function seedExtendedData(db) {
         const professorIndex = (sy.id * 8 + i) % facultyProfessorsFromDB.length;
         const professorId = facultyProfessorsFromDB[professorIndex].id;
 
-        coursesInsert.run(courseName, code, professorId, sy.id, semester, '2023-2024', courseType);
+        coursesInsert.run(courseName, code, professorId, sy.id, semester, '2025-2026', courseType);
         courseId++;
       }
     });
@@ -337,7 +337,7 @@ function seedExtendedData(db) {
     const startDate = new Date();
     const endDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
-    periodInsert.run('Evaluare Semestrul I - 2023/2024', '2023-2024', '1', startDate.toISOString(), endDate.toISOString(), 1);
+    periodInsert.run('Evaluare Semestrul II - 2025/2026', '2025-2026', '2', startDate.toISOString(), endDate.toISOString(), 1);
     console.log('  ✓ Perioadă de evaluare activă creată');
 
     // 12. SETĂRI PLATFORMĂ - Insert default settings

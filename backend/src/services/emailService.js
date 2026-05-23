@@ -262,6 +262,45 @@ class EmailService {
     console.log(`📧 Reminder emails sent: ${sentCount} successful, ${failedCount} failed`);
     return { sent: sentCount, failed: failedCount };
   }
+
+  /**
+   * Trimite link-ul de resetare parolă către user.
+   * Fallback la log în consolă dacă SMTP nu e configurat.
+   */
+  async sendPasswordReset(toEmail, resetUrl) {
+    await this.initialize();
+    if (!this.enabled || !this.transporter) {
+      console.log(`[email/fallback] Reset password pentru ${toEmail}: ${resetUrl}`);
+      return { ok: false, reason: 'smtp_not_configured' };
+    }
+    try {
+      await this.transporter.sendMail({
+        from: this.fromAddress,
+        to: toEmail,
+        subject: 'Resetare parolă — Platforma ECD',
+        html: `
+          <div style="font-family: -apple-system, sans-serif; max-width: 600px; margin: auto;">
+            <h2 style="color: #0E2233;">Resetare parolă</h2>
+            <p>Ai solicitat resetarea parolei pentru contul tău pe platforma ECD.</p>
+            <p>Apasă pe link-ul de mai jos pentru a-ți seta o parolă nouă (valabil 1 oră):</p>
+            <p style="text-align: center; margin: 30px 0;">
+              <a href="${resetUrl}" style="display: inline-block; padding: 12px 30px; background: #7C3AED; color: white; text-decoration: none; border-radius: 6px; font-weight: 600;">
+                Resetează parola
+              </a>
+            </p>
+            <p style="color: #6b7280; font-size: 12px;">
+              Dacă nu ai cerut tu această resetare, ignoră acest email.
+              Link-ul: <span style="word-break: break-all;">${resetUrl}</span>
+            </p>
+          </div>
+        `,
+      });
+      return { ok: true };
+    } catch (e) {
+      console.error('[email] sendPasswordReset failed:', e.message);
+      return { ok: false, reason: e.message };
+    }
+  }
 }
 
 // Export singleton instance

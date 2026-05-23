@@ -137,11 +137,21 @@ exports.adminListQuestions = (req, res, next) => {
   } catch (e) { next(e); }
 };
 
+// Categorii standardizate pentru chestionarul de feedback al platformei
+// (sursa: migration 011-platform-feedback.sql).
+const PF_CATEGORY_ENUM = ['usability', 'content', 'design', 'suggestions', 'praise'];
+exports.PF_CATEGORY_ENUM = PF_CATEGORY_ENUM;
+
 exports.adminCreateQuestion = (req, res, next) => {
   try {
     const { text, type, category, options, order_index, is_required, target_roles, is_active } = req.body || {};
     if (!text || !type) return res.status(400).json({ error: 'text și type obligatorii' });
     if (!['likert', 'text', 'choice'].includes(type)) return res.status(400).json({ error: 'type invalid' });
+    if (category && !PF_CATEGORY_ENUM.includes(category)) {
+      return res.status(400).json({
+        error: `Categorie invalidă. Valori permise: ${PF_CATEGORY_ENUM.join(', ')}`,
+      });
+    }
     const result = getDatabase()
       .prepare(
         `INSERT INTO platform_feedback_questions (text, type, category, options_json, order_index, is_required, target_roles, is_active)
@@ -165,6 +175,11 @@ exports.adminUpdateQuestion = (req, res, next) => {
   try {
     const id = Number(req.params.id);
     const { text, type, category, options, order_index, is_required, target_roles, is_active } = req.body || {};
+    if (category && !PF_CATEGORY_ENUM.includes(category)) {
+      return res.status(400).json({
+        error: `Categorie invalidă. Valori permise: ${PF_CATEGORY_ENUM.join(', ')}`,
+      });
+    }
     getDatabase()
       .prepare(
         `UPDATE platform_feedback_questions SET

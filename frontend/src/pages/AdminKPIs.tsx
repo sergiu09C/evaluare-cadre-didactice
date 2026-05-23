@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { api } from '../services/api';
-import { Card, Badge, LoadingState } from '../components/ui';
-import { ChartBarIcon } from '@heroicons/react/24/outline';
+import { Card, Badge, LoadingState, Button } from '../components/ui';
+import { ChartBarIcon, DocumentArrowDownIcon } from '@heroicons/react/24/outline';
+import { generatePrintableReport } from '../utils/pdfExport';
 
 interface KPI {
   value: any;
@@ -82,13 +83,27 @@ function KPICard({ code, kpi }: { code: string; kpi: KPI }) {
 
 export default function AdminKPIs() {
   const [data, setData] = useState<KPIData | null>(null);
+  const [psychometry, setPsychometry] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const reportRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    api
-      .getAdminKPIs()
-      .then(setData)
+    Promise.all([
+      api.getAdminKPIs(),
+      // @ts-ignore — endpoint nou
+      api['api'] ? Promise.resolve(null) : null,
+    ])
+      .then(([d]) => {
+        setData(d);
+        // Cronbach (best-effort; nu blochează KPI)
+        fetch('/api/admin/psychometry', {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+        })
+          .then((r) => r.json())
+          .then(setPsychometry)
+          .catch(() => {});
+      })
       .catch((e) => setError(e.response?.data?.error || 'Eroare la încărcarea KPI'))
       .finally(() => setLoading(false));
   }, []);
@@ -102,17 +117,32 @@ export default function AdminKPIs() {
     );
 
   return (
-    <div className="flex flex-col gap-7 max-w-[1280px]">
-      <div>
-        <h1 className="font-display text-[30px] font-semibold tracking-tight text-neutral-800 flex items-center gap-3">
-          <ChartBarIcon className="w-8 h-8 text-accent-600" aria-hidden="true" />
-          15 KPI instituționali
-        </h1>
-        <p className="mt-1.5 text-neutral-500 text-[15px] max-w-[720px]">
-          Setul complet de indicatori-cheie de performanță conform Tabelul 3.2 al dizertației.
-          Structurat pe trei niveluri: <strong>Process</strong> (P1-P5), <strong>Output</strong> (O1-O5),
-          <strong> Impact</strong> (I1-I5).
-        </p>
+    <div className="flex flex-col gap-7 max-w-[1280px]" ref={reportRef}>
+      <div className="flex items-end justify-between flex-wrap gap-4">
+        <div>
+          <h1 className="font-display text-[30px] font-semibold tracking-tight text-neutral-800 flex items-center gap-3">
+            <ChartBarIcon className="w-8 h-8 text-accent-600" aria-hidden="true" />
+            15 KPI instituționali
+          </h1>
+          <p className="mt-1.5 text-neutral-500 text-[15px] max-w-[720px]">
+            Setul complet de indicatori-cheie de performanță conform Tabelul 3.2 al dizertației.
+            Structurat pe trei niveluri: <strong>Process</strong> (P1-P5), <strong>Output</strong> (O1-O5),
+            <strong> Impact</strong> (I1-I5).
+          </p>
+        </div>
+        <Button
+          variant="secondary"
+          icon={<DocumentArrowDownIcon />}
+          onClick={() =>
+            reportRef.current &&
+            generatePrintableReport(reportRef.current, 'Raport KPI instituționali — ECD', {
+              'Sursa datelor': 'Producție live (Railway)',
+              'Generat la': new Date().toLocaleString('ro-RO'),
+            })
+          }
+        >
+          Export PDF
+        </Button>
       </div>
 
       <section>
@@ -141,6 +171,58 @@ export default function AdminKPIs() {
           ))}
         </div>
       </section>
+
+      {psychometry && (
+        <section>
+          <h2 className="text-lg font-semibold text-neutral-800 mb-1">
+            Validare psihometrică — Cronbach α
+          </h2>
+          <p className="text-xs text-neutral-500 mb-3">
+            Conform Cap. 3.6.1 dizertație: ținta ≥ 0.70 per dimensiune, ≥ 0.85 global.
+            Calcul automat pe răspunsurile cu Likert din baza de date.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {Object.entries(psychometry.perDimension || {}).map(([dim, v]: any) => (
+              <Card key={dim} padding="md" className="flex flex-col gap-1">
+                <div className="flex items-center justify-between">
+                  <Badge tone="accent">{dim}</Badge>
+                  <Badge tone={
+                    v.status === 'ok' ? 'success' :
+                    v.status === 'acceptable' ? 'warning' :
+                    v.status === 'low' ? 'danger' : 'neutral'
+                  }>
+                    {v.alpha != null ? `α = ${v.alpha}` : '—'}
+                  </Badge>
+                </div>
+                <div className="text-xs text-neutral-500">
+                  {v.n_items} itemi · {v.n_responses} răspunsuri complete
+                </div>
+                <div className="text-[11px] text-neutral-400">
+                  Țintă: α ≥ {v.target}
+                </div>
+              </Card>
+            ))}
+            <Card padding="md" className="flex flex-col gap-1 border-2 border-accent-200">
+              <div className="flex items-center justify-between">
+                <Badge tone="primary">GLOBAL (19 itemi)</Badge>
+                <Badge tone={
+                  psychometry.global?.status === 'ok' ? 'success' :
+                  psychometry.global?.status === 'acceptable' ? 'warning' :
+                  psychometry.global?.status === 'low' ? 'danger' : 'neutral'
+                }>
+                  {psychometry.global?.alpha != null ? `α = ${psychometry.global.alpha}` : '—'}
+                </Badge>
+              </div>
+              <div className="text-xs text-neutral-500">
+                {psychometry.global?.n_items} itemi · {psychometry.global?.n_responses} răspunsuri complete
+              </div>
+              <div className="text-[11px] text-neutral-400">
+                Țintă: α ≥ {psychometry.global?.target}
+              </div>
+            </Card>
+          </div>
+        </section>
+      )}
     </div>
   );
 }

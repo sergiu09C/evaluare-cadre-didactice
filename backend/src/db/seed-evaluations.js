@@ -197,21 +197,27 @@ function seed() {
     WHERE study_year_id = ?
   `);
 
-  // Time windows per academic year (approximate)
+  // Time windows: TOATE evaluările pică în mai 2026 (sesiunea curentă).
+  // Anul 2025-2026 acoperă atât sem. I cât și sem. II din ciclul curent.
   const windows = {
-    '2022-2023:1': { start: '2022-12-01', end: '2023-02-15', deadline: '2023-02-15' },
-    '2022-2023:2': { start: '2023-05-01', end: '2023-07-10', deadline: '2023-07-10' },
-    '2023-2024:1': { start: '2023-12-01', end: '2024-02-15', deadline: '2024-02-15' },
-    '2023-2024:2': { start: '2024-05-01', end: '2024-07-10', deadline: '2024-07-10' },
+    '2025-2026:1': { start: '2026-05-04', end: '2026-05-15', deadline: '2026-05-31' },
+    '2025-2026:2': { start: '2026-05-08', end: '2026-05-22', deadline: '2026-05-31' },
+    // Fallback pentru cursurile vechi rămase fără sincronizare (toate redirecționate spre mai 2026):
+    '2022-2023:1': { start: '2026-05-04', end: '2026-05-15', deadline: '2026-05-31' },
+    '2022-2023:2': { start: '2026-05-04', end: '2026-05-15', deadline: '2026-05-31' },
+    '2023-2024:1': { start: '2026-05-04', end: '2026-05-22', deadline: '2026-05-31' },
+    '2023-2024:2': { start: '2026-05-08', end: '2026-05-22', deadline: '2026-05-31' },
   };
-  // Participation rate per academic year
+  // Participation rate per academic year (uniform pentru ciclul curent)
   const participationRate = {
+    '2025-2026': 0.61,
     '2022-2023': 0.42,
-    '2023-2024': 0.61,
+    '2023-2024': 0.55,
   };
-  // Quality drift: previous year is slightly lower (to produce upward trend)
+  // Fără drift: toate datele sunt din același ciclu mai 2026.
   const yearDelta = {
-    '2022-2023': -0.35,
+    '2025-2026': 0,
+    '2022-2023': 0,
     '2023-2024': 0,
   };
 

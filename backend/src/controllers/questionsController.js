@@ -99,7 +99,7 @@ exports.createQuestion = (req, res) => {
 exports.updateQuestion = (req, res) => {
   try {
     const { id } = req.params;
-    const { text, type, category, order_index, is_required } = req.body;
+    const { text, type, category, dimension, order_index, is_required, is_contextual } = req.body;
 
     if (!text || !type || !category) {
       return res.status(400).json({ error: 'Text, tip și categorie sunt obligatorii' });
@@ -109,20 +109,34 @@ exports.updateQuestion = (req, res) => {
       return res.status(400).json({ error: 'Tipul trebuie să fie likert sau text' });
     }
 
+    if (!CATEGORY_ENUM.includes(category)) {
+      return res.status(400).json({
+        error: `Categorie invalidă. Valori permise: ${CATEGORY_ENUM.join(', ')}`,
+      });
+    }
+
+    if (dimension && !DIMENSION_ENUM.includes(dimension)) {
+      return res.status(400).json({
+        error: `Dimensiune invalidă. Valori permise: ${DIMENSION_ENUM.join(', ')}`,
+      });
+    }
+
     const db = getDatabase();
 
     // Preserve existing order_index if not provided (better-sqlite3 doesn't accept undefined)
-    const existing = db.prepare('SELECT order_index FROM questions WHERE id = ?').get(id);
+    const existing = db.prepare('SELECT order_index, dimension, is_contextual FROM questions WHERE id = ?').get(id);
     if (!existing) {
       return res.status(404).json({ error: 'Întrebarea nu a fost găsită' });
     }
     const orderIdx = order_index ?? existing.order_index;
+    const dimVal = dimension !== undefined ? (dimension || null) : existing.dimension;
+    const ctxVal = is_contextual !== undefined ? (is_contextual ? 1 : 0) : existing.is_contextual;
 
     const result = db.prepare(`
       UPDATE questions
-      SET text = ?, type = ?, category = ?, order_index = ?, is_required = ?
+      SET text = ?, type = ?, category = ?, dimension = ?, is_contextual = ?, order_index = ?, is_required = ?
       WHERE id = ?
-    `).run(text, type, category, orderIdx, is_required ? 1 : 0, id);
+    `).run(text, type, category, dimVal, ctxVal, orderIdx, is_required ? 1 : 0, id);
 
     if (result.changes === 0) {
       return res.status(404).json({ error: 'Întrebarea nu a fost găsită' });

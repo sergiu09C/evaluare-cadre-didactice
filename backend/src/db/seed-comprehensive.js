@@ -198,10 +198,11 @@ const insertResp = db.prepare(
    VALUES (?, ?, ?, ?)`,
 );
 
-// Distribuție timpi: împrăștie submitted_at peste 8 luni (2023-12 → 2024-07)
+// Distribuție timpi: împrăștie submitted_at uniform în mai 2026 (sesiunea curentă).
+// Nimic „din trecut" — toate evaluările sunt din ciclul activ.
 function randomSubmittedAt() {
-  const start = new Date('2023-12-01').getTime();
-  const end = new Date('2024-07-31').getTime();
+  const start = new Date('2026-05-01T08:00:00Z').getTime();
+  const end = new Date('2026-05-23T18:00:00Z').getTime();
   return new Date(start + srandom() * (end - start)).toISOString().replace('T', ' ').slice(0, 19);
 }
 
@@ -232,7 +233,7 @@ try {
           c.course_id,
           c.professor_id,
           randomSubmittedAt(),
-          '2024-08-01',
+          '2026-05-31',
         );
         evalId = result.lastInsertRowid;
         totalEvals++;

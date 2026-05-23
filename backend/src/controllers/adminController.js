@@ -1094,3 +1094,170 @@ exports.getKPIs = (req, res, next) => {
     next(error);
   }
 };
+
+/**
+ * GET /api/admin/audit-log — listare audit log pentru CEAC
+ */
+exports.listAuditLog = (req, res, next) => {
+  try {
+    const db = getDatabase();
+    const limit = Math.min(500, parseInt(req.query.limit) || 100);
+    const offset = parseInt(req.query.offset) || 0;
+    const action = req.query.action || null;
+
+    const where = ['1=1'];
+    const params = [];
+    if (action) { where.push('action LIKE ?'); params.push(`%${action}%`); }
+
+    const rows = db.prepare(`
+      SELECT id, user_id, user_role, user_email, action, target_type, target_id,
+             details, ip, created_at
+      FROM audit_log
+      WHERE ${where.join(' AND ')}
+      ORDER BY created_at DESC
+      LIMIT ? OFFSET ?
+    `).all(...params, limit, offset);
+
+    const total = db.prepare(`SELECT COUNT(*) AS n FROM audit_log WHERE ${where.join(' AND ')}`).get(...params).n;
+
+    res.json({
+      entries: rows.map((r) => ({
+        ...r,
+        details: r.details ? JSON.parse(r.details) : null,
+      })),
+      pagination: { total, limit, offset, hasMore: offset + rows.length < total },
+    });
+  } catch (e) { next(e); }
+};
+
+/**
+ * GET /api/admin/psychometry — calculează Cronbach α per dimensiune D1-D5
+ * conform Cap. 3.6.1 din dizertație (țintă α ≥ 0.70 per dimensiune, ≥ 0.85 global).
+ *
+ * Formula: α = (k / (k-1)) * (1 - sum(var_i) / var_total)
+ *   unde k = nr. itemi, var_i = varianța per item, var_total = varianța sumei
+ */
+exports.getPsychometry = (req, res, next) => {
+  try {
+    const db = getDatabase();
+    const dimensions = ['D1', 'D2', 'D3', 'D4', 'D5'];
+    const result = {};
+
+    for (const dim of dimensions) {
+      // Itemii din dimensiunea curentă
+      const items = db.prepare(
+        `SELECT id FROM questions WHERE dimension = ? AND is_active = 1 ORDER BY order_index`,
+      ).all(dim);
+      if (items.length < 2) {
+        result[dim] = { alpha: null, n_items: items.length, n_responses: 0, target: 0.70, status: 'too_few_items' };
+        continue;
+      }
+      const itemIds = items.map((i) => i.id);
+
+      // Construiesc matricea răspunsurilor: rând = evaluation_id, coloană = item răspuns Likert
+      const rows = db.prepare(
+        `SELECT evaluation_id, question_id, response_likert
+         FROM responses
+         WHERE question_id IN (${itemIds.map(() => '?').join(',')})
+           AND response_likert IS NOT NULL`,
+      ).all(...itemIds);
+
+      // Grupez per evaluation; păstrez doar cele cu toate răspunsurile prezente
+      const byEval = {};
+      for (const r of rows) {
+        byEval[r.evaluation_id] ??= {};
+        byEval[r.evaluation_id][r.question_id] = r.response_likert;
+      }
+      const completeEvals = Object.values(byEval).filter(
+        (r) => itemIds.every((id) => r[id] != null),
+      );
+      const n = completeEvals.length;
+
+      if (n < 10) {
+        result[dim] = { alpha: null, n_items: items.length, n_responses: n, target: 0.70, status: 'insufficient_data' };
+        continue;
+      }
+
+      // Variance per item
+      const itemVars = itemIds.map((id) => {
+        const vals = completeEvals.map((e) => e[id]);
+        const mean = vals.reduce((a, b) => a + b, 0) / n;
+        return vals.reduce((a, b) => a + (b - mean) ** 2, 0) / n;
+      });
+      const sumItemVars = itemVars.reduce((a, b) => a + b, 0);
+
+      // Variance of sum (total score per evaluation)
+      const totals = completeEvals.map((e) => itemIds.reduce((a, id) => a + e[id], 0));
+      const totalMean = totals.reduce((a, b) => a + b, 0) / n;
+      const totalVar = totals.reduce((a, b) => a + (b - totalMean) ** 2, 0) / n;
+
+      const k = itemIds.length;
+      let alpha = null;
+      if (totalVar > 0) {
+        alpha = (k / (k - 1)) * (1 - sumItemVars / totalVar);
+      }
+
+      result[dim] = {
+        alpha: alpha != null ? Number(alpha.toFixed(3)) : null,
+        n_items: k,
+        n_responses: n,
+        target: 0.70,
+        status: alpha == null
+          ? 'no_variance'
+          : alpha >= 0.70 ? 'ok'
+          : alpha >= 0.60 ? 'acceptable'
+          : 'low',
+      };
+    }
+
+    // Cronbach global pe toate cele 19 itemi (target ≥ 0.85)
+    const allItemIds = db.prepare(
+      `SELECT id FROM questions WHERE dimension IN ('D1','D2','D3','D4','D5') AND is_active = 1 ORDER BY order_index`,
+    ).all().map((i) => i.id);
+    let globalAlpha = null;
+    let globalN = 0;
+    if (allItemIds.length >= 2) {
+      const rows = db.prepare(
+        `SELECT evaluation_id, question_id, response_likert FROM responses
+         WHERE question_id IN (${allItemIds.map(() => '?').join(',')}) AND response_likert IS NOT NULL`,
+      ).all(...allItemIds);
+      const byEval = {};
+      for (const r of rows) {
+        byEval[r.evaluation_id] ??= {};
+        byEval[r.evaluation_id][r.question_id] = r.response_likert;
+      }
+      const completeEvals = Object.values(byEval).filter((r) => allItemIds.every((id) => r[id] != null));
+      globalN = completeEvals.length;
+      if (globalN >= 10) {
+        const itemVars = allItemIds.map((id) => {
+          const vals = completeEvals.map((e) => e[id]);
+          const mean = vals.reduce((a, b) => a + b, 0) / globalN;
+          return vals.reduce((a, b) => a + (b - mean) ** 2, 0) / globalN;
+        });
+        const sumItemVars = itemVars.reduce((a, b) => a + b, 0);
+        const totals = completeEvals.map((e) => allItemIds.reduce((a, id) => a + e[id], 0));
+        const totalMean = totals.reduce((a, b) => a + b, 0) / globalN;
+        const totalVar = totals.reduce((a, b) => a + (b - totalMean) ** 2, 0) / globalN;
+        const k = allItemIds.length;
+        if (totalVar > 0) {
+          globalAlpha = Number(((k / (k - 1)) * (1 - sumItemVars / totalVar)).toFixed(3));
+        }
+      }
+    }
+
+    res.json({
+      perDimension: result,
+      global: {
+        alpha: globalAlpha,
+        n_items: allItemIds.length,
+        n_responses: globalN,
+        target: 0.85,
+        status: globalAlpha == null
+          ? 'insufficient_data'
+          : globalAlpha >= 0.85 ? 'ok'
+          : globalAlpha >= 0.70 ? 'acceptable'
+          : 'low',
+      },
+    });
+  } catch (e) { next(e); }
+};

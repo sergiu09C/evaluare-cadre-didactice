@@ -7,6 +7,32 @@ import { useTabNavigation } from '../hooks/useTabNavigation';
 import { FocusTrap } from '../components/a11y';
 import ScreenReaderOnly from '../components/ScreenReaderOnly';
 
+// Categorii standardizate (Anexa A1 dizertație + migration 018-19-items-questionnaire.sql).
+// Aceleași valori sunt validate pe backend (questionsController.CATEGORY_ENUM).
+type QuestionCategory = 'didactica' | 'comunicare' | 'organizare' | 'general' | 'angajament' | 'global' | 'context';
+type QuestionDimension = 'D1' | 'D2' | 'D3' | 'D4' | 'D5' | 'GLOBAL' | 'CONTEXT' | 'COMMENT';
+
+const QUESTION_CATEGORY_OPTIONS: { value: QuestionCategory; label: string; suggestedDimension: QuestionDimension }[] = [
+  { value: 'didactica',  label: 'Predare și conținut (didactica)',         suggestedDimension: 'D1' },
+  { value: 'comunicare', label: 'Comunicare și interacțiune (comunicare)', suggestedDimension: 'D2' },
+  { value: 'organizare', label: 'Resurse și suport (organizare)',          suggestedDimension: 'D3' },
+  { value: 'general',    label: 'Evaluare și feedback (general)',          suggestedDimension: 'D4' },
+  { value: 'angajament', label: 'Disponibilitate și profesionalism (angajament)', suggestedDimension: 'D5' },
+  { value: 'global',     label: 'Item global de ansamblu (global)',        suggestedDimension: 'GLOBAL' },
+  { value: 'context',    label: 'Contextualizare — fără scor (context)',   suggestedDimension: 'CONTEXT' },
+];
+
+const QUESTION_DIMENSION_OPTIONS: { value: QuestionDimension; label: string }[] = [
+  { value: 'D1',      label: 'D1 — Predare' },
+  { value: 'D2',      label: 'D2 — Comunicare' },
+  { value: 'D3',      label: 'D3 — Resurse' },
+  { value: 'D4',      label: 'D4 — Evaluare/Feedback' },
+  { value: 'D5',      label: 'D5 — Disponibilitate' },
+  { value: 'GLOBAL',  label: 'GLOBAL — item de ansamblu' },
+  { value: 'CONTEXT', label: 'CONTEXT — contextualizare' },
+  { value: 'COMMENT', label: 'COMMENT — comentariu liber' },
+];
+
 export default function AdminControls() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'platform' | 'messages' | 'filters' | 'disciplines' | 'questionnaire' | 'email'>('platform');
@@ -57,7 +83,8 @@ export default function AdminControls() {
   const [questionForm, setQuestionForm] = useState({
     text: '',
     type: 'likert' as 'likert' | 'text',
-    category: '',
+    category: '' as QuestionCategory | '',
+    dimension: '' as QuestionDimension | '',
     is_required: true
   });
 
@@ -376,7 +403,7 @@ export default function AdminControls() {
 
       setShowQuestionForm(false);
       setEditingQuestion(null);
-      setQuestionForm({ text: '', type: 'likert', category: '', is_required: true });
+      setQuestionForm({ text: '', type: 'likert', category: '', dimension: '', is_required: true });
       loadQuestions();
     } catch (error: any) {
       showAlertDialog('Eroare', error.response?.data?.error || 'Eroare la salvarea întrebării', 'error');
@@ -388,7 +415,8 @@ export default function AdminControls() {
     setQuestionForm({
       text: question.text,
       type: question.type,
-      category: question.category,
+      category: (question.category || '') as QuestionCategory | '',
+      dimension: (question.dimension || '') as QuestionDimension | '',
       is_required: question.is_required
     });
     setShowQuestionForm(true);
@@ -998,7 +1026,7 @@ export default function AdminControls() {
               <button
                 onClick={() => {
                   setEditingQuestion(null);
-                  setQuestionForm({ text: '', type: 'likert', category: '', is_required: true });
+                  setQuestionForm({ text: '', type: 'likert', category: '', dimension: '', is_required: true });
                   setShowQuestionForm(true);
                 }}
                 className="inline-flex items-center gap-2 px-4 h-10 rounded-md bg-primary-800 text-white font-medium shadow-elev-1 hover:bg-primary-700 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-400/40 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -1135,18 +1163,65 @@ export default function AdminControls() {
                       </select>
                     </div>
 
-                    {/* Category */}
+                    {/* Category (standardizată) */}
                     <div>
-                      <label className="block text-sm font-medium text-neutral-700 mb-1">
+                      <label htmlFor="question-category" className="block text-sm font-medium text-neutral-700 mb-1">
                         Categorie <span className="text-red-500">*</span>
                       </label>
-                      <input
-                        type="text"
+                      <select
+                        id="question-category"
                         value={questionForm.category}
-                        onChange={(e) => setQuestionForm({ ...questionForm, category: e.target.value })}
+                        onChange={(e) => {
+                          const newCat = e.target.value as QuestionCategory | '';
+                          const suggested =
+                            QUESTION_CATEGORY_OPTIONS.find((c) => c.value === newCat)?.suggestedDimension || '';
+                          setQuestionForm((f) => ({
+                            ...f,
+                            category: newCat,
+                            // Auto-completează dimensiunea doar dacă nu a fost setată explicit
+                            dimension: f.dimension || (suggested as QuestionDimension | ''),
+                          }));
+                        }}
                         className="w-full px-3 py-2 border border-neutral-200 rounded-md"
-                        placeholder="ex: Metodologie predare, Evaluare, etc."
-                      />
+                      >
+                        <option value="">Selectează o categorie...</option>
+                        {QUESTION_CATEGORY_OPTIONS.map((c) => (
+                          <option key={c.value} value={c.value}>
+                            {c.label}
+                          </option>
+                        ))}
+                      </select>
+                      <p className="mt-1 text-xs text-neutral-500">
+                        Categorie standardizată conform Anexa A1 — folosită la agregarea în rapoarte.
+                      </p>
+                    </div>
+
+                    {/* Dimension (standardizată) */}
+                    <div>
+                      <label htmlFor="question-dimension" className="block text-sm font-medium text-neutral-700 mb-1">
+                        Dimensiune (D1–D5)
+                      </label>
+                      <select
+                        id="question-dimension"
+                        value={questionForm.dimension}
+                        onChange={(e) =>
+                          setQuestionForm({
+                            ...questionForm,
+                            dimension: e.target.value as QuestionDimension | '',
+                          })
+                        }
+                        className="w-full px-3 py-2 border border-neutral-200 rounded-md"
+                      >
+                        <option value="">— fără dimensiune —</option>
+                        {QUESTION_DIMENSION_OPTIONS.map((d) => (
+                          <option key={d.value} value={d.value}>
+                            {d.label}
+                          </option>
+                        ))}
+                      </select>
+                      <p className="mt-1 text-xs text-neutral-500">
+                        Dimensiunea agregă în rapoartele pe D1–D5 (radar / panorama).
+                      </p>
                     </div>
 
                     {/* Required */}
@@ -1170,7 +1245,7 @@ export default function AdminControls() {
                       onClick={() => {
                         setShowQuestionForm(false);
                         setEditingQuestion(null);
-                        setQuestionForm({ text: '', type: 'likert', category: '', is_required: true });
+                        setQuestionForm({ text: '', type: 'likert', category: '', dimension: '', is_required: true });
                       }}
                       className="inline-flex items-center gap-2 px-4 h-10 rounded-md bg-white border border-neutral-200 text-neutral-800 font-medium shadow-elev-1 hover:bg-neutral-50 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-400/40 disabled:opacity-50 disabled:cursor-not-allowed"
                     >

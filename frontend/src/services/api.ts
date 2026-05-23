@@ -819,6 +819,8 @@ class ApiService {
     text: string;
     type: 'likert' | 'text';
     category: string;
+    dimension?: string;
+    is_contextual?: boolean;
     order_index?: number;
     is_required?: boolean;
   }): Promise<any> {
@@ -830,6 +832,8 @@ class ApiService {
     text: string;
     type: 'likert' | 'text';
     category: string;
+    dimension?: string;
+    is_contextual?: boolean;
     order_index: number;
     is_required: boolean;
   }): Promise<any> {
@@ -995,6 +999,24 @@ class ApiService {
     impact: Record<string, any>;
   }> {
     const r = await this.api.get('/admin/kpis');
+    return r.data;
+  }
+
+  async getAuditLog(params?: { limit?: number; offset?: number; action?: string }): Promise<{
+    entries: Array<{
+      id: number;
+      user_email: string | null;
+      user_role: string | null;
+      action: string;
+      target_type: string | null;
+      target_id: string | null;
+      details: any;
+      ip: string | null;
+      created_at: string;
+    }>;
+    pagination: { total: number; limit: number; offset: number; hasMore: boolean };
+  }> {
+    const r = await this.api.get('/admin/audit-log', { params });
     return r.data;
   }
 }

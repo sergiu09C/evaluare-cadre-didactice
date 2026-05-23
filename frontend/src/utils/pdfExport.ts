@@ -1,281 +1,184 @@
 /**
  * PDF Export Utilities
- * Uses browser's native print functionality to generate PDFs
+ *
+ * Folosim un iframe ascuns same-origin (NU popup → fără popup blocker)
+ * în care clonăm elementul-țintă + stylesheet-urile paginii, apoi invocăm print()
+ * pe fereastra iframe-ului. La sfârșit ștergem iframe-ul.
+ *
+ * Avantaje față de varianta veche (window.open('','_blank')):
+ *  - nu e blocată de popup blocker
+ *  - menține CSS-ul și fonturile din aplicație
+ *  - SVG-urile Recharts se randează fără re-mount
  */
 
-/**
- * Prepares the page for PDF export and triggers print dialog
- * @param title - Title to display in the printed document
- */
-export function exportToPDF(title: string = 'Raport') {
-  // Store original title
-  const originalTitle = document.title;
+function collectHeadAssets(): string {
+  // Copiem <style> și <link rel="stylesheet"> din pagina curentă în iframe.
+  const parts: string[] = [];
+  document.querySelectorAll('link[rel="stylesheet"], style').forEach((node) => {
+    parts.push(node.outerHTML);
+  });
+  return parts.join('\n');
+}
 
-  // Set custom title for PDF
-  document.title = `${title} - ${new Date().toLocaleDateString('ro-RO')}`;
-
-  // Add print-specific class to body
-  document.body.classList.add('print-mode');
-
-  // Trigger print dialog
-  window.print();
-
-  // Restore original state after print dialog closes
-  setTimeout(() => {
-    document.body.classList.remove('print-mode');
-    document.title = originalTitle;
-  }, 1000);
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
 /**
- * Generates a formatted report element for printing
- * @param reportContent - The HTML content to include in the report
- * @param reportTitle - Title of the report
- * @param filters - Active filters to display in the report header
+ * Construiește un bloc HTML cu titlu + filtre aplicate (folosit ca headerHtml).
+ */
+export function buildReportHeader(
+  title: string,
+  filters?: Record<string, string | number | null | undefined>,
+): string {
+  const parts: string[] = [];
+  parts.push(
+    `<h1 style="font-size:22px;font-weight:700;color:#0E2233;margin:0 0 4px 0;">${escapeHtml(title)}</h1>`,
+  );
+  parts.push(
+    `<p style="font-size:12px;color:#5F6878;margin:0;">Generat: ${new Date().toLocaleString('ro-RO', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    })}</p>`,
+  );
+
+  if (filters && Object.values(filters).some((v) => v != null && v !== '')) {
+    parts.push('<div style="margin-top:10px;font-size:12px;color:#5F6878;">');
+    parts.push('<strong style="color:#0E2233;">Filtre aplicate:</strong> ');
+    const items = Object.entries(filters)
+      .filter(([, v]) => v != null && v !== '')
+      .map(([k, v]) => `${escapeHtml(k)}: <span style="color:#0E2233;">${escapeHtml(String(v))}</span>`);
+    parts.push(items.join(' · '));
+    parts.push('</div>');
+  }
+
+  return parts.join('');
+}
+
+const PRINT_CSS = `
+  *, *::before, *::after { box-sizing: border-box; }
+  @page { margin: 16mm; size: A4; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #ffffff !important;
+    color: #0E2233;
+    font-family: Geist, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  body { padding: 8mm; }
+  /* Ascunde butoanele, input-urile și controalele interactive */
+  button, input, select, textarea, [role="tablist"], .no-print { display: none !important; }
+  /* Carduri și tabele să nu se rupă peste pagini */
+  .card, table { page-break-inside: avoid; break-inside: avoid; }
+  tr { page-break-inside: avoid; break-inside: avoid; }
+  /* Recharts: păstrează ratio + nu depăși lățimea paginii */
+  .recharts-wrapper, .recharts-responsive-container { width: 100% !important; max-width: 100% !important; }
+  svg { max-width: 100%; height: auto; page-break-inside: avoid; }
+  /* Tabele: lățime completă */
+  table { width: 100%; border-collapse: collapse; }
+`;
+
+/**
+ * Export către PDF folosind print dialog-ul nativ al browser-ului, via iframe ascuns.
+ */
+export function exportElementToPDF(
+  target: HTMLElement,
+  options: { title: string; headerHtml?: string } = { title: 'Raport' },
+): void {
+  const { title, headerHtml } = options;
+
+  // 1. Construim documentul HTML pentru iframe
+  const targetHtml = target.outerHTML;
+  const stylesheets = collectHeadAssets();
+  const header = headerHtml ? `<div class="ecd-print-header" style="margin-bottom:16px;padding-bottom:12px;border-bottom:2px solid #7C3AED;">${headerHtml}</div>` : '';
+
+  const documentHtml = `<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8">
+  <title>${escapeHtml(title)} — ${new Date().toLocaleDateString('ro-RO')}</title>
+  ${stylesheets}
+  <style>${PRINT_CSS}</style>
+</head>
+<body>
+  ${header}
+  ${targetHtml}
+</body>
+</html>`;
+
+  // 2. Creăm iframe ascuns same-origin
+  const iframe = document.createElement('iframe');
+  iframe.setAttribute('aria-hidden', 'true');
+  iframe.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden;';
+  document.body.appendChild(iframe);
+
+  const cleanup = () => {
+    setTimeout(() => iframe.remove(), 100);
+  };
+
+  iframe.onload = () => {
+    try {
+      const win = iframe.contentWindow;
+      if (!win) {
+        cleanup();
+        return;
+      }
+      win.addEventListener('afterprint', cleanup);
+      // Fallback dacă afterprint nu se emite
+      setTimeout(cleanup, 60_000);
+      // Lăsăm un tick să se aplice CSS-ul și să se randeze SVG-urile din clone
+      setTimeout(() => {
+        win.focus();
+        win.print();
+      }, 200);
+    } catch (err) {
+      console.error('[pdfExport] iframe print failed', err);
+      cleanup();
+    }
+  };
+
+  const doc = iframe.contentDocument || iframe.contentWindow?.document;
+  if (!doc) {
+    iframe.remove();
+    alert('Browserul nu permite generarea PDF. Verifică setările pentru pop-up-uri și iframe-uri.');
+    return;
+  }
+  doc.open();
+  doc.write(documentHtml);
+  doc.close();
+}
+
+/**
+ * @deprecated Folosește exportElementToPDF în loc.
+ * Păstrată pentru compatibilitate cu codul vechi care încă o apelează.
  */
 export function generatePrintableReport(
   reportContent: HTMLElement,
   reportTitle: string,
-  filters?: Record<string, any>
+  filters?: Record<string, any>,
 ): void {
-  // Create print window
-  const printWindow = window.open('', '_blank');
-
-  if (!printWindow) {
-    alert('Vă rugăm să permiteți pop-up-urile pentru a exporta raportul.');
-    return;
-  }
-
-  // Build filter summary
-  let filterSummary = '';
-  if (filters && Object.keys(filters).length > 0) {
-    filterSummary = '<div style="margin-bottom: 20px; padding: 15px; background: #f3f4f6; border-radius: 8px;">';
-    filterSummary += '<h3 style="margin: 0 0 10px 0; font-size: 14px; font-weight: 600;">Filtre aplicate:</h3>';
-    filterSummary += '<ul style="margin: 0; padding-left: 20px; font-size: 12px;">';
-
-    for (const [key, value] of Object.entries(filters)) {
-      if (value) {
-        const label = key === 'facultyId' ? 'Facultate' :
-                     key === 'level' ? 'Nivel' :
-                     key === 'yearNumber' ? 'An' :
-                     key === 'courseType' ? 'Tip curs' :
-                     key === 'semester' ? 'Semestru' : key;
-        filterSummary += `<li>${label}: ${value}</li>`;
-      }
-    }
-
-    filterSummary += '</ul></div>';
-  }
-
-  // Get current date
-  const currentDate = new Date().toLocaleDateString('ro-RO', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
+  exportElementToPDF(reportContent, {
+    title: reportTitle,
+    headerHtml: buildReportHeader(reportTitle, filters),
   });
-
-  // Clone the content
-  const clonedContent = reportContent.cloneNode(true) as HTMLElement;
-
-  // Build HTML document
-  const htmlContent = `
-    <!DOCTYPE html>
-    <html lang="ro">
-    <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>${reportTitle}</title>
-      <style>
-        * {
-          margin: 0;
-          padding: 0;
-          box-sizing: border-box;
-        }
-
-        body {
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
-          padding: 40px;
-          color: #1f2937;
-          background: white;
-        }
-
-        .report-header {
-          margin-bottom: 30px;
-          padding-bottom: 20px;
-          border-bottom: 2px solid #3b82f6;
-        }
-
-        .report-title {
-          font-size: 28px;
-          font-weight: 700;
-          color: #1f2937;
-          margin-bottom: 10px;
-        }
-
-        .report-date {
-          font-size: 14px;
-          color: #6b7280;
-        }
-
-        table {
-          width: 100%;
-          border-collapse: collapse;
-          margin: 20px 0;
-          font-size: 12px;
-        }
-
-        th {
-          background: #f3f4f6;
-          padding: 12px 8px;
-          text-align: left;
-          font-weight: 600;
-          border-bottom: 2px solid #e5e7eb;
-          font-size: 11px;
-          text-transform: uppercase;
-          color: #6b7280;
-        }
-
-        td {
-          padding: 10px 8px;
-          border-bottom: 1px solid #e5e7eb;
-        }
-
-        tr:hover {
-          background: #f9fafb;
-        }
-
-        .card {
-          margin: 20px 0;
-          padding: 20px;
-          border: 1px solid #e5e7eb;
-          border-radius: 8px;
-        }
-
-        h2, h3 {
-          margin: 20px 0 10px 0;
-          color: #1f2937;
-        }
-
-        h2 {
-          font-size: 20px;
-        }
-
-        h3 {
-          font-size: 16px;
-        }
-
-        /* Hide interactive elements */
-        button, .btn, input, select, textarea {
-          display: none !important;
-        }
-
-        /* Charts styling */
-        .recharts-wrapper {
-          margin: 20px 0;
-        }
-
-        @media print {
-          body {
-            padding: 20px;
-          }
-
-          .report-header {
-            page-break-after: avoid;
-          }
-
-          table {
-            page-break-inside: avoid;
-          }
-
-          tr {
-            page-break-inside: avoid;
-            page-break-after: auto;
-          }
-
-          .card {
-            page-break-inside: avoid;
-          }
-        }
-      </style>
-    </head>
-    <body>
-      <div class="report-header">
-        <h1 class="report-title">${reportTitle}</h1>
-        <p class="report-date">Generat: ${currentDate}</p>
-      </div>
-
-      ${filterSummary}
-
-      <div class="report-content">
-        ${clonedContent.innerHTML}
-      </div>
-
-      <script>
-        // Auto-print when page loads
-        window.onload = function() {
-          window.print();
-          // Close window after print dialog closes (optional)
-          // setTimeout(() => window.close(), 1000);
-        };
-      </script>
-    </body>
-    </html>
-  `;
-
-  printWindow.document.write(htmlContent);
-  printWindow.document.close();
 }
 
-/**
- * Export current page as PDF using browser print
- */
+/** @deprecated */
+export function exportToPDF(title: string = 'Raport') {
+  exportElementToPDF(document.body, { title, headerHtml: buildReportHeader(title) });
+}
+
+/** @deprecated */
 export function exportCurrentPageToPDF(pageTitle: string) {
-  const originalTitle = document.title;
-  const timestamp = new Date().toLocaleDateString('ro-RO');
-
-  document.title = `${pageTitle} - ${timestamp}`;
-
-  // Add CSS for print
-  const style = document.createElement('style');
-  style.id = 'print-styles';
-  style.innerHTML = `
-    @media print {
-      /* Hide navigation and unnecessary elements */
-      nav, .no-print, button:not(.print-include) {
-        display: none !important;
-      }
-
-      /* Ensure content fits on page */
-      body {
-        margin: 0;
-        padding: 20px;
-      }
-
-      /* Page breaks */
-      .page-break {
-        page-break-after: always;
-      }
-
-      /* Preserve colors in charts */
-      * {
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-      }
-    }
-  `;
-
-  document.head.appendChild(style);
-
-  window.print();
-
-  // Cleanup
-  setTimeout(() => {
-    document.title = originalTitle;
-    const styleElement = document.getElementById('print-styles');
-    if (styleElement) {
-      styleElement.remove();
-    }
-  }, 1000);
+  exportToPDF(pageTitle);
 }
