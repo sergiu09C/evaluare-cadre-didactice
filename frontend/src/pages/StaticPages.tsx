@@ -145,7 +145,7 @@ export function Privacy() {
         </h2>
         <p>
           Datele de cont sunt păstrate cât timp ești afiliat la FAIMA. Răspunsurile anonimizate
-          sunt păstrate pentru analize istorice și raportări ARACIS.
+          sunt păstrate pentru analize istorice și rapoarte instituționale.
         </p>
 
         <h2 className="font-display text-lg font-semibold text-neutral-800 mt-6">

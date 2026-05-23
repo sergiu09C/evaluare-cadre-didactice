@@ -28,7 +28,7 @@ DELETE FROM responses WHERE question_id < 77;
 -- Cross-join cu CTE de question_ids
 -- =====================================================================
 -- Plus bias per dimensiune pentru a obține scoruri diferite pe D1-D5
--- (D3 Resurse intenționat mai slab — pattern cunoscut în literatură ARACIS;
+-- (D3 Resurse intenționat mai slab — pattern cunoscut în literatură de specialitate;
 -- D5 Disponibilitate intenționat mai bun — ușor de îndeplinit).
 INSERT OR IGNORE INTO responses (evaluation_id, question_id, response_likert, created_at)
 SELECT

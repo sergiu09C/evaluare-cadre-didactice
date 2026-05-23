@@ -383,13 +383,13 @@ export default function AdminReports() {
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = `aracis-export-${new Date().toISOString().split('T')[0]}.csv`;
+                a.download = `export-evaluari-${new Date().toISOString().split('T')[0]}.csv`;
                 document.body.appendChild(a);
                 a.click();
                 window.URL.revokeObjectURL(url);
                 document.body.removeChild(a);
               } catch (e) {
-                console.error('export aracis fail', e);
+                console.error('export csv fail', e);
               }
             }}
             className="inline-flex items-center gap-2 px-4 h-10 rounded-md bg-accent-600 text-white font-medium shadow-elev-1 hover:bg-accent-700 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-400/40"

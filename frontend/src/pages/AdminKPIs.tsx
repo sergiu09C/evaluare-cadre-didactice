@@ -65,11 +65,19 @@ function KPICard({ code, kpi }: { code: string; kpi: KPI }) {
   } else {
     displayValue = `${kpi.value}${kpi.unit ? ' ' + kpi.unit : ''}`;
   }
-  const targetTxt = kpi.targetMin != null
-    ? `${kpi.targetMin}-${kpi.targetMax}${kpi.unit ?? ''}`
-    : kpi.target != null
-      ? `${kpi.targetDirection === 'less' ? '≤' : '≥'} ${kpi.target}${kpi.unit ?? ''}`
-      : '—';
+  const targetTxt = (() => {
+    if (kpi.targetMin != null) {
+      return `${kpi.targetMin}–${kpi.targetMax}${kpi.unit ?? ''}`;
+    }
+    if (kpi.target == null) return '—';
+    const unit = kpi.unit ?? '';
+    // Caz natural ceiling: target == 100% nu poate fi „≥ 100%" — e fix la 100%
+    if (kpi.unit === '%' && kpi.target === 100 && kpi.targetDirection !== 'less') {
+      return `100%`;
+    }
+    if (kpi.targetDirection === 'less') return `cel mult ${kpi.target}${unit}`;
+    return `cel puțin ${kpi.target}${unit}`;
+  })();
   return (
     <Card padding="md" className="flex flex-col gap-2">
       <div className="flex items-start justify-between gap-2">

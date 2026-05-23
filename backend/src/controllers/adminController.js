@@ -864,8 +864,8 @@ exports.getCourseTypeStats = (req, res, next) => {
 };
 
 /**
- * GET /api/admin/export/aracis
- * Export agregat pentru raportare ARACIS (CSV; UTF-8 cu BOM).
+ * GET /api/admin/export/aracis  (endpoint păstrat ca alias; sintagma scoasă din UI)
+ * Export agregat instituțional (CSV; UTF-8 cu BOM).
  */
 exports.exportAracis = (req, res, next) => {
   try {
@@ -944,7 +944,7 @@ exports.exportAracis = (req, res, next) => {
       lines.push(cells.join(','));
     }
     const csv = lines.join('\n');
-    const filename = `aracis-export-${new Date().toISOString().split('T')[0]}.csv`;
+    const filename = `export-evaluari-${new Date().toISOString().split('T')[0]}.csv`;
     res.setHeader('Content-Type', 'text/csv; charset=utf-8');
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
     res.send('﻿' + csv);
@@ -1095,7 +1095,7 @@ exports.getKPIs = (req, res, next) => {
         P4: {
           value: p4, unit: '%', target: 90,
           label: 'Eșantion valid (≥5 răspunsuri)',
-          description: 'Procentul cursurilor care au strâns suficiente răspunsuri pentru ca scorul să fie statistic credibil (prag ARACIS: 5 răspunsuri).',
+          description: 'Procentul cursurilor care au strâns suficiente răspunsuri pentru ca scorul să fie statistic credibil (prag minim acceptat: 5 răspunsuri).',
           formula: 'cursuri cu ≥5 răspunsuri submitted / total cursuri active',
         },
         P5: {

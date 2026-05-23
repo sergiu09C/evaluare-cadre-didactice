@@ -39,7 +39,7 @@ router.get('/stats/by-year', adminController.getYearStats);
 // GET /api/admin/stats/by-course-type - Statistici pe tipuri de curs (curs/lab/seminar)
 router.get('/stats/by-course-type', adminController.getCourseTypeStats);
 
-// Export ARACIS — CSV agregat (facultate × program × an de studiu)
+// Export CSV agregat (facultate × program × an de studiu)
 router.get('/export/aracis', adminController.exportAracis);
 
 // KPI dashboard cu 15 indicatori structurați P1-P5, O1-O5, I1-I5 (Cap. 3.4 dizertație)
