@@ -1072,13 +1072,13 @@ export default function EvaluationLifecycle() {
         <Card>
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-base font-semibold text-neutral-800">Evaluări per ciclu studii</h2>
-            <Badge tone="neutral">licență vs master</Badge>
+            <Badge tone="neutral">licență · master · doctorat</Badge>
           </div>
           <PieWithToggle
             data={data.evalsByLevel.map((l) => ({
-              name: l.level === 'licenta' ? 'Licență' : l.level === 'master' ? 'Master' : l.level,
+              name: l.level === 'licenta' ? 'Licență' : l.level === 'master' ? 'Master' : l.level === 'doctorat' ? 'Doctorat' : l.level,
               value: l.n,
-              fill: l.level === 'licenta' ? '#7C3AED' : '#10B981',
+              fill: l.level === 'licenta' ? '#7C3AED' : l.level === 'master' ? '#10B981' : '#F59E0B',
               meta: l,
             }))}
             height={220}
@@ -1093,7 +1093,7 @@ export default function EvaluationLifecycle() {
           <div className="flex justify-center gap-4 text-[11px] text-neutral-500 mt-2">
             {data.evalsByLevel.map((l) => (
               <span key={l.level}>
-                {l.level === 'licenta' ? 'Licență' : 'Master'}: medie{' '}
+                {l.level === 'licenta' ? 'Licență' : l.level === 'master' ? 'Master' : l.level === 'doctorat' ? 'Doctorat' : l.level}: medie{' '}
                 <strong>{l.avg != null ? l.avg.toFixed(2).replace('.', ',') : '—'}</strong>
               </span>
             ))}

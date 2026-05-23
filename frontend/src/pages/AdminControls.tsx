@@ -913,7 +913,7 @@ export default function AdminControls() {
                       <tr key={idx}>
                         <td className="px-6 py-4 text-sm text-neutral-800">{stat.faculty_name}</td>
                         <td className="px-6 py-4 text-sm text-neutral-800">{stat.program_name}</td>
-                        <td className="px-6 py-4 text-sm text-neutral-800">{stat.level === 'licenta' ? 'L' : 'M'}</td>
+                        <td className="px-6 py-4 text-sm text-neutral-800">{stat.level === 'licenta' ? 'L' : stat.level === 'master' ? 'M' : 'D'}</td>
                         <td className="px-6 py-4 text-sm text-neutral-800">{stat.year_number}</td>
                         <td className="px-6 py-4 text-sm text-neutral-800">{stat.course_type}</td>
                         <td className="px-6 py-4 text-sm text-neutral-800">{stat.completed}/{stat.total_evaluations}</td>
