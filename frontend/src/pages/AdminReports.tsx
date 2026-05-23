@@ -1001,6 +1001,15 @@ export default function AdminReports() {
                         allowed={['bar', 'line', 'pie', 'table']}
                       />
                     </div>
+                    <div className="mb-4 p-3 rounded-md bg-accent-50 border border-accent-200 text-[13px] text-accent-800 leading-relaxed">
+                      <strong>De ce apar profesori din departamente diferite?</strong>{' '}
+                      Aceeași disciplină (ex. „{disciplineComparison.courseName}") poate fi predată
+                      în paralel de mai multe cadre didactice din departamente diferite — fie pentru
+                      că disciplina este interdisciplinară, fie pentru că diferite facultăți/programe
+                      au incluse cursuri cu același nume. Coloana <em>Departament</em> indică
+                      <strong> departamentul profesorului</strong> (apartenența organizațională),
+                      nu departamentul care „deține" disciplina.
+                    </div>
                     {disciplineChart === 'bar' ? (
                       <ResponsiveContainer width="100%" height={420}>
                         <BarChart data={disciplineComparison.comparisons} margin={{ bottom: 40 }}>
@@ -1065,7 +1074,7 @@ export default function AdminReports() {
                           <thead className="bg-neutral-25">
                             <tr>
                               <th className="px-3 py-2 text-left text-xs font-medium text-neutral-500 uppercase">Profesor</th>
-                              <th className="px-3 py-2 text-left text-xs font-medium text-neutral-500 uppercase">Departament</th>
+                              <th className="px-3 py-2 text-left text-xs font-medium text-neutral-500 uppercase">Departamentul profesorului</th>
                               <th className="px-3 py-2 text-center text-xs font-medium text-neutral-500 uppercase">Rata (%)</th>
                               <th className="px-3 py-2 text-center text-xs font-medium text-neutral-500 uppercase">Scor mediu</th>
                             </tr>
