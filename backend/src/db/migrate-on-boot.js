@@ -35,6 +35,25 @@ const INCREMENTAL_MIGRATIONS = [
   '032-align-question-categories.sql',
 ];
 
+// === Diagnoză disc (helper one-shot la boot) ===
+try {
+  const { execSync } = require('child_process');
+  const dataDir = path.dirname(dbPath);
+  const df = execSync(`df -h ${dataDir} 2>&1 || df -h /`).toString().trim();
+  console.log(`[disk-diag] df -h ${dataDir}:\n${df}`);
+  if (fs.existsSync(dataDir)) {
+    const files = fs.readdirSync(dataDir).map((f) => {
+      try {
+        const s = fs.statSync(path.join(dataDir, f));
+        return `${(s.size/1024/1024).toFixed(2)}MB  ${f}`;
+      } catch { return `?  ${f}`; }
+    });
+    console.log(`[disk-diag] files in ${dataDir}:\n${files.join('\n')}`);
+  }
+} catch (e) {
+  console.log(`[disk-diag] error: ${e.message}`);
+}
+
 function isBenign(errMsg) {
   return (
     /duplicate column/i.test(errMsg) ||
