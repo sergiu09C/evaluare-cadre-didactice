@@ -10,7 +10,17 @@ if (targetPath === seedPath) {
 }
 
 if (fs.existsSync(targetPath)) {
-  console.log(`[ensure-db] DB already exists at ${targetPath} — skipping seed copy`);
+  const stats = fs.statSync(targetPath);
+  const sizeMB = stats.size / 1024 / 1024;
+  // Dacă DB-ul e mai mare de 500MB, e umflat de date sintetice (bug migration 015/028).
+  // Seed-ul curat este ~7MB; date reale nu vor depăși 100MB pentru această aplicație.
+  if (sizeMB > 500) {
+    console.log(`[ensure-db] DB bloat detectat: ${sizeMB.toFixed(0)}MB > 500MB — înlocuiesc cu seed curat`);
+    fs.copyFileSync(seedPath, targetPath);
+    console.log(`[ensure-db] Seed copiat la ${targetPath}`);
+  } else {
+    console.log(`[ensure-db] DB ok la ${sizeMB.toFixed(1)}MB — skip seed copy`);
+  }
   process.exit(0);
 }
 
