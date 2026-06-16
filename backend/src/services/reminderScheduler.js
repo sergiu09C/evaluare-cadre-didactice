@@ -9,6 +9,7 @@
  * în `reminders_log` pentru audit și pentru a evita reminder-uri duplicate.
  */
 const { getDatabase } = require('../config/database');
+const emailService = require('./emailService');
 
 const ONE_HOUR_MS = 60 * 60 * 1000;
 const REMINDER_THRESHOLDS = [0.5, 0.8]; // 50% și 80% din perioada activă
@@ -59,7 +60,7 @@ function runReminderTick() {
     // care NU au completat deja (verific completion_tokens).
     const candidates = db
       .prepare(
-        `SELECT DISTINCT u.id, u.email
+        `SELECT DISTINCT u.id, u.email, u.first_name
          FROM users u
          JOIN groups g ON g.id = u.group_id
          JOIN series s ON s.id = g.series_id
@@ -100,6 +101,12 @@ function runReminderTick() {
             t,
           );
           totalSent++;
+          // Trimite email SMTP dacă serviciul e configurat (fire-and-forget, nu blochează tick-ul)
+          emailService.sendReminderEmails([{
+            email: cand.email,
+            firstName: cand.first_name || 'Student',
+            pendingCount: 1,
+          }]).catch((err) => console.error('[reminders] email send failed:', err.message));
         } catch (e) {
           // Tabel poate să nu aibă coloanele noi (vechi DB); ignorăm silent în primul tick
         }

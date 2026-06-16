@@ -64,4 +64,10 @@ router.delete('/users/:id', adminUsersController.deactivate);
 router.get('/lookup/courses', adminUsersController.lookupCourses);
 router.get('/lookup/departments', adminUsersController.lookupDepartments);
 
+// Perioade de evaluare CRUD — folosite de activationScheduler pentru auto-activare (D-04)
+router.get('/periods', adminController.listPeriods);
+router.post('/periods', adminController.createPeriod);
+router.put('/periods/:id', adminController.updatePeriod);
+router.delete('/periods/:id', adminController.deletePeriod);
+
 module.exports = router;

@@ -268,14 +268,19 @@ class EmailService {
    * Fallback la log în consolă dacă SMTP nu e configurat.
    */
   async sendPasswordReset(toEmail, resetUrl) {
-    await this.initialize();
-    if (!this.enabled || !this.transporter) {
+    await this.initializeTransporter();
+    if (!this.transporter) {
       console.log(`[email/fallback] Reset password pentru ${toEmail}: ${resetUrl}`);
       return { ok: false, reason: 'smtp_not_configured' };
     }
     try {
+      const db = getDatabase();
+      const settings = db.prepare('SELECT email_from_name, email_from_address FROM platform_settings WHERE id = 1').get();
+      const from = settings
+        ? `"${settings.email_from_name}" <${settings.email_from_address}>`
+        : 'noreply@univ.ro';
       await this.transporter.sendMail({
-        from: this.fromAddress,
+        from,
         to: toEmail,
         subject: 'Resetare parolă — Platforma ECD',
         html: `

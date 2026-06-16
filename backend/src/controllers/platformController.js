@@ -1,5 +1,6 @@
 const { getDatabase } = require('../config/database');
 const emailService = require('../services/emailService');
+const { auditLog } = require('../middleware/auditLog');
 
 // ===== PLATFORM SETTINGS =====
 
@@ -118,6 +119,9 @@ exports.updatePlatformSettings = (req, res) => {
 
     const db = getDatabase();
 
+    // Citim is_active curent ÎNAINTE de update — necesar pentru D-07 (notificări activare)
+    const prevSettings = db.prepare('SELECT is_active FROM platform_settings WHERE id = 1').get();
+
     // Build dynamic update query based on provided fields
     const updates = [];
     const values = [];
@@ -200,6 +204,48 @@ exports.updatePlatformSettings = (req, res) => {
 
     const query = `UPDATE platform_settings SET ${updates.join(', ')} WHERE id = 1`;
     db.prepare(query).run(...values);
+
+    // D-08: audit log la schimbare de stare a platformei
+    if (is_active !== undefined) {
+      const wasActive = prevSettings ? !!prevSettings.is_active : null;
+      const nowActive = !!is_active;
+      if (wasActive !== nowActive) {
+        auditLog(
+          req,
+          nowActive ? 'platform.activate' : 'platform.deactivate',
+          'platform_settings',
+          1,
+          { previous: wasActive, current: nowActive },
+        );
+      }
+    }
+
+    // D-07: dacă platforma tocmai a fost activată manual, notificăm studenții eligibili
+    if (is_active === true && prevSettings && !prevSettings.is_active) {
+      try {
+        const eligible = db
+          .prepare(
+            `SELECT DISTINCT u.id, u.email
+             FROM users u
+             JOIN evaluations e ON e.student_id = u.id
+             WHERE u.role = 'student' AND u.is_active = 1 AND e.status != 'submitted'`,
+          )
+          .all();
+        const notifStmt = db.prepare(
+          `INSERT INTO reminders_log (sent_to, message, sent_by, evaluation_id, user_id, threshold)
+           VALUES (?, ?, ?, NULL, ?, 0.0)`,
+        );
+        for (const s of eligible) {
+          try { notifStmt.run(s.email, 'Perioada de evaluare a fost deschisă. Completează evaluările disponibile.', userId, s.id); } catch (_) {}
+        }
+        if (eligible.length > 0) {
+          console.log(`[platform] ${eligible.length} studenți notificați la activare manuală`);
+        }
+      } catch (notifErr) {
+        // Notificările nu trebuie să blocheze răspunsul la activare
+        console.error('[platform] eroare la inserare notificări D-07:', notifErr.message);
+      }
+    }
 
     res.json({
       message: 'Setări actualizate cu succes',

@@ -1352,3 +1352,92 @@ exports.getPsychometry = (req, res, next) => {
     });
   } catch (e) { next(e); }
 };
+
+// ===== EVALUATION PERIODS CRUD (D-04 — auto-activare prin scheduler) =====
+
+/**
+ * GET /api/admin/periods — lista perioadelor de evaluare
+ */
+exports.listPeriods = (req, res, next) => {
+  try {
+    const db = getDatabase();
+    const rows = db
+      .prepare(
+        `SELECT id, name, academic_year, semester, start_date, end_date, is_active, created_at
+         FROM evaluation_periods ORDER BY start_date DESC`,
+      )
+      .all();
+    res.json({ periods: rows });
+  } catch (e) { next(e); }
+};
+
+/**
+ * POST /api/admin/periods — crează o perioadă nouă
+ * Body: { name, academic_year, semester, start_date, end_date }
+ */
+exports.createPeriod = (req, res, next) => {
+  try {
+    const { name, academic_year, semester, start_date, end_date } = req.body || {};
+    if (!name || !academic_year || !semester || !start_date || !end_date) {
+      return res.status(400).json({
+        error: 'Câmpuri obligatorii: name, academic_year, semester, start_date, end_date',
+      });
+    }
+    if (!['1', '2'].includes(String(semester))) {
+      return res.status(400).json({ error: 'semester trebuie să fie "1" sau "2"' });
+    }
+    if (new Date(end_date) <= new Date(start_date)) {
+      return res.status(400).json({ error: 'end_date trebuie să fie după start_date' });
+    }
+    const db = getDatabase();
+    const result = db
+      .prepare(
+        `INSERT INTO evaluation_periods (name, academic_year, semester, start_date, end_date, is_active)
+         VALUES (?, ?, ?, ?, ?, 0)`,
+      )
+      .run(name, academic_year, String(semester), start_date, end_date);
+    res.status(201).json({ id: result.lastInsertRowid });
+  } catch (e) { next(e); }
+};
+
+/**
+ * PUT /api/admin/periods/:id — actualizează o perioadă
+ */
+exports.updatePeriod = (req, res, next) => {
+  try {
+    const id = Number(req.params.id);
+    const { name, academic_year, semester, start_date, end_date } = req.body || {};
+    const db = getDatabase();
+    const existing = db.prepare('SELECT id FROM evaluation_periods WHERE id = ?').get(id);
+    if (!existing) return res.status(404).json({ error: 'Perioadă negăsită' });
+    db.prepare(
+      `UPDATE evaluation_periods SET
+         name       = COALESCE(?, name),
+         academic_year = COALESCE(?, academic_year),
+         semester   = COALESCE(?, semester),
+         start_date = COALESCE(?, start_date),
+         end_date   = COALESCE(?, end_date)
+       WHERE id = ?`,
+    ).run(
+      name ?? null,
+      academic_year ?? null,
+      semester != null ? String(semester) : null,
+      start_date ?? null,
+      end_date ?? null,
+      id,
+    );
+    res.json({ ok: true });
+  } catch (e) { next(e); }
+};
+
+/**
+ * DELETE /api/admin/periods/:id — șterge o perioadă
+ */
+exports.deletePeriod = (req, res, next) => {
+  try {
+    const id = Number(req.params.id);
+    const db = getDatabase();
+    db.prepare('DELETE FROM evaluation_periods WHERE id = ?').run(id);
+    res.json({ ok: true });
+  } catch (e) { next(e); }
+};

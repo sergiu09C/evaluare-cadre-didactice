@@ -1,4 +1,5 @@
 const { getDatabase } = require('../config/database');
+const { auditLog } = require('../middleware/auditLog');
 
 // Coloane YS/WD (You Said / We Did) — Cap. 1.4.4 din dizertație
 const SELECT_COLS = `id, title, body, dot_color, related_dimension, sort_order,
@@ -57,6 +58,7 @@ exports.create = (req, res, next) => {
       triggered_by_semester || null,
       impact_metric || null,
     );
+    auditLog(req, 'closing_loop.create', 'closing_loop_entries', result.lastInsertRowid, { title });
     res.status(201).json({ id: result.lastInsertRowid });
   } catch (e) { next(e); }
 };
@@ -98,6 +100,7 @@ exports.update = (req, res, next) => {
       impact_metric ?? null,
       id,
     );
+    auditLog(req, 'closing_loop.update', 'closing_loop_entries', id, { title: title ?? undefined });
     res.json({ ok: true });
   } catch (e) { next(e); }
 };
@@ -107,6 +110,7 @@ exports.remove = (req, res, next) => {
     const db = getDatabase();
     const id = Number(req.params.id);
     db.prepare('DELETE FROM closing_loop_entries WHERE id = ?').run(id);
+    auditLog(req, 'closing_loop.remove', 'closing_loop_entries', id);
     res.json({ ok: true });
   } catch (e) {
     next(e);

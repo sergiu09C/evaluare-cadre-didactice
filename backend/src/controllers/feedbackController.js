@@ -495,6 +495,33 @@ exports.getNotifications = (req, res, next) => {
       });
     });
 
+    // Notificări din reminders_log: activare platformă (threshold=0) + remindere 50%/80%
+    // Inseriate de activationScheduler (D-04/D-07) și reminderScheduler (D-03)
+    const logNotifs = db
+      .prepare(
+        `SELECT id, message, threshold, sent_at
+         FROM reminders_log
+         WHERE user_id = ?
+           AND sent_at >= datetime('now', '-30 days')
+         ORDER BY sent_at DESC
+         LIMIT 5`,
+      )
+      .all(studentId);
+
+    logNotifs.forEach((item) => {
+      const isActivation = item.threshold == null || item.threshold <= 0;
+      notifications.push({
+        id: `log_${item.id}`,
+        type: isActivation ? 'info' : 'warning',
+        title: isActivation ? 'Evaluările sunt deschise' : `Reminder ${Math.round(item.threshold * 100)}%`,
+        message: item.message,
+        actionUrl: '/evaluations',
+        actionText: isActivation ? 'Completează evaluările' : 'Verifică evaluările',
+        createdAt: item.sent_at,
+        read: false,
+      });
+    });
+
     res.json({
       notifications: notifications.sort((a, b) =>
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()

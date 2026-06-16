@@ -125,6 +125,12 @@ const { startReminderScheduler } = require('./services/reminderScheduler');
 const reminderInterval = process.env.NODE_ENV === 'production' ? 60 * 60 * 1000 : 5 * 60 * 1000;
 startReminderScheduler({ intervalMs: reminderInterval });
 
+// Start activation scheduler (D-04 dizertație) — activează/dezactivează automat
+// perioadele de evaluare pe baza start_date/end_date din evaluation_periods.
+// Rulează orar atât în dev cât și în prod (primul tick la 10s după boot).
+const { startActivationScheduler } = require('./services/activationScheduler');
+startActivationScheduler({ intervalMs: 60 * 60 * 1000 });
+
 // Start server
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
