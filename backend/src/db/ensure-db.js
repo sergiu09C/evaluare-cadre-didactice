@@ -16,11 +16,14 @@ if (fs.existsSync(targetPath)) {
   // Seed-ul curat este ~7MB; date reale nu vor depăși 100MB pentru această aplicație.
   if (sizeMB > 500) {
     console.log(`[ensure-db] DB bloat detectat: ${sizeMB.toFixed(0)}MB > 500MB — înlocuiesc cu seed curat`);
-    // Șterg WAL + SHM vechi înainte de copiere (altfel SQLite replay-uiesc date corupte)
+    // Șterg WAL + SHM vechi (eliberează spațiu pe volum)
     for (const suffix of ['-wal', '-shm', '-journal']) {
       const f = targetPath + suffix;
       if (fs.existsSync(f)) { fs.unlinkSync(f); console.log(`[ensure-db] Șters ${f}`); }
     }
+    // Trunchiem la 0 ÎNAINTE de copiere — eliberăm blocurile de pe disc (fix ENOSPC pe volum plin).
+    // copyFileSync pe un volum 100% plin ar eșua; truncate eliberează imediat spațiu pe inode-ul existent.
+    fs.truncateSync(targetPath, 0);
     fs.copyFileSync(seedPath, targetPath);
     console.log(`[ensure-db] Seed copiat la ${targetPath} (${sizeMB.toFixed(0)}MB → ${(fs.statSync(seedPath).size/1024/1024).toFixed(1)}MB)`);
   } else {
