@@ -7,7 +7,7 @@ let db = null;
 
 function getDatabase() {
   if (!db) {
-    db = new Database(dbPath, { verbose: console.log });
+    db = new Database(dbPath);
     db.pragma('journal_mode = WAL'); // Better concurrency
     db.pragma('foreign_keys = ON'); // Enforce foreign key constraints
   }

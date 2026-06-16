@@ -29,7 +29,8 @@ app.get('/api/health', (req, res) => {
   res.json({
     status: 'OK',
     timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV
+    environment: process.env.NODE_ENV,
+    commit: process.env.RAILWAY_GIT_COMMIT_SHA || 'local',
   });
 });
 
