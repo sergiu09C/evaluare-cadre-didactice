@@ -33,6 +33,7 @@ const INCREMENTAL_MIGRATIONS = [
   '030-kpi-historical-snapshots.sql',
   '031-actions-related-dimension.sql',
   '032-align-question-categories.sql',
+  '033-reduce-dataset.sql',
 ];
 
 // === Diagnoză disc (helper one-shot la boot) ===
@@ -107,5 +108,26 @@ for (const file of INCREMENTAL_MIGRATIONS) {
 }
 
 db.exec('PRAGMA foreign_keys = ON');
+
+// WAL checkpoint — eliberează fișierele .db-wal care pot crește nelimitat
+try {
+  db.exec('PRAGMA wal_checkpoint(TRUNCATE)');
+  console.log('[migrate-on-boot] WAL checkpoint OK');
+} catch (e) {
+  console.warn('[migrate-on-boot] WAL checkpoint warning:', e.message);
+}
+
+// VACUUM — compactează DB-ul și returnează spațiu pe disc
+// Critic pe Railway free tier (volum limitat)
+try {
+  const sizeBefore = fs.statSync(dbPath).size;
+  db.exec('VACUUM');
+  const sizeAfter = fs.statSync(dbPath).size;
+  const savedMB = ((sizeBefore - sizeAfter) / 1024 / 1024).toFixed(1);
+  console.log(`[migrate-on-boot] VACUUM OK — eliberat ${savedMB} MB (${(sizeAfter/1024/1024).toFixed(1)} MB final)`);
+} catch (e) {
+  console.warn('[migrate-on-boot] VACUUM warning:', e.message);
+}
+
 db.close();
 console.log(`[migrate-on-boot] DONE — ${appliedFiles} fișiere · ${appliedStmts} aplicate · ${skippedStmts} benign-skipped`);
