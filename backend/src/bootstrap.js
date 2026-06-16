@@ -8,10 +8,27 @@
 'use strict';
 
 const http = require('http');
+const fs = require('fs');
 const { execFileSync } = require('child_process');
 const path = require('path');
 
 const PORT = process.env.PORT || 5000;
+
+// ─── 0. Verificare volum Railway — dacă e plin/inaccesibil, fallback la DB din container ──
+const configuredDBPath = process.env.DB_PATH;
+if (configuredDBPath) {
+  const volumeDir = path.dirname(configuredDBPath);
+  const testFile = path.join(volumeDir, '.write_test_' + process.pid);
+  try {
+    fs.mkdirSync(volumeDir, { recursive: true });
+    fs.writeFileSync(testFile, 'x');
+    fs.unlinkSync(testFile);
+    console.log(`[bootstrap] Volum accesibil la ${volumeDir} — DB_PATH activ`);
+  } catch (e) {
+    console.error(`[bootstrap] Volum ${volumeDir} inaccesibil (${e.code}: ${e.message}) — folosesc in-repo DB`);
+    delete process.env.DB_PATH;
+  }
+}
 
 // ─── 1. Server HTTP minimal — răspunde la healthcheck imediat ───────────────
 let app = null; // va fi populat cu Express după migrations
