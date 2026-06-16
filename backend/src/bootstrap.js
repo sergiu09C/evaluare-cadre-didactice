@@ -60,7 +60,10 @@ try {
   });
   console.log('[bootstrap] ensure-db OK');
 } catch (e) {
-  console.error('[bootstrap] ensure-db FAILED (continuing):', e.message);
+  console.error('[bootstrap] ensure-db FAILED — fallback la in-repo DB:', e.message);
+  // Dacă ensure-db nu poate trata volumul (ENOSPC, EPERM etc.), forțăm in-repo DB
+  // pentru migrate-on-boot și Express — altfel s-ar deschide DB-ul bloat.
+  delete process.env.DB_PATH;
 }
 
 try {
