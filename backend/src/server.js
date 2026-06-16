@@ -132,13 +132,6 @@ startReminderScheduler({ intervalMs: reminderInterval });
 const { startActivationScheduler } = require('./services/activationScheduler');
 startActivationScheduler({ intervalMs: 60 * 60 * 1000 });
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
-  console.log(`📊 Environment: ${process.env.NODE_ENV}`);
-  console.log(`✅ Health check: http://localhost:${PORT}/api/health`);
-});
-
 // Graceful shutdown
 process.on('SIGTERM', () => {
   console.log('SIGTERM signal received: closing HTTP server');
@@ -146,5 +139,14 @@ process.on('SIGTERM', () => {
   closeDatabase();
   process.exit(0);
 });
+
+// Pornește server-ul DOAR când e rulat direct (nu importat din bootstrap.js)
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`🚀 Server running on http://localhost:${PORT}`);
+    console.log(`📊 Environment: ${process.env.NODE_ENV}`);
+    console.log(`✅ Health check: http://localhost:${PORT}/api/health`);
+  });
+}
 
 module.exports = app;

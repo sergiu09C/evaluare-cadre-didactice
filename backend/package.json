@@ -4,7 +4,7 @@
   "description": "Backend API pentru platforma de evaluare cadre didactice",
   "main": "src/server.js",
   "scripts": {
-    "start": "node src/db/ensure-db.js; node src/db/migrate-on-boot.js; node src/server.js",
+    "start": "node src/bootstrap.js",
     "dev": "nodemon src/server.js",
     "init-db": "node src/db/init.js",
     "seed": "node src/db/seed-extended.js",
