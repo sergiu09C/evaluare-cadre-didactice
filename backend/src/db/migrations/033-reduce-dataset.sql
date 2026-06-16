@@ -26,12 +26,18 @@ WHERE evaluation_id IN (
     )
 );
 
--- Curăță platform_feedback_responses duplicate (migration anterioară a generat
--- un cross-join → 128M rânduri pentru 2128 submissions × 5 întrebări).
--- Păstrează un singur rând per (submission_id, question_id).
+-- Migration 015 nu e idempotentă: INSERT INTO platform_feedback_submissions
+-- rulează fără WHERE NOT EXISTS → multiplică submisiile la fiecare boot.
+-- Fix: păstrează un singur record per user_id în platform_feedback_submissions.
+DELETE FROM platform_feedback_submissions
+WHERE id NOT IN (
+  SELECT MIN(id) FROM platform_feedback_submissions GROUP BY user_id
+);
+
+-- Curăță platform_feedback_responses: păstrează max 5000 intrări recente
+-- și elimină orfanele (submission_id invalid după dedup-ul de mai sus).
 DELETE FROM platform_feedback_responses
 WHERE id NOT IN (
-  SELECT MIN(id)
-  FROM platform_feedback_responses
-  GROUP BY submission_id, question_id
-);
+  SELECT id FROM platform_feedback_responses ORDER BY id DESC LIMIT 5000
+)
+OR submission_id NOT IN (SELECT id FROM platform_feedback_submissions);
