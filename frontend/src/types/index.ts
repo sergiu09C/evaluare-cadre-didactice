@@ -185,11 +185,7 @@ export interface ProfessorDetailedStats {
 
 // Accessibility Types
 export interface AccessibilityPreferences {
-  fontSize: 'small' | 'normal' | 'large' | 'extra-large';
-  highContrast: boolean;
-  reduceMotion: boolean;
   theme: 'light' | 'dark' | 'system';
-  dyslexiaFont: boolean;
 }
 
 export interface AccessibilityContextType {

@@ -5,22 +5,9 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ============================================
-   ACCESSIBILITY INFRASTRUCTURE
-   ============================================ */
-
-/* CSS Custom Properties - Default (Light Theme) */
+/* CSS Custom Properties */
 :root {
-  /* Font Sizes - Base multipliers */
-  --font-size-multiplier: 1;
-  --font-base: calc(16px * var(--font-size-multiplier));
-  --font-sm: calc(14px * var(--font-size-multiplier));
-  --font-xs: calc(12px * var(--font-size-multiplier));
-  --font-lg: calc(18px * var(--font-size-multiplier));
-  --font-xl: calc(20px * var(--font-size-multiplier));
-  --font-2xl: calc(24px * var(--font-size-multiplier));
-
-  /* Colors - Light Theme (mapped to ECD tokens) */
+  /* Colors - Light Theme */
   --color-bg: #FAFAFB;
   --color-bg-elevated: #FFFFFF;
   --color-text-primary: #181D2C;
@@ -33,30 +20,8 @@
   --animation-duration: 150ms;
   --animation-easing: cubic-bezier(0.4, 0, 0.2, 1);
 
-  /* Font Family — Geist (loaded via index.html) */
+  /* Font */
   --font-family-base: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-}
-
-/* Font Size Variants */
-[data-font-size="small"] {
-  --font-size-multiplier: 0.875;
-}
-
-[data-font-size="normal"] {
-  --font-size-multiplier: 1;
-}
-
-[data-font-size="large"] {
-  --font-size-multiplier: 1.125;
-}
-
-[data-font-size="extra-large"] {
-  --font-size-multiplier: 1.25;
-}
-
-/* Dyslexia-Friendly Font */
-[data-dyslexia-font="true"] {
-  --font-family-base: 'Comic Sans MS', 'OpenDyslexic', cursive, sans-serif;
 }
 
 /* Dark Theme — colors come from tokens-dark.css (design-first ECD palette).
@@ -70,27 +35,6 @@
   --color-border: var(--ecd-border);
   --color-primary: var(--ecd-accent-600);
   --color-primary-hover: var(--ecd-accent-500);
-}
-
-/* High Contrast Mode */
-[data-high-contrast="true"] {
-  --color-bg: #ffffff;
-  --color-bg-elevated: #ffffff;
-  --color-text-primary: #000000;
-  --color-text-secondary: #000000;
-  --color-border: #000000;
-  --color-primary: #0000ee;
-  --color-primary-hover: #551a8b;
-}
-
-[data-high-contrast="true"][data-theme="dark"] {
-  --color-bg: #000000;
-  --color-bg-elevated: #000000;
-  --color-text-primary: #ffffff;
-  --color-text-secondary: #ffffff;
-  --color-border: #ffffff;
-  --color-primary: #ffff00;
-  --color-primary-hover: #ffff99;
 }
 
 /* Respect User's Motion Preferences */
