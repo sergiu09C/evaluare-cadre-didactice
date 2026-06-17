@@ -116,7 +116,6 @@ export function useArrowNavigation(options: UseArrowNavigationOptions): void {
 
         case 'grid':
           if (!columns) {
-            console.warn('useArrowNavigation: columns parameter is required for grid direction');
             return;
           }
 

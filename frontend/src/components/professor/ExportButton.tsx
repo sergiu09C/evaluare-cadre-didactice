@@ -62,7 +62,6 @@ const ExportButton: React.FC<ExportButtonProps> = ({
       window.URL.revokeObjectURL(url);
 
     } catch (err: any) {
-      console.error('Export error:', err);
       setError(err.response?.data?.error || 'Eroare la exportul datelor. Te rugăm să încerci din nou.');
     } finally {
       setIsExporting(false);

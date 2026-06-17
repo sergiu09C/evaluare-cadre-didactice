@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { api } from '../services/api';
 import type { User, LoginCredentials } from '../types';
 
@@ -33,8 +33,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           const currentUser = await api.getCurrentUser();
           setUser(currentUser);
           localStorage.setItem('user', JSON.stringify(currentUser));
-        } catch (error) {
-          console.error('Auth verification failed:', error);
+        } catch {
           localStorage.removeItem('token');
           localStorage.removeItem('user');
           setUser(null);
@@ -61,8 +60,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = async () => {
     try {
       await api.logout();
-    } catch (error) {
-      console.error('Logout error:', error);
+    } catch {
+      // Fail silently — token removed in finally
     } finally {
       localStorage.removeItem('token');
       localStorage.removeItem('user');

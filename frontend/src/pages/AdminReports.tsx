@@ -258,8 +258,8 @@ export default function AdminReports() {
     try {
       const options = await api.getAdminFilterOptions();
       setFilterOptions(options);
-    } catch (err: any) {
-      console.error('Error loading filter options:', err);
+    } catch {
+      // Empty filters on failure
     }
   };
 
@@ -267,8 +267,8 @@ export default function AdminReports() {
     try {
       const data = await api.getCourseNames();
       setCourseNames(data.courses);
-    } catch (err: any) {
-      console.error('Error loading course names:', err);
+    } catch {
+      // Empty list on failure
     }
   };
 
@@ -388,8 +388,8 @@ export default function AdminReports() {
                 a.click();
                 window.URL.revokeObjectURL(url);
                 document.body.removeChild(a);
-              } catch (e) {
-                console.error('export csv fail', e);
+              } catch {
+                // Download failed silently
               }
             }}
             className="inline-flex items-center gap-2 px-4 h-10 rounded-md bg-accent-600 text-white font-medium shadow-elev-1 hover:bg-accent-700 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-400/40"
@@ -403,7 +403,7 @@ export default function AdminReports() {
       {/* Tabs */}
       <div className="card">
         <div ref={tablistRef} className="flex border-b border-neutral-200 overflow-x-auto" role="tablist" aria-label="Tipuri de rapoarte">
-          {tabs.map((tab, index) => (
+          {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}

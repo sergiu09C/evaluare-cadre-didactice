@@ -130,8 +130,8 @@ export function exportElementToPDF(
       try {
         popup.focus();
         popup.print();
-      } catch (e) {
-        console.error('[pdfExport] popup print failed', e);
+      } catch {
+        // print() blocked by browser — iframe fallback below
       }
     };
     if (popup.document.readyState === 'complete') {
@@ -145,7 +145,6 @@ export function exportElementToPDF(
   }
 
   // FALLBACK: popup blocat → iframe ascuns
-  console.warn('[pdfExport] popup blocat de browser, folosesc iframe fallback');
   const iframe = document.createElement('iframe');
   iframe.setAttribute('aria-hidden', 'true');
   iframe.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden;';
@@ -160,8 +159,7 @@ export function exportElementToPDF(
       win.addEventListener('afterprint', cleanup);
       setTimeout(cleanup, 60_000);
       setTimeout(() => { win.focus(); win.print(); }, 200);
-    } catch (err) {
-      console.error('[pdfExport] iframe print failed', err);
+    } catch {
       cleanup();
       alert('Browserul nu permite generarea PDF. Activează pop-up-urile sau folosește Ctrl+P pe pagină.');
     }

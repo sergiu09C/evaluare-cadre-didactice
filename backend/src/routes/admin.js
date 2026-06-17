@@ -48,9 +48,6 @@ router.get('/kpis', adminController.getKPIs);
 // Audit log — CF-14 dizertație
 router.get('/audit-log', adminController.listAuditLog);
 
-// Validare psihometrică — Cronbach α pe D1-D5 + global (Cap. 3.6.1)
-router.get('/psychometry', adminController.getPsychometry);
-
 // === USERS CRUD ===
 const adminUsersController = require('../controllers/adminUsersController');
 router.get('/users', adminUsersController.list);
@@ -63,11 +60,5 @@ router.delete('/users/:id', adminUsersController.deactivate);
 // Lookups pentru editor profil profesor
 router.get('/lookup/courses', adminUsersController.lookupCourses);
 router.get('/lookup/departments', adminUsersController.lookupDepartments);
-
-// Perioade de evaluare CRUD — folosite de activationScheduler pentru auto-activare (D-04)
-router.get('/periods', adminController.listPeriods);
-router.post('/periods', adminController.createPeriod);
-router.put('/periods/:id', adminController.updatePeriod);
-router.delete('/periods/:id', adminController.deletePeriod);
 
 module.exports = router;

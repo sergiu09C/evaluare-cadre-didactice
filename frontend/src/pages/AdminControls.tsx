@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import { ConfirmDialog, AlertDialog } from '../components/AccessibleModal';
-import { SuccessNotification, ErrorNotification } from '../components/LiveRegion';
 import { useTabNavigation } from '../hooks/useTabNavigation';
 import { FocusTrap } from '../components/a11y';
 import ScreenReaderOnly from '../components/ScreenReaderOnly';
@@ -157,8 +156,8 @@ export default function AdminControls() {
     try {
       const data = await api.getCourseNames();
       setCourseNames(data.courses || []);
-    } catch (error) {
-      console.error('Error loading course names:', error);
+    } catch {
+      // Empty state shown on failure
     }
   };
 
@@ -172,8 +171,8 @@ export default function AdminControls() {
       setLoadingDisciplines(true);
       const data = await api.getDisciplineComparison(selectedCourse);
       setDisciplineComparison(data);
-    } catch (error) {
-      console.error('Error loading discipline comparison:', error);
+    } catch {
+      // Error shown via empty state
     } finally {
       setLoadingDisciplines(false);
     }
@@ -201,8 +200,8 @@ export default function AdminControls() {
       setEmailFromName(data.email_from_name || 'Platformă Evaluare');
       setEmailFromAddress(data.email_from_address || '');
       setSendEmailOnMessage(data.send_email_on_message !== undefined ? data.send_email_on_message : true);
-    } catch (error) {
-      console.error('Error loading platform settings:', error);
+    } catch {
+      // Defaults used on failure
     }
   };
 
@@ -293,7 +292,7 @@ export default function AdminControls() {
     try {
       setTestingEmail(true);
 
-      const response = await api.testEmail(testEmail);
+      await api.testEmail(testEmail);
       showAlertDialog('Succes', `Email de test trimis cu succes către ${testEmail}! Verifică inbox-ul (sau spam-ul).`, 'success');
     } catch (error: any) {
       showAlertDialog('Eroare', `Eroare la trimiterea email-ului de test: ${error.response?.data?.details || error.response?.data?.error || 'Eroare necunoscută'}`, 'error');
@@ -306,8 +305,8 @@ export default function AdminControls() {
     try {
       const data = await api.getFilterOptions();
       setFilterOptions(data);
-    } catch (error) {
-      console.error('Error loading filter options:', error);
+    } catch {
+      // Empty list shown on failure
     }
   };
 
@@ -315,8 +314,8 @@ export default function AdminControls() {
     try {
       const data = await api.getMessageHistory({ limit: 20 });
       setMessageHistory(data.messages || []);
-    } catch (error) {
-      console.error('Error loading message history:', error);
+    } catch {
+      // Empty list shown on failure
     }
   };
 
@@ -370,8 +369,8 @@ export default function AdminControls() {
 
       const data = await api.getFilteredStats(filters);
       setFilteredStats(data);
-    } catch (error) {
-      console.error('Error loading filtered stats:', error);
+    } catch {
+      // Empty stats on failure
     } finally {
       setLoadingStats(false);
     }
@@ -383,8 +382,8 @@ export default function AdminControls() {
       setLoadingQuestions(true);
       const data = await api.getAllQuestions();
       setQuestions(data.questions || []);
-    } catch (error) {
-      console.error('Error loading questions:', error);
+    } catch {
+      // Empty list shown on failure
     } finally {
       setLoadingQuestions(false);
     }
@@ -460,9 +459,8 @@ export default function AdminControls() {
     try {
       setQuestions(newQuestions);
       await api.reorderQuestions(newQuestions.map(q => q.id));
-    } catch (error) {
-      console.error('Error reordering questions:', error);
-      loadQuestions(); // Reload on error
+    } catch {
+      loadQuestions();
     }
   };
 

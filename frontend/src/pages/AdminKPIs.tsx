@@ -110,14 +110,8 @@ export default function AdminKPIs() {
   const reportRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    Promise.all([
-      api.getAdminKPIs(),
-      // @ts-ignore — endpoint nou
-      api['api'] ? Promise.resolve(null) : null,
-    ])
-      .then(([d]) => {
-        setData(d);
-      })
+    api.getAdminKPIs()
+      .then((d) => setData(d))
       .catch((e) => setError(e.response?.data?.error || 'Eroare la încărcarea KPI'))
       .finally(() => setLoading(false));
   }, []);
