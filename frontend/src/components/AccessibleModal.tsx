@@ -118,19 +118,19 @@ export default function AccessibleModal({
       <div className="flex min-h-full items-center justify-center p-4">
         <div
           ref={modalRef}
-          className={`relative bg-white rounded-lg shadow-xl ${sizeClasses[size]} w-full p-6`}
+          className={`relative bg-white dark:bg-[#0F1E2E] rounded-lg shadow-xl ${sizeClasses[size]} w-full p-6`}
         >
           {/* Title */}
           <h2
             id={titleId.current}
-            className="text-xl font-semibold text-gray-900 mb-2"
+            className="text-xl font-semibold text-gray-900 dark:text-[#E8EFF6] mb-2"
           >
             {title}
           </h2>
 
           {/* Description */}
           {description && (
-            <p id={descId.current} className="text-sm text-gray-600 mb-4">
+            <p id={descId.current} className="text-sm text-gray-600 dark:text-[#A6BCD3] mb-4">
               {description}
             </p>
           )}
@@ -180,7 +180,7 @@ export function ConfirmDialog({
 
   return (
     <AccessibleModal isOpen={isOpen} onClose={onClose} title={title} size="sm">
-      <p className="text-gray-700 mb-6">{message}</p>
+      <p className="text-gray-700 dark:text-[#E8EFF6] mb-6">{message}</p>
       <div className="flex justify-end space-x-3">
         <button
           onClick={onClose}
@@ -242,7 +242,7 @@ export function AlertDialog({
     <AccessibleModal isOpen={isOpen} onClose={onClose} title={title} size="sm">
       <div className="flex items-start space-x-3 mb-6">
         <div className="flex-shrink-0">{variantIcons[variant]}</div>
-        <p className="text-gray-700 flex-1">{message}</p>
+        <p className="text-gray-700 dark:text-[#E8EFF6] flex-1">{message}</p>
       </div>
       <div className="flex justify-end">
         <button

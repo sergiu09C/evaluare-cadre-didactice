@@ -206,6 +206,10 @@ export default function AdminControls() {
     }
   };
 
+  const dispatchOptimisticStatus = (active: boolean) => {
+    window.dispatchEvent(new CustomEvent('platform-status-optimistic', { detail: { is_active: active } }));
+  };
+
   const handleTogglePlatform = () => {
     const newStatus = !isActive;
 
@@ -214,11 +218,13 @@ export default function AdminControls() {
       setShowConfirmPlatformOff(true);
     } else {
       setIsActive(newStatus);
+      dispatchOptimisticStatus(newStatus);
     }
   };
 
   const confirmPlatformOff = () => {
     setIsActive(false);
+    dispatchOptimisticStatus(false);
   };
 
   const savePlatformSettings = async () => {

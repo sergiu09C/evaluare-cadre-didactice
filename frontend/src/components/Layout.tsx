@@ -64,11 +64,26 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
     fetchStatus();
     const t = setInterval(fetchStatus, 60_000);
+
+    // Confirmare după save → refresh din backend
     window.addEventListener('platform-status-changed', fetchStatus);
+
+    // Update optimistic după toggle (înainte de save) → fără API call
+    const optimisticHandler = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (mounted && detail?.is_active !== undefined) {
+        setPlatformStatus(prev =>
+          prev ? { ...prev, is_active: detail.is_active } : prev
+        );
+      }
+    };
+    window.addEventListener('platform-status-optimistic', optimisticHandler);
+
     return () => {
       mounted = false;
       clearInterval(t);
       window.removeEventListener('platform-status-changed', fetchStatus);
+      window.removeEventListener('platform-status-optimistic', optimisticHandler);
     };
   }, []);
 
