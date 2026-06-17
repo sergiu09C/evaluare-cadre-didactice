@@ -245,6 +245,7 @@ export default function AdminControls() {
       });
       showAlertDialog('Succes', 'Setări salvate cu succes!', 'success');
       loadPlatformSettings();
+      window.dispatchEvent(new Event('platform-status-changed'));
     } catch (error: any) {
       showAlertDialog('Eroare', error.response?.data?.error || 'Eroare la salvarea setărilor', 'error');
     } finally {

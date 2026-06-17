@@ -56,27 +56,19 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     let mounted = true;
-    api
-      .getPlatformStatus()
-      .then((s) => {
-        if (mounted) setPlatformStatus(s);
-      })
-      .catch(() => {
-        /* silent */
-      });
-    const t = setInterval(() => {
+    const fetchStatus = () =>
       api
         .getPlatformStatus()
-        .then((s) => {
-          if (mounted) setPlatformStatus(s);
-        })
-        .catch(() => {
-          /* silent */
-        });
-    }, 60_000);
+        .then((s) => { if (mounted) setPlatformStatus(s); })
+        .catch(() => { /* silent */ });
+
+    fetchStatus();
+    const t = setInterval(fetchStatus, 60_000);
+    window.addEventListener('platform-status-changed', fetchStatus);
     return () => {
       mounted = false;
       clearInterval(t);
+      window.removeEventListener('platform-status-changed', fetchStatus);
     };
   }, []);
 
