@@ -40,6 +40,9 @@ app.get('/api/public-stats', (req, res, next) => {
     const { getDatabase } = require('./config/database');
     const db = getDatabase();
     const totalStudents = db.prepare("SELECT COUNT(*) AS n FROM users WHERE role='student'").get().n;
+    const professorCount = db.prepare('SELECT COUNT(*) AS n FROM professors').get().n;
+    const courseCount = db.prepare('SELECT COUNT(*) AS n FROM courses').get().n;
+    const totalEvaluations = db.prepare('SELECT COUNT(*) AS n FROM evaluations').get().n;
     const submittedCount = db.prepare("SELECT COUNT(*) AS n FROM evaluations WHERE status='submitted'").get().n;
     const totalRequired = db
       .prepare(
@@ -72,6 +75,9 @@ app.get('/api/public-stats', (req, res, next) => {
       avg_score: avgScore,
       submitted_count: submittedCount,
       total_students: totalStudents,
+      professor_count: professorCount,
+      course_count: courseCount,
+      total_evaluations: totalEvaluations,
       is_active: settings ? !!settings.is_active : true,
       deadline: settings?.evaluation_deadline_date || null,
     });

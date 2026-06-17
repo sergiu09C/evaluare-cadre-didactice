@@ -1,3 +1,34 @@
+// ── LIVE DATA — fetch from platform API ───────
+(async function loadLiveData() {
+  try {
+    const res = await fetch('/api/public-stats');
+    if (!res.ok) return;
+    const d = await res.json();
+
+    // KPI strip hero (slide 01)
+    setKpi('kpi-participare',   Math.round(d.participation_rate));
+    setKpi('kpi-scor',          Math.round(d.avg_score * 100));   // 3.80 → 380 (decimal mode)
+    setKpi('kpi-completate',    d.submitted_count);
+    setKpi('kpi-profesori',     d.professor_count);
+    // kpi-timp-raportare rămâne static (indicator de cercetare)
+
+    // KPI strip FAIMA (slide 07)
+    setKpi('kpi-studenti',      d.total_students);
+    setKpi('kpi-profesori-f',   d.professor_count);
+    setKpi('kpi-cursuri',       d.course_count);
+    setKpi('kpi-evaluari-pilot',d.total_evaluations);
+  } catch {
+    // date lipsă → animațiile rulează cu valorile hardcodate din HTML
+  }
+
+  function setKpi(id, value) {
+    const el = document.getElementById(id);
+    if (el && value !== undefined && value !== null) {
+      el.dataset.count = value;
+    }
+  }
+})();
+
 // ── CURSOR ────────────────────────────────────
 const cursor = document.getElementById('cursor');
 const ring = document.getElementById('cursor-ring');
@@ -65,7 +96,6 @@ function animCount(el) {
     const ease = 1 - Math.pow(1 - prog, 3);
     let val = Math.round(target * ease);
     if (isDecimal) {
-      // target is e.g. 357 → display as 3.57
       el.textContent = (target * ease / 100).toFixed(2) + suffix;
     } else if (comma) {
       el.textContent = val.toLocaleString('ro-RO') + suffix;
@@ -136,7 +166,6 @@ function drawSPC(canvasId, data, cl, ucl, lcl, color, yMin, yMax, labels) {
 
   ctx.clearRect(0, 0, W, 200);
 
-  // Grid lines
   [yMin, (yMin+yMax)/2, yMax].forEach(v => {
     ctx.beginPath();
     ctx.strokeStyle = 'rgba(255,255,255,.05)';
@@ -149,20 +178,16 @@ function drawSPC(canvasId, data, cl, ucl, lcl, color, yMin, yMax, labels) {
     ctx.fillText(v.toFixed(0) + (yMax > 10 ? '%' : ''), 2, toY(v) + 4);
   });
 
-  // UCL line
   ctx.beginPath(); ctx.strokeStyle = 'rgba(16,185,129,.5)'; ctx.lineWidth = 1; ctx.setLineDash([4,3]);
   ctx.moveTo(PAD.l, toY(ucl)); ctx.lineTo(PAD.l + cw, toY(ucl)); ctx.stroke();
-  // CL line
   ctx.beginPath(); ctx.strokeStyle = 'rgba(255,255,255,.25)'; ctx.lineWidth = 1;
   ctx.moveTo(PAD.l, toY(cl)); ctx.lineTo(PAD.l + cw, toY(cl)); ctx.stroke();
-  // LCL line (if exists)
   if (lcl !== null) {
     ctx.beginPath(); ctx.strokeStyle = 'rgba(239,68,68,.4)'; ctx.lineWidth = 1;
     ctx.moveTo(PAD.l, toY(lcl)); ctx.lineTo(PAD.l + cw, toY(lcl)); ctx.stroke();
   }
   ctx.setLineDash([]);
 
-  // Area fill
   ctx.beginPath();
   data.forEach((v, i) => i === 0 ? ctx.moveTo(toX(i), toY(v)) : ctx.lineTo(toX(i), toY(v)));
   ctx.lineTo(toX(data.length-1), toY(yMin));
@@ -171,13 +196,11 @@ function drawSPC(canvasId, data, cl, ucl, lcl, color, yMin, yMax, labels) {
   ctx.fillStyle = color.replace('1)', '0.08)');
   ctx.fill();
 
-  // Line
   ctx.beginPath();
   ctx.strokeStyle = color; ctx.lineWidth = 2.5;
   data.forEach((v, i) => i === 0 ? ctx.moveTo(toX(i), toY(v)) : ctx.lineTo(toX(i), toY(v)));
   ctx.stroke();
 
-  // Points
   data.forEach((v, i) => {
     const isSpecial = v > ucl || (lcl !== null && v < lcl);
     ctx.beginPath();
@@ -189,7 +212,6 @@ function drawSPC(canvasId, data, cl, ucl, lcl, color, yMin, yMax, labels) {
       ctx.strokeStyle = 'rgba(16,185,129,.4)'; ctx.lineWidth = 1.5;
       ctx.stroke();
     }
-    // X labels
     if (labels && labels[i]) {
       ctx.fillStyle = 'rgba(115,147,181,.6)';
       ctx.font = '9px JetBrains Mono, monospace';
