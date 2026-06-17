@@ -6,19 +6,41 @@ import { useEffect, useRef } from 'react';
  */
 export function useScrollReveal() {
   useEffect(() => {
-    const observer = new IntersectionObserver(
+    const io = new IntersectionObserver(
       (entries) => {
         entries.forEach((e) => {
           if (e.isIntersecting) {
             e.target.classList.add('ecd-visible');
-            observer.unobserve(e.target);
+            io.unobserve(e.target);
           }
         });
       },
       { threshold: 0.1 }
     );
-    document.querySelectorAll('.ecd-reveal').forEach((el) => observer.observe(el));
-    return () => observer.disconnect();
+
+    const observe = (el: Element) => {
+      if (!el.classList.contains('ecd-visible')) io.observe(el);
+    };
+
+    document.querySelectorAll('.ecd-reveal').forEach(observe);
+
+    // Observă și elementele .ecd-reveal adăugate dinamic (ex: după fetch async)
+    const mo = new MutationObserver((mutations) => {
+      mutations.forEach((m) => {
+        m.addedNodes.forEach((node) => {
+          if (node.nodeType !== 1) return;
+          const el = node as Element;
+          if (el.classList?.contains('ecd-reveal')) observe(el);
+          el.querySelectorAll?.('.ecd-reveal').forEach(observe);
+        });
+      });
+    });
+    mo.observe(document.body, { childList: true, subtree: true });
+
+    return () => {
+      io.disconnect();
+      mo.disconnect();
+    };
   }, []);
 }
 
