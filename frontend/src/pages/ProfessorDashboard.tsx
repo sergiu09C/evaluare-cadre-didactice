@@ -123,7 +123,7 @@ export default function ProfessorDashboard() {
       </div>
 
       {/* KPI personale */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 ecd-reveal">
         <KPICard
           label={TERMS.evaluationsReceived}
           value={summary?.totalEvaluations?.toLocaleString('ro-RO') ?? 0}
@@ -159,7 +159,7 @@ export default function ProfessorDashboard() {
           <p className="text-[13px] text-neutral-500 mb-3">
             Cum se transformă studenții tăi eligibili în feedback acționabil pentru tine.
           </p>
-          <Card padding="md">
+          <Card padding="md" className="ecd-reveal">
             <ol className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {homeStats.pipeline.map((s: any, i: number) => (
                 <li key={s.stage} className="flex items-start gap-3">
@@ -195,7 +195,7 @@ export default function ProfessorDashboard() {
             description="Cursurile asignate îți vor apărea aici după ce vor fi configurate de administrator."
           />
         ) : (
-          <Card padding="none" className="overflow-hidden">
+          <Card padding="none" className="overflow-hidden ecd-reveal">
             {courses.map((c, i) => (
               <button
                 key={c.id}
@@ -228,7 +228,7 @@ export default function ProfessorDashboard() {
       </div>
 
       {/* Shortcut-uri */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 ecd-reveal">
         <Button variant="secondary" icon={<DocumentChartBarIcon />} iconRight={<ArrowRightIcon />} onClick={() => navigate('/professor/reports')}>
           Rapoarte detaliate
         </Button>

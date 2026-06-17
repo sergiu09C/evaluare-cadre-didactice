@@ -146,7 +146,7 @@ export default function AdminDashboard() {
         </p>
       </div>
 
-      <Card>
+      <Card className="ecd-reveal">
         <div className="flex items-end gap-3 flex-wrap">
           <Select label="Facultate" value={faculty} onChange={(e) => setFaculty(e.target.value)} wrapperClassName="w-full sm:w-auto sm:min-w-[260px]">
             <option value="">Toate facultățile</option>
@@ -171,7 +171,7 @@ export default function AdminDashboard() {
       {filtered.length === 0 ? (
         <EmptyState title="Niciun profesor" description="Modifică filtrele sau căutarea." />
       ) : (
-        <Card padding="none" className="overflow-hidden">
+        <Card padding="none" className="overflow-hidden ecd-reveal">
           <div className="overflow-x-auto">
             <table className="min-w-full">
               <thead className="bg-neutral-25">

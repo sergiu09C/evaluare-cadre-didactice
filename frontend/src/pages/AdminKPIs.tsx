@@ -79,7 +79,7 @@ function KPICard({ code, kpi }: { code: string; kpi: KPI }) {
     return `cel puțin ${kpi.target}${unit}`;
   })();
   return (
-    <Card padding="md" className="flex flex-col gap-2">
+    <Card padding="md" className="flex flex-col gap-2 ecd-reveal">
       <div className="flex items-start justify-between gap-2">
         <Badge tone="accent">{code}</Badge>
         <StatusBadge status={status} />
@@ -88,7 +88,7 @@ function KPICard({ code, kpi }: { code: string; kpi: KPI }) {
       {kpi.description && (
         <div className="text-[12px] text-neutral-500 leading-snug">{kpi.description}</div>
       )}
-      <div className="text-2xl font-bold text-neutral-800 tabular-nums mt-1">{displayValue}</div>
+      <div className="text-2xl font-bold text-neutral-800 tabular-nums mt-1 ecd-kpi-num">{displayValue}</div>
       <div className="flex flex-col gap-0.5 mt-0.5">
         <div className="text-[11px] text-neutral-500">
           <span className="font-medium">Țintă:</span> {targetTxt}
@@ -105,7 +105,6 @@ function KPICard({ code, kpi }: { code: string; kpi: KPI }) {
 
 export default function AdminKPIs() {
   const [data, setData] = useState<KPIData | null>(null);
-  const [psychometry, setPsychometry] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const reportRef = useRef<HTMLDivElement>(null);
@@ -118,13 +117,6 @@ export default function AdminKPIs() {
     ])
       .then(([d]) => {
         setData(d);
-        // Cronbach (best-effort; nu blochează KPI)
-        fetch('/api/admin/psychometry', {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-        })
-          .then((r) => r.json())
-          .then(setPsychometry)
-          .catch(() => {});
       })
       .catch((e) => setError(e.response?.data?.error || 'Eroare la încărcarea KPI'))
       .finally(() => setLoading(false));
@@ -209,57 +201,6 @@ export default function AdminKPIs() {
         </div>
       </section>
 
-      {psychometry && (
-        <section>
-          <h2 className="text-lg font-semibold text-neutral-800 mb-1">
-            Validare psihometrică — Cronbach α
-          </h2>
-          <p className="text-xs text-neutral-500 mb-3">
-            Conform Cap. 3.6.1 dizertație: ținta ≥ 0.70 per dimensiune, ≥ 0.85 global.
-            Calcul automat pe răspunsurile cu Likert din baza de date.
-          </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {Object.entries(psychometry.perDimension || {}).map(([dim, v]: any) => (
-              <Card key={dim} padding="md" className="flex flex-col gap-1">
-                <div className="flex items-center justify-between">
-                  <Badge tone="accent">{dim}</Badge>
-                  <Badge tone={
-                    v.status === 'ok' ? 'success' :
-                    v.status === 'acceptable' ? 'warning' :
-                    v.status === 'low' ? 'danger' : 'neutral'
-                  }>
-                    {v.alpha != null ? `α = ${v.alpha}` : '—'}
-                  </Badge>
-                </div>
-                <div className="text-xs text-neutral-500">
-                  {v.n_items} itemi · {v.n_responses} răspunsuri complete
-                </div>
-                <div className="text-[11px] text-neutral-400">
-                  Țintă: α ≥ {v.target}
-                </div>
-              </Card>
-            ))}
-            <Card padding="md" className="flex flex-col gap-1 border-2 border-accent-200">
-              <div className="flex items-center justify-between">
-                <Badge tone="primary">GLOBAL (19 itemi)</Badge>
-                <Badge tone={
-                  psychometry.global?.status === 'ok' ? 'success' :
-                  psychometry.global?.status === 'acceptable' ? 'warning' :
-                  psychometry.global?.status === 'low' ? 'danger' : 'neutral'
-                }>
-                  {psychometry.global?.alpha != null ? `α = ${psychometry.global.alpha}` : '—'}
-                </Badge>
-              </div>
-              <div className="text-xs text-neutral-500">
-                {psychometry.global?.n_items} itemi · {psychometry.global?.n_responses} răspunsuri complete
-              </div>
-              <div className="text-[11px] text-neutral-400">
-                Țintă: α ≥ {psychometry.global?.target}
-              </div>
-            </Card>
-          </div>
-        </section>
-      )}
     </div>
   );
 }

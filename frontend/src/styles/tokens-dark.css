@@ -16,31 +16,31 @@
   --ecd-primary-800: #C4D2E3;        /* lightest — brand text on dark */
   --ecd-primary-900: #E8EFF7;
 
-  /* Accent — brighter on dark for vibrancy */
-  --ecd-accent-50:  #1F1638;
-  --ecd-accent-100: #2C1F4D;
-  --ecd-accent-200: #3D2A6B;
-  --ecd-accent-300: #5037A0;
-  --ecd-accent-400: #6E4FCC;
+  /* Accent — vibrant violet, aligned with prezentare (#7C3AED) */
+  --ecd-accent-50:  #1A0D38;
+  --ecd-accent-100: #270F4D;
+  --ecd-accent-200: #3D1A7C;
+  --ecd-accent-300: #5B28AD;
+  --ecd-accent-400: #7C3AED;          /* prezentare: --violet (base) */
   --ecd-accent-500: #8B5CF6;
-  --ecd-accent-600: #A78BFA;          /* primary accent — brighter */
-  --ecd-accent-700: #C4B5FD;
+  --ecd-accent-600: #9F67F7;          /* prezentare: --violet2 */
+  --ecd-accent-700: #C4B5FD;          /* prezentare: --violet3 */
   --ecd-accent-800: #DDD6FE;
   --ecd-accent-900: #EDE9FE;
 
-  /* Neutrals — purpose-built dark scale, not inverted */
-  --ecd-neutral-0:   #0A0E16;          /* page bg base */
-  --ecd-neutral-25:  #0E131D;          /* default page bg */
-  --ecd-neutral-50:  #131926;
-  --ecd-neutral-100: #1A2130;          /* surface 1 */
-  --ecd-neutral-200: #232B3D;          /* borders */
-  --ecd-neutral-300: #313B52;
-  --ecd-neutral-400: #475370;
-  --ecd-neutral-500: #6B7693;
-  --ecd-neutral-600: #8E97B1;
-  --ecd-neutral-700: #B7BDD0;
-  --ecd-neutral-800: #DDE1EC;          /* primary text */
-  --ecd-neutral-900: #F2F4F9;
+  /* Neutrals — purpose-built dark scale, aligned with prezentare palette */
+  --ecd-neutral-0:   #06121E;          /* page bg base — deep navy */
+  --ecd-neutral-25:  #06121E;          /* default page bg */
+  --ecd-neutral-50:  #0F1E2E;          /* card surface */
+  --ecd-neutral-100: #162638;          /* surface 1 */
+  --ecd-neutral-200: #1E3248;          /* borders */
+  --ecd-neutral-300: #2B4260;
+  --ecd-neutral-400: #3D5878;
+  --ecd-neutral-500: #5C7896;
+  --ecd-neutral-600: #7393B5;
+  --ecd-neutral-700: #A6BCD3;
+  --ecd-neutral-800: #E8EFF6;          /* primary text */
+  --ecd-neutral-900: #F4F8FC;
 
   /* Semantic — punched-up bg, kept-fg pair */
   --ecd-success-bg:   rgba(16, 185, 129, 0.14);
@@ -59,15 +59,15 @@
   --ecd-info:         #60A5FA;
   --ecd-info-fg:      #93C5FD;
 
-  /* Surface aliases — distinct elevation layers */
-  --ecd-bg:           #0A0E16;
-  --ecd-surface:      #131926;          /* card */
-  --ecd-surface-sub:  #1A2130;          /* nested card */
-  --ecd-border:       #232B3D;
-  --ecd-border-soft:  #1A2130;
-  --ecd-text:         #E6EAF3;
-  --ecd-text-soft:    #8E97B1;
-  --ecd-text-muted:   #6B7693;
+  /* Surface aliases — aligned with prezentare palette */
+  --ecd-bg:           #06121E;          /* prezentare: --bg */
+  --ecd-surface:      #0F1E2E;          /* prezentare: --card */
+  --ecd-surface-sub:  #162638;          /* nested card */
+  --ecd-border:       rgba(124,58,237,.18);  /* violet-tinted border like prezentare */
+  --ecd-border-soft:  rgba(124,58,237,.10);
+  --ecd-text:         #E8EFF6;          /* prezentare: --text */
+  --ecd-text-soft:    #7393B5;          /* prezentare: --muted */
+  --ecd-text-muted:   #5C7896;
 
   /* Elevation — keep the soft layered character, but inverted contribution */
   --ecd-elev-1: 0 1px 2px rgba(0, 0, 0, 0.45), 0 1px 1px rgba(0, 0, 0, 0.3);

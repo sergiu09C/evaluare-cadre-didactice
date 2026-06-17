@@ -255,6 +255,111 @@
 }
 
 /* ============================================
+   CURSOR PERSONALIZAT — dark mode only
+   ============================================ */
+[data-theme="dark"] #ecd-cursor-dot {
+  position: fixed;
+  width: 12px; height: 12px;
+  background: #7C3AED;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-50%, -50%);
+  transition: transform 0.1s ease, background 0.18s;
+  mix-blend-mode: exclusion;
+}
+[data-theme="dark"] #ecd-cursor-ring {
+  position: fixed;
+  width: 38px; height: 38px;
+  border: 1.5px solid rgba(196,181,253,.6);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9998;
+  transform: translate(-50%, -50%);
+  transition: transform 0.22s cubic-bezier(.34,1.56,.64,1), opacity 0.18s;
+}
+[data-theme="dark"] #ecd-cursor-canvas {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+  z-index: 9997;
+}
+[data-theme="dark"] #ecd-cursor-dot.ecd-cursor-hover {
+  transform: translate(-50%, -50%) scale(2);
+  background: rgba(196,181,253,.8);
+}
+[data-theme="dark"] #ecd-cursor-ring.ecd-cursor-hover {
+  transform: translate(-50%, -50%) scale(1.5);
+  opacity: 0.4;
+}
+/* Ascunde cursorul nativ doar când custom cursor e activ */
+[data-theme="dark"] body:has(#ecd-cursor-dot) {
+  cursor: none;
+}
+[data-theme="dark"] body:has(#ecd-cursor-dot) a,
+[data-theme="dark"] body:has(#ecd-cursor-dot) button,
+[data-theme="dark"] body:has(#ecd-cursor-dot) [role="button"] {
+  cursor: none;
+}
+
+/* ============================================
+   SCROLL REVEAL — fade-up la intrare în viewport
+   ============================================ */
+.ecd-reveal {
+  opacity: 0;
+  transform: translateY(22px);
+  transition: opacity 0.65s cubic-bezier(.16,1,.3,1),
+              transform 0.65s cubic-bezier(.16,1,.3,1);
+}
+.ecd-reveal.ecd-visible {
+  opacity: 1;
+  transform: none;
+}
+.ecd-reveal-d1 { transition-delay: 0.08s; }
+.ecd-reveal-d2 { transition-delay: 0.16s; }
+.ecd-reveal-d3 { transition-delay: 0.24s; }
+@media (prefers-reduced-motion: reduce) {
+  .ecd-reveal { opacity: 1; transform: none; transition: none; }
+}
+
+/* ============================================
+   DARK MODE — sidebar, header, nav backdrop
+   ============================================ */
+[data-theme="dark"] nav[aria-label="Navigare principală"] {
+  background: #0F1E2E;
+  border-right-color: rgba(124,58,237,.18);
+}
+[data-theme="dark"] header[role="banner"] {
+  background: rgba(15,30,46,.85);
+  backdrop-filter: blur(16px);
+  border-bottom-color: rgba(124,58,237,.15);
+}
+/* Active nav item dark */
+[data-theme="dark"] .bg-primary-50 {
+  background: rgba(124,58,237,.15) !important;
+}
+[data-theme="dark"] .text-primary-800 {
+  color: #C4B5FD !important;
+}
+/* Card glow on hover */
+[data-theme="dark"] .card:hover,
+[data-theme="dark"] [class*="rounded-xl"]:hover,
+[data-theme="dark"] [class*="rounded-2xl"]:hover {
+  border-color: rgba(124,58,237,.35);
+  transition: border-color 0.2s;
+}
+/* KPI number glow */
+[data-theme="dark"] .ecd-kpi-num {
+  color: #fff;
+  text-shadow: 0 0 24px rgba(124,58,237,.4);
+}
+/* Radial gradient pe pagina principală în dark mode */
+[data-theme="dark"] #main-content {
+  background: radial-gradient(ellipse 70% 40% at 70% 10%, rgba(124,58,237,.08) 0%, transparent 65%);
+}
+
+/* ============================================
    PAGE TRANSITION — fade-in subtle (200ms)
    Aplicat pe <main> via cheia React (useLocation pathname).
    ============================================ */

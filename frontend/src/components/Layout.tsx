@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useAccessibility } from '../contexts/AccessibilityContext';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useCursorTrail } from '../hooks/useCursorTrail';
+import { useScrollReveal } from '../hooks/useScrollReveal';
 import AccessibilityMenu from './AccessibilityMenu';
 import { SkipLink } from './a11y';
 import { Avatar } from './ui';
@@ -33,11 +36,18 @@ type NavItem = {
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const { user, logout, isAdmin, isProfessor } = useAuth();
+  const { preferences } = useAccessibility();
   const navigate = useNavigate();
   const location = useLocation();
   const [platformStatus, setPlatformStatus] = useState<{ is_active: boolean; closure_message: string | null; deadline: string | null } | null>(null);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+
+  const isDark = preferences.theme === 'dark' ||
+    (preferences.theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+  useCursorTrail(isDark);
+  useScrollReveal();
 
   // Închide drawer-ul mobile când navigăm
   useEffect(() => {

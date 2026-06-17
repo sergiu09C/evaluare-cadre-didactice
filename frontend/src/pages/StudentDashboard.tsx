@@ -84,7 +84,7 @@ export default function StudentDashboard() {
       </div>
 
       {/* 2 KPI unice (Streak + Drafturi) — restul în Acasă */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 ecd-reveal">
         <KPICard
           label="Streak completare"
           value={streak ?? 0}
@@ -99,7 +99,7 @@ export default function StudentDashboard() {
       </div>
 
       {/* DualRadar — comparație personală cu media facultății */}
-      <Card>
+      <Card className="ecd-reveal">
         <h2 className="text-base font-semibold text-neutral-800 mb-1">
           Scorurile tale vs. media facultății
         </h2>
@@ -128,7 +128,7 @@ export default function StudentDashboard() {
       </Card>
 
       {/* Shortcut-uri rapide */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 ecd-reveal">
         <Button variant="secondary" iconRight={<ArrowRightIcon />} onClick={() => navigate('/evaluations')}>
           Evaluări active
         </Button>
