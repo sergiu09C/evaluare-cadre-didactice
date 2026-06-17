@@ -50,6 +50,12 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
       effectiveTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
     }
     root.setAttribute('data-theme', effectiveTheme);
+    // Clasa .dark pe <html> pentru Tailwind darkMode: 'class'
+    if (effectiveTheme === 'dark') {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
   };
 
   const syncWithBackend = async () => {
