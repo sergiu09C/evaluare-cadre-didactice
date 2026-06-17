@@ -1,5 +1,6 @@
 import { Badge } from '../ui';
 import { TrophyIcon } from '@heroicons/react/24/outline';
+import { scoreTone } from '../../utils/scoreFormatting';
 
 interface Item {
   id?: number;
@@ -22,13 +23,6 @@ function rankColor(rank: number): string {
   if (rank === 1) return '#94A3B8'; // argint
   if (rank === 2) return '#A16207'; // bronz
   return 'var(--ecd-neutral-300)';
-}
-
-function scoreTone(score: number | null | undefined): 'success' | 'warning' | 'danger' | 'neutral' {
-  if (score == null) return 'neutral';
-  if (score >= 4) return 'success';
-  if (score >= 3) return 'warning';
-  return 'danger';
 }
 
 export default function TopNList({

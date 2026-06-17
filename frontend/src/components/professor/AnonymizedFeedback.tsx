@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { formatDate } from '../../utils/dateFormatting';
 
 interface TextResponse {
   question: string;
@@ -73,15 +74,6 @@ const AnonymizedFeedback: React.FC<AnonymizedFeedbackProps> = ({
       response.question.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesCategory && matchesSearch;
   });
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat('ro-RO', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    }).format(date);
-  };
 
   const getCategoryColor = (category: string) => {
     const colors: { [key: string]: string } = {

@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import { Card, Badge, Select, Input, EmptyState } from '../components/ui';
 import { HomeIcon, ChartBarIcon, MagnifyingGlassIcon, ArrowDownIcon, ArrowUpIcon } from '@heroicons/react/24/outline';
+import { scoreTone } from '../utils/scoreFormatting';
 
 interface Professor {
   id: number;
@@ -23,13 +24,6 @@ interface Professor {
 }
 
 type SortKey = 'name' | 'faculty' | 'department' | 'evaluations' | 'avg' | 'completion';
-
-function scoreTone(score: number | null): 'success' | 'warning' | 'danger' | 'neutral' {
-  if (score == null) return 'neutral';
-  if (score >= 4) return 'success';
-  if (score >= 3) return 'warning';
-  return 'danger';
-}
 
 export default function AdminDashboard() {
   const navigate = useNavigate();

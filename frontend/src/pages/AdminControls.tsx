@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useApiData } from '../hooks/useApiData';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import { ConfirmDialog, AlertDialog } from '../components/AccessibleModal';
@@ -75,8 +76,8 @@ export default function AdminControls() {
   const [loadingDisciplines, setLoadingDisciplines] = useState(false);
 
   // Questionnaire management state
-  const [questions, setQuestions] = useState<any[]>([]);
-  const [loadingQuestions, setLoadingQuestions] = useState(false);
+  const { data: questionsData, loading: loadingQuestions, refetch: loadQuestions } = useApiData(() => api.getAllQuestions());
+  const questions: any[] = questionsData?.questions ?? [];
   const [editingQuestion, setEditingQuestion] = useState<any>(null);
   const [showQuestionForm, setShowQuestionForm] = useState(false);
   const [questionForm, setQuestionForm] = useState({
@@ -102,11 +103,10 @@ export default function AdminControls() {
   const [savingEmailSettings, setSavingEmailSettings] = useState(false);
 
   // Dialog states
-  const [showConfirmPlatformOff, setShowConfirmPlatformOff] = useState(false);
-  const [showConfirmPlatformSave, setShowConfirmPlatformSave] = useState(false);
-  const [showConfirmSendMessage, setShowConfirmSendMessage] = useState(false);
-  const [showConfirmDeleteQuestion, setShowConfirmDeleteQuestion] = useState(false);
-  const [deleteQuestionId, setDeleteQuestionId] = useState<number | null>(null);
+  type ConfirmKey = 'platformOff' | 'platformSave' | 'sendMessage' | 'deleteQuestion';
+  const [confirmDialog, setConfirmDialog] = useState<{ key: ConfirmKey; questionId?: number } | null>(null);
+  const openConfirm = (key: ConfirmKey, questionId?: number) => setConfirmDialog({ key, questionId });
+  const closeConfirm = () => setConfirmDialog(null);
   const [showAlert, setShowAlert] = useState(false);
   const [alertConfig, setAlertConfig] = useState<{
     title: string;
@@ -135,7 +135,6 @@ export default function AdminControls() {
     loadFilterOptions();
     loadMessageHistory();
     loadCourseNames();
-    loadQuestions();
   }, []);
 
   // Helper function to show alert dialogs
@@ -214,7 +213,7 @@ export default function AdminControls() {
 
     if (!newStatus) {
       // Turning platform OFF - show warning
-      setShowConfirmPlatformOff(true);
+      openConfirm('platformOff');
     } else {
       setIsActive(newStatus);
       dispatchOptimisticStatus(newStatus);
@@ -229,7 +228,7 @@ export default function AdminControls() {
   const savePlatformSettings = async () => {
     // Extra confirmation when saving platform as OFF
     if (!isActive && platformSettings?.is_active) {
-      setShowConfirmPlatformSave(true);
+      openConfirm('platformSave');
       return;
     }
 
@@ -325,7 +324,7 @@ export default function AdminControls() {
       return;
     }
 
-    setShowConfirmSendMessage(true);
+    openConfirm('sendMessage');
   };
 
   const confirmSendMessage = async () => {
@@ -377,18 +376,6 @@ export default function AdminControls() {
   };
 
   // Questionnaire Management Functions
-  const loadQuestions = async () => {
-    try {
-      setLoadingQuestions(true);
-      const data = await api.getAllQuestions();
-      setQuestions(data.questions || []);
-    } catch {
-      // Empty list shown on failure
-    } finally {
-      setLoadingQuestions(false);
-    }
-  };
-
   const handleSaveQuestion = async () => {
     if (!questionForm.text || !questionForm.category) {
       showAlertDialog('Atenție', 'Textul și categoria sunt obligatorii', 'info');
@@ -429,21 +416,19 @@ export default function AdminControls() {
   };
 
   const handleDeleteQuestion = async (id: number) => {
-    setDeleteQuestionId(id);
-    setShowConfirmDeleteQuestion(true);
+    openConfirm('deleteQuestion', id);
   };
 
   const confirmDeleteQuestion = async () => {
-    if (!deleteQuestionId) return;
+    const id = confirmDialog?.questionId;
+    if (!id) return;
 
     try {
-      await api.deleteQuestion(deleteQuestionId);
+      await api.deleteQuestion(id);
       showAlertDialog('Succes', 'Întrebare ștearsă cu succes!', 'success');
       loadQuestions();
     } catch (error: any) {
       showAlertDialog('Eroare', error.response?.data?.error || 'Eroare la ștergerea întrebării', 'error');
-    } finally {
-      setDeleteQuestionId(null);
     }
   };
 
@@ -457,9 +442,8 @@ export default function AdminControls() {
     [newQuestions[index], newQuestions[targetIndex]] = [newQuestions[targetIndex], newQuestions[index]];
 
     try {
-      setQuestions(newQuestions);
       await api.reorderQuestions(newQuestions.map(q => q.id));
-    } catch {
+    } finally {
       loadQuestions();
     }
   };
@@ -1499,8 +1483,8 @@ export default function AdminControls() {
 
       {/* Accessible Dialogs */}
       <ConfirmDialog
-        isOpen={showConfirmPlatformOff}
-        onClose={() => setShowConfirmPlatformOff(false)}
+        isOpen={confirmDialog?.key === 'platformOff'}
+        onClose={closeConfirm}
         onConfirm={confirmPlatformOff}
         title="Închidere Platformă"
         message="ATENȚIE! Vrei să ÎNCHIZI platforma? Studenții NU vor mai putea accesa evaluările până când o reactivezi. Ești sigur?"
@@ -1510,8 +1494,8 @@ export default function AdminControls() {
       />
 
       <ConfirmDialog
-        isOpen={showConfirmPlatformSave}
-        onClose={() => setShowConfirmPlatformSave(false)}
+        isOpen={confirmDialog?.key === 'platformSave'}
+        onClose={closeConfirm}
         onConfirm={executeSavePlatformSettings}
         title="Salvare Platformă Închisă"
         message="Confirmi că vrei să salvezi platforma ca ÎNCHISĂ? Studenții nu vor putea evalua până la reactivare."
@@ -1521,8 +1505,8 @@ export default function AdminControls() {
       />
 
       <ConfirmDialog
-        isOpen={showConfirmSendMessage}
-        onClose={() => setShowConfirmSendMessage(false)}
+        isOpen={confirmDialog?.key === 'sendMessage'}
+        onClose={closeConfirm}
         onConfirm={confirmSendMessage}
         title="Confirmare Trimitere Mesaj"
         message={`Ești sigur că vrei să trimiți mesajul "${messageTitle}"? ${
@@ -1536,11 +1520,8 @@ export default function AdminControls() {
       />
 
       <ConfirmDialog
-        isOpen={showConfirmDeleteQuestion}
-        onClose={() => {
-          setShowConfirmDeleteQuestion(false);
-          setDeleteQuestionId(null);
-        }}
+        isOpen={confirmDialog?.key === 'deleteQuestion'}
+        onClose={closeConfirm}
         onConfirm={confirmDeleteQuestion}
         title="Ștergere Întrebare"
         message="Sigur vrei să ștergi această întrebare? Această acțiune nu poate fi anulată."

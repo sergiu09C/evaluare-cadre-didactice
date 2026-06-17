@@ -13,6 +13,7 @@ import {
   CalendarIcon,
   ExclamationTriangleIcon,
 } from '@heroicons/react/24/outline';
+import { scoreTone } from '../utils/scoreFormatting';
 
 interface CourseStats {
   course: {
@@ -46,14 +47,6 @@ function scoreColor(score: number | null): string {
   if (score >= 4.0) return 'text-info-fg';
   if (score >= 3.5) return 'text-warning-fg';
   return 'text-danger-fg';
-}
-
-function scoreTone(score: number | null): 'success' | 'info' | 'warning' | 'danger' | 'neutral' {
-  if (score == null) return 'neutral';
-  if (score >= 4.5) return 'success';
-  if (score >= 4.0) return 'info';
-  if (score >= 3.5) return 'warning';
-  return 'danger';
 }
 
 export default function ProfessorCourseDetails() {

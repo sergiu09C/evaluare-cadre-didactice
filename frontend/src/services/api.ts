@@ -206,6 +206,9 @@ class ApiService {
     closure_message?: string;
     auto_reminders_enabled?: boolean;
     reminder_days?: string;
+    evaluation_deadline_enabled?: boolean;
+    evaluation_deadline_date?: string | null;
+    auto_close_on_deadline?: boolean;
     email_enabled?: boolean;
     email_host?: string;
     email_port?: number;

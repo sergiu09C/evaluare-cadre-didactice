@@ -17,6 +17,7 @@ import {
   HomeIcon,
 } from '@heroicons/react/24/outline';
 import { IllBooks } from '../components/illustrations';
+import { scoreTone } from '../utils/scoreFormatting';
 
 interface CourseData {
   id: number;
@@ -29,13 +30,6 @@ interface CourseData {
     completedEvaluations: number;
     averageScore: number | null;
   };
-}
-
-function scoreTone(score: number | null): 'success' | 'warning' | 'danger' | 'neutral' {
-  if (score == null) return 'neutral';
-  if (score >= 4) return 'success';
-  if (score >= 3) return 'warning';
-  return 'danger';
 }
 
 export default function ProfessorDashboard() {

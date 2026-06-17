@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { scoreTextColor, scoreBadgeClasses } from '../../utils/scoreFormatting';
+import { formatDateTime } from '../../utils/dateFormatting';
 
 interface Evaluation {
   id: number;
@@ -42,35 +44,6 @@ const EvaluationsList: React.FC<EvaluationsListProps> = ({
     const newFilters = { ...filters, [key]: value || undefined };
     setFilters(newFilters);
     onFilterChange?.(newFilters);
-  };
-
-  const getScoreColor = (score: number | null) => {
-    if (!score) return 'text-neutral-400';
-    if (score >= 4.5) return 'text-green-600';
-    if (score >= 4.0) return 'text-green-500';
-    if (score >= 3.5) return 'text-yellow-500';
-    if (score >= 3.0) return 'text-orange-500';
-    return 'text-red-500';
-  };
-
-  const getScoreBadgeColor = (score: number | null) => {
-    if (!score) return 'bg-neutral-100 text-neutral-500';
-    if (score >= 4.5) return 'bg-green-100 text-green-700';
-    if (score >= 4.0) return 'bg-green-50 text-green-600';
-    if (score >= 3.5) return 'bg-yellow-100 text-yellow-700';
-    if (score >= 3.0) return 'bg-orange-100 text-orange-700';
-    return 'bg-red-100 text-red-700';
-  };
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat('ro-RO', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    }).format(date);
   };
 
   return (
@@ -150,7 +123,7 @@ const EvaluationsList: React.FC<EvaluationsListProps> = ({
                     <h4 className="text-lg font-semibold text-neutral-800">
                       {evaluation.courseName}
                     </h4>
-                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${getScoreBadgeColor(evaluation.averageScore)}`}>
+                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${scoreBadgeClasses(evaluation.averageScore)}`}>
                       {evaluation.averageScore ? evaluation.averageScore.toFixed(2) : 'N/A'}
                     </span>
                   </div>
@@ -170,10 +143,10 @@ const EvaluationsList: React.FC<EvaluationsListProps> = ({
                     <span>{evaluation.academicYear}</span>
                   </div>
                   <p className="text-xs text-neutral-500 mt-2">
-                    Trimis la: {formatDate(evaluation.submittedAt)}
+                    Trimis la: {formatDateTime(evaluation.submittedAt)}
                   </p>
                 </div>
-                <div className={`flex-shrink-0 text-right ${getScoreColor(evaluation.averageScore)}`}>
+                <div className={`flex-shrink-0 text-right ${scoreTextColor(evaluation.averageScore)}`}>
                   <p className="text-3xl font-bold">
                     {evaluation.averageScore ? evaluation.averageScore.toFixed(1) : '-'}
                   </p>

@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { api } from '../services/api';
+import { useApiData } from '../hooks/useApiData';
 import { Card, Badge, Button, Input, Select, EmptyState, ConfirmDialog } from '../components/ui';
 import AccessibleModal from '../components/AccessibleModal';
 import { PlusIcon, PencilIcon, TrashIcon, EyeIcon, EyeSlashIcon, TrophyIcon } from '@heroicons/react/24/outline';
@@ -39,25 +40,12 @@ const emptyForm = {
 };
 
 export default function AdminAchievements() {
-  const [defs, setDefs] = useState<Definition[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const { data, loading, error, setError, refetch: load } = useApiData(() => api.getAchievementDefinitions());
+  const defs = data?.definitions ?? [];
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
-
-  const load = async () => {
-    try {
-      const { definitions } = await api.getAchievementDefinitions();
-      setDefs(definitions);
-    } catch (e: any) {
-      setError(e.response?.data?.error || 'Eroare la încărcare');
-    } finally {
-      setLoading(false);
-    }
-  };
-  useEffect(() => { load(); }, []);
 
   const openCreate = () => {
     setEditingId(null);

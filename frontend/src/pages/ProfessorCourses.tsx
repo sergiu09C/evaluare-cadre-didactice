@@ -4,6 +4,7 @@ import { api } from '../services/api';
 import { Card, Badge, Button, Avatar, EmptyState, KPICard } from '../components/ui';
 import { TERMS } from '../i18n/glossary';
 import { ArrowRightIcon, BookOpenIcon } from '@heroicons/react/24/outline';
+import { scoreTone } from '../utils/scoreFormatting';
 
 interface CourseData {
   id: number;
@@ -33,14 +34,6 @@ function initialsOf(name: string): string {
       .map((p) => p[0]?.toUpperCase() || '')
       .join('') || '??'
   );
-}
-
-function scoreTone(score: number | null): 'success' | 'info' | 'warning' | 'danger' | 'neutral' {
-  if (score == null) return 'neutral';
-  if (score >= 4.5) return 'success';
-  if (score >= 4.0) return 'info';
-  if (score >= 3.5) return 'warning';
-  return 'danger';
 }
 
 export default function ProfessorCourses() {

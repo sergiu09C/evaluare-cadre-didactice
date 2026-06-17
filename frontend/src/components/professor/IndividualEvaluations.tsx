@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { api } from '../../services/api';
 import { Card, Badge, EmptyState } from '../ui';
 import { ChevronDownIcon, ChevronRightIcon, LockClosedIcon } from '@heroicons/react/24/outline';
+import { scoreTone } from '../../utils/scoreFormatting';
 
 interface Props {
   courseId: number;
@@ -18,13 +19,6 @@ interface EvaluationItem {
     likert: number | null;
     text: string | null;
   }>;
-}
-
-function scoreTone(score: number | null): 'success' | 'warning' | 'danger' | 'neutral' {
-  if (score == null) return 'neutral';
-  if (score >= 4) return 'success';
-  if (score >= 3) return 'warning';
-  return 'danger';
 }
 
 export default function IndividualEvaluations({ courseId }: Props) {

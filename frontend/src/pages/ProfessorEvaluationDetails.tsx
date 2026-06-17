@@ -9,15 +9,9 @@ import {
   ChatBubbleBottomCenterTextIcon,
   ChartBarIcon,
 } from '@heroicons/react/24/outline';
+import { scoreTone } from '../utils/scoreFormatting';
 
 type Eval = Awaited<ReturnType<typeof api.getEvaluationDetails>>['evaluation'];
-
-function scoreTone(score: number | null): 'success' | 'warning' | 'danger' | 'neutral' {
-  if (score == null) return 'neutral';
-  if (score >= 4) return 'success';
-  if (score >= 3) return 'warning';
-  return 'danger';
-}
 
 export default function ProfessorEvaluationDetails() {
   const { id } = useParams<{ id: string }>();

@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { api } from '../services/api';
+import { useApiData } from '../hooks/useApiData';
 import { Card, Badge, Button, Input, Select, EmptyState } from '../components/ui';
 import AccessibleModal from '../components/AccessibleModal';
 import {
@@ -42,29 +43,12 @@ const emptyForm: FormState = {
 };
 
 export default function AdminClosingLoop() {
-  const [entries, setEntries] = useState<ClosingLoopEntryAdmin[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const { data, loading, error, setError, refetch: load } = useApiData(() => api.getClosingLoopAdmin());
+  const entries = data?.entries ?? [];
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [form, setForm] = useState<FormState>(emptyForm);
   const [saving, setSaving] = useState(false);
-
-  const load = async () => {
-    try {
-      setLoading(true);
-      const { entries } = await api.getClosingLoopAdmin();
-      setEntries(entries);
-    } catch (e: any) {
-      setError(e.response?.data?.error || 'Eroare la încărcare');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    load();
-  }, []);
 
   const openCreate = () => {
     setEditingId(null);

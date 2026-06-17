@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { scoreTextColor, scoreBgColor } from '../../utils/scoreFormatting';
 
 interface CourseCardProps {
   id: number;
@@ -22,24 +23,6 @@ const CourseCard: React.FC<CourseCardProps> = ({
   academicYear,
   statistics
 }) => {
-  const getScoreColor = (score: number | null) => {
-    if (!score) return 'text-neutral-400';
-    if (score >= 4.5) return 'text-green-600';
-    if (score >= 4.0) return 'text-green-500';
-    if (score >= 3.5) return 'text-yellow-500';
-    if (score >= 3.0) return 'text-orange-500';
-    return 'text-red-500';
-  };
-
-  const getScoreBgColor = (score: number | null) => {
-    if (!score) return 'bg-neutral-25';
-    if (score >= 4.5) return 'bg-green-50';
-    if (score >= 4.0) return 'bg-green-50';
-    if (score >= 3.5) return 'bg-yellow-50';
-    if (score >= 3.0) return 'bg-orange-50';
-    return 'bg-red-50';
-  };
-
   const completionRate = statistics.totalEvaluations > 0
     ? Math.round((statistics.completedEvaluations / statistics.totalEvaluations) * 100)
     : 0;
@@ -70,8 +53,8 @@ const CourseCard: React.FC<CourseCardProps> = ({
         </div>
 
         {/* Score Badge */}
-        <div className={`flex-shrink-0 ${getScoreBgColor(statistics.averageScore)} rounded-lg px-4 py-2 text-center`}>
-          <p className={`text-2xl font-bold ${getScoreColor(statistics.averageScore)}`}>
+        <div className={`flex-shrink-0 ${scoreBgColor(statistics.averageScore)} rounded-lg px-4 py-2 text-center`}>
+          <p className={`text-2xl font-bold ${scoreTextColor(statistics.averageScore)}`}>
             {statistics.averageScore ? statistics.averageScore.toFixed(2) : 'N/A'}
           </p>
           <p className="text-xs text-neutral-500">Medie</p>
