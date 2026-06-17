@@ -35,6 +35,7 @@ const INCREMENTAL_MIGRATIONS = [
   '032-align-question-categories.sql',
   '033-reduce-dataset.sql',
   '034-test-students.sql',
+  '035-activate-platform.sql',
 ];
 
 // === Diagnoză disc (helper one-shot la boot) ===
