@@ -348,8 +348,8 @@ export default function EvaluationLifecycle() {
 
       {/* STICKY FILTER BAR */}
       <div
-        className="sticky z-20 -mx-4 md:-mx-10 px-4 md:px-10 py-3 border-b border-neutral-100 backdrop-blur"
-        style={{ top: -24, background: 'rgba(255,255,255,0.92)' }}
+        className="sticky z-20 -mx-4 md:-mx-10 px-4 md:px-10 py-3 border-b border-neutral-100 dark:border-[rgba(124,58,237,0.15)] backdrop-blur bg-white/90 dark:bg-[rgba(6,18,30,0.94)]"
+        style={{ top: -24 }}
       >
         <div className="flex items-end gap-3 flex-wrap">
           <FunnelIcon className="w-5 h-5 text-accent-600 mb-2.5" aria-hidden="true" />
