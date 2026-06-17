@@ -33,19 +33,46 @@ const QUESTION_DIMENSION_OPTIONS: { value: QuestionDimension; label: string }[] 
   { value: 'COMMENT', label: 'COMMENT — comentariu liber' },
 ];
 
+interface PlatformConfig {
+  isActive: boolean;
+  closureMessage: string;
+  autoReminders: boolean;
+  reminderDays: string;
+  deadlineEnabled: boolean;
+  deadlineDate: string;
+  autoCloseOnDeadline: boolean;
+}
+
+interface EmailConfig {
+  enabled: boolean;
+  host: string;
+  port: number;
+  secure: boolean;
+  user: string;
+  password: string;
+  fromName: string;
+  fromAddress: string;
+  sendOnMessage: boolean;
+  testEmail: string;
+}
+
 export default function AdminControls() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'platform' | 'messages' | 'filters' | 'disciplines' | 'questionnaire' | 'email'>('platform');
 
   // Platform settings state
   const [platformSettings, setPlatformSettings] = useState<any>(null);
-  const [isActive, setIsActive] = useState(true);
-  const [closureMessage, setClosureMessage] = useState('');
-  const [autoReminders, setAutoReminders] = useState(true);
-  const [reminderDays, setReminderDays] = useState('3,2,1');
-  const [deadlineEnabled, setDeadlineEnabled] = useState(false);
-  const [deadlineDate, setDeadlineDate] = useState('');
-  const [autoCloseOnDeadline, setAutoCloseOnDeadline] = useState(false);
+  const [platformConfig, setPlatformConfig] = useState<PlatformConfig>({
+    isActive: true,
+    closureMessage: '',
+    autoReminders: true,
+    reminderDays: '3,2,1',
+    deadlineEnabled: false,
+    deadlineDate: '',
+    autoCloseOnDeadline: false,
+  });
+  const setPC = (patch: Partial<PlatformConfig>) =>
+    setPlatformConfig(prev => ({ ...prev, ...patch }));
   const [savingSettings, setSavingSettings] = useState(false);
 
   // Messaging state
@@ -89,16 +116,20 @@ export default function AdminControls() {
   });
 
   // Email settings state
-  const [emailEnabled, setEmailEnabled] = useState(false);
-  const [emailHost, setEmailHost] = useState('');
-  const [emailPort, setEmailPort] = useState(587);
-  const [emailSecure, setEmailSecure] = useState(false);
-  const [emailUser, setEmailUser] = useState('');
-  const [emailPassword, setEmailPassword] = useState('');
-  const [emailFromName, setEmailFromName] = useState('Platformă Evaluare');
-  const [emailFromAddress, setEmailFromAddress] = useState('');
-  const [sendEmailOnMessage, setSendEmailOnMessage] = useState(true);
-  const [testEmail, setTestEmail] = useState('');
+  const [emailConfig, setEmailConfig] = useState<EmailConfig>({
+    enabled: false,
+    host: '',
+    port: 587,
+    secure: false,
+    user: '',
+    password: '',
+    fromName: 'Platformă Evaluare',
+    fromAddress: '',
+    sendOnMessage: true,
+    testEmail: '',
+  });
+  const setEC = (patch: Partial<EmailConfig>) =>
+    setEmailConfig(prev => ({ ...prev, ...patch }));
   const [testingEmail, setTestingEmail] = useState(false);
   const [savingEmailSettings, setSavingEmailSettings] = useState(false);
 
@@ -181,24 +212,26 @@ export default function AdminControls() {
     try {
       const data = await api.getPlatformSettings();
       setPlatformSettings(data);
-      setIsActive(data.is_active);
-      setClosureMessage(data.closure_message);
-      setAutoReminders(data.auto_reminders_enabled);
-      setReminderDays(data.reminder_days);
-      setDeadlineEnabled(data.evaluation_deadline_enabled || false);
-      setDeadlineDate(data.evaluation_deadline_date || '');
-      setAutoCloseOnDeadline(data.auto_close_on_deadline || false);
-
-      // Email settings
-      setEmailEnabled(data.email_enabled || false);
-      setEmailHost(data.email_host || '');
-      setEmailPort(data.email_port || 587);
-      setEmailSecure(data.email_secure || false);
-      setEmailUser(data.email_user || '');
-      setEmailPassword(data.email_password || '');
-      setEmailFromName(data.email_from_name || 'Platformă Evaluare');
-      setEmailFromAddress(data.email_from_address || '');
-      setSendEmailOnMessage(data.send_email_on_message !== undefined ? data.send_email_on_message : true);
+      setPC({
+        isActive: data.is_active,
+        closureMessage: data.closure_message,
+        autoReminders: data.auto_reminders_enabled,
+        reminderDays: data.reminder_days,
+        deadlineEnabled: data.evaluation_deadline_enabled || false,
+        deadlineDate: data.evaluation_deadline_date || '',
+        autoCloseOnDeadline: data.auto_close_on_deadline || false,
+      });
+      setEC({
+        enabled: data.email_enabled || false,
+        host: data.email_host || '',
+        port: data.email_port || 587,
+        secure: data.email_secure || false,
+        user: data.email_user || '',
+        password: data.email_password || '',
+        fromName: data.email_from_name || 'Platformă Evaluare',
+        fromAddress: data.email_from_address || '',
+        sendOnMessage: data.send_email_on_message !== undefined ? data.send_email_on_message : true,
+      });
     } catch {
       // Defaults used on failure
     }
@@ -209,25 +242,25 @@ export default function AdminControls() {
   };
 
   const handleTogglePlatform = () => {
-    const newStatus = !isActive;
+    const newStatus = !platformConfig.isActive;
 
     if (!newStatus) {
       // Turning platform OFF - show warning
       openConfirm('platformOff');
     } else {
-      setIsActive(newStatus);
+      setPC({ isActive: newStatus });
       dispatchOptimisticStatus(newStatus);
     }
   };
 
   const confirmPlatformOff = () => {
-    setIsActive(false);
+    setPC({ isActive: false });
     dispatchOptimisticStatus(false);
   };
 
   const savePlatformSettings = async () => {
     // Extra confirmation when saving platform as OFF
-    if (!isActive && platformSettings?.is_active) {
+    if (!platformConfig.isActive && platformSettings?.is_active) {
       openConfirm('platformSave');
       return;
     }
@@ -239,13 +272,13 @@ export default function AdminControls() {
     try {
       setSavingSettings(true);
       await api.updatePlatformSettings({
-        is_active: isActive,
-        closure_message: closureMessage,
-        auto_reminders_enabled: autoReminders,
-        reminder_days: reminderDays,
-        evaluation_deadline_enabled: deadlineEnabled,
-        evaluation_deadline_date: deadlineDate || null,
-        auto_close_on_deadline: autoCloseOnDeadline
+        is_active: platformConfig.isActive,
+        closure_message: platformConfig.closureMessage,
+        auto_reminders_enabled: platformConfig.autoReminders,
+        reminder_days: platformConfig.reminderDays,
+        evaluation_deadline_enabled: platformConfig.deadlineEnabled,
+        evaluation_deadline_date: platformConfig.deadlineDate || null,
+        auto_close_on_deadline: platformConfig.autoCloseOnDeadline
       });
       showAlertDialog('Succes', 'Setări salvate cu succes!', 'success');
       loadPlatformSettings();
@@ -262,15 +295,15 @@ export default function AdminControls() {
       setSavingEmailSettings(true);
 
       await api.updatePlatformSettings({
-        email_enabled: emailEnabled,
-        email_host: emailHost,
-        email_port: emailPort,
-        email_secure: emailSecure,
-        email_user: emailUser,
-        email_password: emailPassword !== '********' ? emailPassword : undefined,
-        email_from_name: emailFromName,
-        email_from_address: emailFromAddress,
-        send_email_on_message: sendEmailOnMessage
+        email_enabled: emailConfig.enabled,
+        email_host: emailConfig.host,
+        email_port: emailConfig.port,
+        email_secure: emailConfig.secure,
+        email_user: emailConfig.user,
+        email_password: emailConfig.password !== '********' ? emailConfig.password : undefined,
+        email_from_name: emailConfig.fromName,
+        email_from_address: emailConfig.fromAddress,
+        send_email_on_message: emailConfig.sendOnMessage
       });
 
       showAlertDialog('Succes', 'Setările email au fost salvate cu succes!', 'success');
@@ -283,7 +316,7 @@ export default function AdminControls() {
   };
 
   const handleTestEmail = async () => {
-    if (!testEmail) {
+    if (!emailConfig.testEmail) {
       showAlertDialog('Atenție', 'Introdu o adresă de email pentru test', 'info');
       return;
     }
@@ -291,8 +324,8 @@ export default function AdminControls() {
     try {
       setTestingEmail(true);
 
-      await api.testEmail(testEmail);
-      showAlertDialog('Succes', `Email de test trimis cu succes către ${testEmail}! Verifică inbox-ul (sau spam-ul).`, 'success');
+      await api.testEmail(emailConfig.testEmail);
+      showAlertDialog('Succes', `Email de test trimis cu succes către ${emailConfig.testEmail}! Verifică inbox-ul (sau spam-ul).`, 'success');
     } catch (error: any) {
       showAlertDialog('Eroare', `Eroare la trimiterea email-ului de test: ${error.response?.data?.details || error.response?.data?.error || 'Eroare necunoscută'}`, 'error');
     } finally {
@@ -564,30 +597,30 @@ export default function AdminControls() {
             <div>
               <h3 className="text-lg font-medium text-neutral-800" id="platform-status-label">Status Platformă</h3>
               <p className="text-sm text-neutral-500" id="platform-status-desc">
-                {isActive ? 'Platforma este ACTIVĂ și accesibilă studenților' : 'Platforma este ÎNCHISĂ'}
+                {platformConfig.isActive ? 'Platforma este ACTIVĂ și accesibilă studenților' : 'Platforma este ÎNCHISĂ'}
               </p>
             </div>
             <button
               onClick={handleTogglePlatform}
               onKeyDown={(e) => handleToggleKeyDown(e, handleTogglePlatform)}
               role="switch"
-              aria-checked={isActive}
+              aria-checked={platformConfig.isActive}
               aria-labelledby="platform-status-label"
               aria-describedby="platform-status-desc"
               className={`${
-                isActive ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'
+                platformConfig.isActive ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'
               } relative inline-flex h-12 w-24 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-accent-400/40 focus:ring-offset-2`}
             >
               <span
                 className={`${
-                  isActive ? 'translate-x-14' : 'translate-x-1'
+                  platformConfig.isActive ? 'translate-x-14' : 'translate-x-1'
                 } inline-block h-10 w-10 transform rounded-full bg-white transition-transform`}
                 aria-hidden="true"
               />
               <span className="absolute inset-0 flex items-center justify-center text-white font-medium text-sm" aria-hidden="true">
-                {isActive ? 'ON' : 'OFF'}
+                {platformConfig.isActive ? 'ON' : 'OFF'}
               </span>
-              <ScreenReaderOnly>{isActive ? 'Platforma activă' : 'Platforma închisă'}</ScreenReaderOnly>
+              <ScreenReaderOnly>{platformConfig.isActive ? 'Platforma activă' : 'Platforma închisă'}</ScreenReaderOnly>
             </button>
           </div>
 
@@ -597,8 +630,8 @@ export default function AdminControls() {
               Mesaj de închidere platformă
             </label>
             <textarea
-              value={closureMessage}
-              onChange={(e) => setClosureMessage(e.target.value)}
+              value={platformConfig.closureMessage}
+              onChange={(e) => setPC({ closureMessage: e.target.value })}
               rows={3}
               className="w-full px-3 py-2 border border-neutral-200 rounded-md focus:outline-none focus:ring-2 focus:ring-accent-400/40"
               placeholder="Mesajul afișat studenților când platforma este închisă"
@@ -609,8 +642,8 @@ export default function AdminControls() {
           <div className="flex items-center space-x-3">
             <input
               type="checkbox"
-              checked={autoReminders}
-              onChange={(e) => setAutoReminders(e.target.checked)}
+              checked={platformConfig.autoReminders}
+              onChange={(e) => setPC({ autoReminders: e.target.checked })}
               className="h-4 w-4 text-primary-800 border-neutral-200 rounded focus:ring-accent-400/40"
             />
             <label className="text-sm font-medium text-neutral-700">
@@ -625,8 +658,8 @@ export default function AdminControls() {
             </label>
             <input
               type="text"
-              value={reminderDays}
-              onChange={(e) => setReminderDays(e.target.value)}
+              value={platformConfig.reminderDays}
+              onChange={(e) => setPC({ reminderDays: e.target.value })}
               className="w-full px-3 py-2 border border-neutral-200 rounded-md focus:outline-none focus:ring-2 focus:ring-accent-400/40"
               placeholder="3,2,1"
             />
@@ -644,8 +677,8 @@ export default function AdminControls() {
               <input
                 type="checkbox"
                 id="deadline-enabled"
-                checked={deadlineEnabled}
-                onChange={(e) => setDeadlineEnabled(e.target.checked)}
+                checked={platformConfig.deadlineEnabled}
+                onChange={(e) => setPC({ deadlineEnabled: e.target.checked })}
                 className="h-4 w-4 text-primary-800 border-neutral-200 rounded focus:ring-accent-400/40"
               />
               <label htmlFor="deadline-enabled" className="text-sm font-medium text-neutral-700">
@@ -654,7 +687,7 @@ export default function AdminControls() {
             </div>
 
             {/* Deadline Date/Time Picker */}
-            {deadlineEnabled && (
+            {platformConfig.deadlineEnabled && (
               <div className="ml-6 space-y-3 p-4 bg-neutral-25 rounded-lg">
                 <div>
                   <label className="block text-sm font-medium text-neutral-700 mb-2">
@@ -662,8 +695,8 @@ export default function AdminControls() {
                   </label>
                   <input
                     type="datetime-local"
-                    value={deadlineDate}
-                    onChange={(e) => setDeadlineDate(e.target.value)}
+                    value={platformConfig.deadlineDate}
+                    onChange={(e) => setPC({ deadlineDate: e.target.value })}
                     className="w-full px-3 py-2 border border-neutral-200 rounded-md focus:outline-none focus:ring-2 focus:ring-accent-400/40"
                   />
                   <p className="text-xs text-neutral-500 mt-1">
@@ -676,8 +709,8 @@ export default function AdminControls() {
                   <input
                     type="checkbox"
                     id="auto-close"
-                    checked={autoCloseOnDeadline}
-                    onChange={(e) => setAutoCloseOnDeadline(e.target.checked)}
+                    checked={platformConfig.autoCloseOnDeadline}
+                    onChange={(e) => setPC({ autoCloseOnDeadline: e.target.checked })}
                     className="h-4 w-4 text-primary-800 border-neutral-200 rounded focus:ring-accent-400/40"
                   />
                   <label htmlFor="auto-close" className="text-sm text-neutral-700">
@@ -1276,25 +1309,25 @@ export default function AdminControls() {
               </p>
             </div>
             <button
-              onClick={() => setEmailEnabled(!emailEnabled)}
-              onKeyDown={(e) => handleToggleKeyDown(e, () => setEmailEnabled(!emailEnabled))}
+              onClick={() => setEC({ enabled: !emailConfig.enabled })}
+              onKeyDown={(e) => handleToggleKeyDown(e, () => setEC({ enabled: !emailConfig.enabled }))}
               role="switch"
-              aria-checked={emailEnabled}
+              aria-checked={emailConfig.enabled}
               aria-labelledby="email-toggle-label"
               aria-describedby="email-toggle-desc"
               className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-accent-400/40 focus:ring-offset-2 ${
-                emailEnabled ? 'bg-primary-600' : 'bg-neutral-200'
+                emailConfig.enabled ? 'bg-primary-600' : 'bg-neutral-200'
               }`}
             >
               <span
                 className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                  emailEnabled ? 'translate-x-5' : 'translate-x-0'
+                  emailConfig.enabled ? 'translate-x-5' : 'translate-x-0'
                 }`}
               />
             </button>
           </div>
 
-          {emailEnabled && (
+          {emailConfig.enabled && (
             <>
               {/* SMTP Configuration */}
               <div className="space-y-4 border-t pt-6">
@@ -1308,8 +1341,8 @@ export default function AdminControls() {
                     </label>
                     <input
                       type="text"
-                      value={emailHost}
-                      onChange={(e) => setEmailHost(e.target.value)}
+                      value={emailConfig.host}
+                      onChange={(e) => setEC({ host: e.target.value })}
                       placeholder="smtp.gmail.com"
                       className="w-full px-3 py-2 border border-neutral-200 rounded-md focus:ring-2 focus:ring-accent-400/40"
                     />
@@ -1323,8 +1356,8 @@ export default function AdminControls() {
                     </label>
                     <input
                       type="number"
-                      value={emailPort}
-                      onChange={(e) => setEmailPort(Number(e.target.value))}
+                      value={emailConfig.port}
+                      onChange={(e) => setEC({ port: Number(e.target.value) })}
                       className="w-full px-3 py-2 border border-neutral-200 rounded-md focus:ring-2 focus:ring-accent-400/40"
                     />
                     <p className="text-xs text-neutral-500 mt-1">587 (TLS) sau 465 (SSL)</p>
@@ -1337,8 +1370,8 @@ export default function AdminControls() {
                     </label>
                     <input
                       type="text"
-                      value={emailUser}
-                      onChange={(e) => setEmailUser(e.target.value)}
+                      value={emailConfig.user}
+                      onChange={(e) => setEC({ user: e.target.value })}
                       placeholder="your-email@example.com"
                       className="w-full px-3 py-2 border border-neutral-200 rounded-md focus:ring-2 focus:ring-accent-400/40"
                     />
@@ -1351,8 +1384,8 @@ export default function AdminControls() {
                     </label>
                     <input
                       type="password"
-                      value={emailPassword}
-                      onChange={(e) => setEmailPassword(e.target.value)}
+                      value={emailConfig.password}
+                      onChange={(e) => setEC({ password: e.target.value })}
                       placeholder="••••••••"
                       className="w-full px-3 py-2 border border-neutral-200 rounded-md focus:ring-2 focus:ring-accent-400/40"
                     />
@@ -1367,8 +1400,8 @@ export default function AdminControls() {
                   <input
                     type="checkbox"
                     id="email-secure"
-                    checked={emailSecure}
-                    onChange={(e) => setEmailSecure(e.target.checked)}
+                    checked={emailConfig.secure}
+                    onChange={(e) => setEC({ secure: e.target.checked })}
                     className="h-4 w-4 text-primary-800 focus:ring-accent-400/40 border-neutral-200 rounded"
                   />
                   <label htmlFor="email-secure" className="ml-2 text-sm text-neutral-700">
@@ -1389,8 +1422,8 @@ export default function AdminControls() {
                     </label>
                     <input
                       type="text"
-                      value={emailFromName}
-                      onChange={(e) => setEmailFromName(e.target.value)}
+                      value={emailConfig.fromName}
+                      onChange={(e) => setEC({ fromName: e.target.value })}
                       placeholder="Platformă Evaluare"
                       className="w-full px-3 py-2 border border-neutral-200 rounded-md focus:ring-2 focus:ring-accent-400/40"
                     />
@@ -1403,8 +1436,8 @@ export default function AdminControls() {
                     </label>
                     <input
                       type="email"
-                      value={emailFromAddress}
-                      onChange={(e) => setEmailFromAddress(e.target.value)}
+                      value={emailConfig.fromAddress}
+                      onChange={(e) => setEC({ fromAddress: e.target.value })}
                       placeholder="noreply@universitate.ro"
                       className="w-full px-3 py-2 border border-neutral-200 rounded-md focus:ring-2 focus:ring-accent-400/40"
                     />
@@ -1420,8 +1453,8 @@ export default function AdminControls() {
                   <input
                     type="checkbox"
                     id="send-email-on-message"
-                    checked={sendEmailOnMessage}
-                    onChange={(e) => setSendEmailOnMessage(e.target.checked)}
+                    checked={emailConfig.sendOnMessage}
+                    onChange={(e) => setEC({ sendOnMessage: e.target.checked })}
                     className="h-4 w-4 text-primary-800 focus:ring-accent-400/40 border-neutral-200 rounded"
                   />
                   <label htmlFor="send-email-on-message" className="ml-2 text-sm text-neutral-700">
@@ -1440,15 +1473,15 @@ export default function AdminControls() {
                 <div className="flex gap-3">
                   <input
                     type="email"
-                    value={testEmail}
-                    onChange={(e) => setTestEmail(e.target.value)}
+                    value={emailConfig.testEmail}
+                    onChange={(e) => setEC({ testEmail: e.target.value })}
                     placeholder="test@example.com"
                     className="flex-1 px-3 py-2 border border-neutral-200 rounded-md focus:ring-2 focus:ring-accent-400/40"
                   />
                   <button
                     onClick={handleTestEmail}
-                    disabled={testingEmail || !testEmail}
-                    className="inline-flex items-center gap-2 px-4 h-10 rounded-md bg-white border border-neutral-200 text-neutral-800 font-medium shadow-elev-1 hover:bg-neutral-50 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-400/40 disabled:opacity-50 disabled:cursor-not-allowed disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={testingEmail || !emailConfig.testEmail}
+                    className="inline-flex items-center gap-2 px-4 h-10 rounded-md bg-white border border-neutral-200 text-neutral-800 font-medium shadow-elev-1 hover:bg-neutral-50 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-400/40 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {testingEmail ? 'Se trimite...' : 'Trimite Test'}
                   </button>
@@ -1462,7 +1495,7 @@ export default function AdminControls() {
             <button
               onClick={saveEmailSettings}
               disabled={savingEmailSettings}
-              className="inline-flex items-center gap-2 px-4 h-10 rounded-md bg-primary-800 text-white font-medium shadow-elev-1 hover:bg-primary-700 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-400/40 disabled:opacity-50 disabled:cursor-not-allowed disabled:opacity-50 disabled:cursor-not-allowed"
+              className="inline-flex items-center gap-2 px-4 h-10 rounded-md bg-primary-800 text-white font-medium shadow-elev-1 hover:bg-primary-700 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-400/40 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {savingEmailSettings ? 'Se salvează...' : '💾 Salvează Setările Email'}
             </button>
