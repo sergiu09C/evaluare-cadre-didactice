@@ -290,13 +290,15 @@ exports.lookupGroups = (req, res, next) => {
     if (program_id) { where.push('sy.program_id = ?'); params.push(Number(program_id)); }
     if (year) { where.push('sy.year_number = ?'); params.push(Number(year)); }
     const rows = db.prepare(
-      `SELECT g.id, g.number, s.name AS series_name, sy.year_number, sy.program_id, pr.name AS program_name
+      `SELECT g.id, g.number, s.name AS series_name, sy.id AS study_year_id, sy.year_number, sy.program_id, pr.name AS program_name,
+              (SELECT COUNT(*) FROM courses c WHERE c.study_year_id = sy.id) AS course_count,
+              (SELECT COUNT(*) FROM users u WHERE u.group_id = g.id AND u.role='student') AS student_count
        FROM groups g
        JOIN series s ON s.id = g.series_id
        JOIN study_years sy ON sy.id = s.study_year_id
        JOIN programs pr ON pr.id = sy.program_id
        WHERE ${where.join(' AND ')}
-       ORDER BY sy.program_id, sy.year_number, s.name, g.number
+       ORDER BY course_count DESC, sy.program_id, sy.year_number, s.name, g.number
        LIMIT 50`,
     ).all(...params);
     res.json({ groups: rows });
