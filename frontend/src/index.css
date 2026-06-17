@@ -130,6 +130,8 @@
 
 /* Surfaces */
 [data-theme="dark"] .bg-white { background-color: var(--ecd-surface) !important; }
+[data-theme="dark"] .bg-white\/90 { background-color: rgba(6,18,30,0.94) !important; }
+[data-theme="dark"] .bg-white\/95 { background-color: rgba(6,18,30,0.97) !important; }
 [data-theme="dark"] .bg-neutral-0 { background-color: var(--ecd-surface); }
 [data-theme="dark"] .bg-neutral-25 { background-color: var(--ecd-bg); }
 [data-theme="dark"] .bg-neutral-50 { background-color: var(--ecd-surface-sub); }
