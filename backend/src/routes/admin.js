@@ -60,5 +60,6 @@ router.delete('/users/:id', adminUsersController.deactivate);
 // Lookups pentru editor profil profesor
 router.get('/lookup/courses', adminUsersController.lookupCourses);
 router.get('/lookup/departments', adminUsersController.lookupDepartments);
+router.get('/lookup/groups', adminUsersController.lookupGroups);
 
 module.exports = router;

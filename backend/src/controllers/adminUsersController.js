@@ -147,7 +147,7 @@ exports.update = async (req, res, next) => {
     const id = Number(req.params.id);
     const {
       firstName, lastName, email, role,
-      program_id, year, professor_id, is_active, password,
+      program_id, year, group_id, professor_id, is_active, password,
       department, facultyId, assignments,
     } = req.body || {};
     const existing = db.prepare('SELECT id, professor_id, role FROM users WHERE id = ?').get(id);
@@ -186,6 +186,7 @@ exports.update = async (req, res, next) => {
          role = COALESCE(?, role),
          program_id = COALESCE(?, program_id),
          year = COALESCE(?, year),
+         group_id = COALESCE(?, group_id),
          professor_id = COALESCE(?, professor_id),
          is_active = COALESCE(?, is_active),
          password_hash = COALESCE(?, password_hash)
@@ -197,6 +198,7 @@ exports.update = async (req, res, next) => {
       role ?? null,
       program_id ?? null,
       year ?? null,
+      group_id ?? null,
       resolvedProfessorId ?? null,
       is_active === undefined ? null : is_active ? 1 : 0,
       passwordHash,
@@ -275,6 +277,29 @@ exports.lookupCourses = (req, res, next) => {
        LIMIT 500`,
     ).all(...params);
     res.json({ courses: rows });
+  } catch (e) { next(e); }
+};
+
+// GET /api/admin/lookup/groups  — grupe disponibile filtrate după program_id și/sau year
+exports.lookupGroups = (req, res, next) => {
+  try {
+    const db = getDatabase();
+    const { program_id, year } = req.query || {};
+    const where = ['1=1'];
+    const params = [];
+    if (program_id) { where.push('sy.program_id = ?'); params.push(Number(program_id)); }
+    if (year) { where.push('sy.year_number = ?'); params.push(Number(year)); }
+    const rows = db.prepare(
+      `SELECT g.id, g.number, s.name AS series_name, sy.year_number, sy.program_id, pr.name AS program_name
+       FROM groups g
+       JOIN series s ON s.id = g.series_id
+       JOIN study_years sy ON sy.id = s.study_year_id
+       JOIN programs pr ON pr.id = sy.program_id
+       WHERE ${where.join(' AND ')}
+       ORDER BY sy.program_id, sy.year_number, s.name, g.number
+       LIMIT 50`,
+    ).all(...params);
+    res.json({ groups: rows });
   } catch (e) { next(e); }
 };
 
