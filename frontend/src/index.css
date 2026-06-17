@@ -185,7 +185,7 @@
 }
 
 /* Surfaces */
-[data-theme="dark"] .bg-white { background-color: var(--ecd-surface); }
+[data-theme="dark"] .bg-white { background-color: var(--ecd-surface) !important; }
 [data-theme="dark"] .bg-neutral-0 { background-color: var(--ecd-surface); }
 [data-theme="dark"] .bg-neutral-25 { background-color: var(--ecd-bg); }
 [data-theme="dark"] .bg-neutral-50 { background-color: var(--ecd-surface-sub); }
@@ -247,11 +247,35 @@
 /* Placeholder text */
 [data-theme="dark"] .placeholder\:text-neutral-400::placeholder { color: var(--ecd-text-muted); }
 
-/* Inputs */
+/* Inputs — background + text + border */
 [data-theme="dark"] input,
-[data-theme="dark"] textarea,
-[data-theme="dark"] select {
+[data-theme="dark"] textarea {
+  background-color: transparent;
   color: var(--ecd-text);
+}
+[data-theme="dark"] select {
+  background-color: var(--ecd-surface-sub) !important;
+  color: var(--ecd-text) !important;
+  border-color: var(--ecd-border) !important;
+  /* Săgeată dropdown cu culoare deschisă pentru dark mode */
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%237393B5' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3E%3C/svg%3E") !important;
+}
+[data-theme="dark"] select option {
+  background-color: var(--ecd-surface);
+  color: var(--ecd-text);
+}
+/* Label-uri în dark mode */
+[data-theme="dark"] label.text-\[13px\],
+[data-theme="dark"] .text-neutral-700 {
+  color: var(--ecd-neutral-700);
+}
+/* Temă: bordura grupului de butoane din AccessibilityMenu */
+[data-theme="dark"] [aria-label="Temă de culoare"] {
+  border-color: var(--ecd-border);
+}
+[data-theme="dark"] [aria-label="Temă de culoare"] button:not([aria-pressed="true"]):hover {
+  background-color: var(--ecd-surface-sub);
+  color: var(--ecd-neutral-700);
 }
 
 /* ============================================
