@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ECD · Platformă evaluare cadre didactice · FAIMA-UNSTPB</title>
+<meta name="description" content="Platforma ECD pentru îmbunătățirea calității evaluării cadrelor didactice de către studenți — FAIMA, UNSTPB"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"/>
+<style>
+  :root {
+    --navy:#0E2233; --navy2:#143049; --navy3:#1B3A57;
+    --violet:#7C3AED; --violet2:#9F67F7; --violet3:#C4B5FD;
+    --bg:#06121E;
+    --ok:#10B981; --warn:#F59E0B;
+    --text:#E8EFF6; --muted:#7393B5;
+    --card:#0F1E2E; --border:rgba(124,58,237,.18);
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  html{scroll-behavior:smooth;}
+  body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;overflow-x:hidden;cursor:none;}
+
+  /* ── CURSOR ───────────────────────────────── */
+  #cursor{position:fixed;width:14px;height:14px;background:var(--violet);border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);transition:transform .12s ease,background .2s;mix-blend-mode:exclusion;}
+  #cursor-ring{position:fixed;width:42px;height:42px;border:1.5px solid var(--violet3);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:transform .22s cubic-bezier(.34,1.56,.64,1),opacity .2s;}
+  .cursor-hover #cursor{transform:translate(-50%,-50%) scale(2.2);background:var(--violet3);}
+  .cursor-hover #cursor-ring{transform:translate(-50%,-50%) scale(1.6);opacity:.4;}
+  #particles{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9997;}
+
+  /* ── LAYOUT ───────────────────────────────── */
+  section{min-height:100svh;display:flex;flex-direction:column;justify-content:center;padding:80px clamp(24px,6vw,120px);position:relative;overflow:hidden;}
+  .container{max-width:1200px;width:100%;margin:0 auto;}
+
+  /* ── HERO ────────────────────────────────── */
+  .hero{background:radial-gradient(ellipse 80% 60% at 60% 40%,rgba(124,58,237,.22) 0%,transparent 65%);}
+  .hero-badge{display:inline-flex;align-items:center;gap:10px;background:rgba(124,58,237,.15);border:1px solid var(--border);border-radius:99px;padding:8px 20px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--violet3);margin-bottom:32px;}
+  .hero-badge::before{content:'';width:8px;height:8px;background:var(--ok);border-radius:50%;animation:pulse 2s infinite;}
+  @keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(16,185,129,.5);}50%{box-shadow:0 0 0 6px rgba(16,185,129,0);}}
+  .hero h1{font-size:clamp(36px,5.5vw,72px);font-weight:800;line-height:1.08;letter-spacing:-.03em;max-width:900px;margin-bottom:24px;}
+  .hero h1 .accent{background:linear-gradient(135deg,var(--violet2),var(--violet3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+  .hero-sub{font-size:clamp(17px,1.8vw,22px);color:var(--muted);max-width:600px;line-height:1.6;margin-bottom:48px;}
+  .cta-row{display:flex;gap:18px;flex-wrap:wrap;}
+  .btn{display:inline-flex;align-items:center;gap:10px;padding:16px 32px;border-radius:12px;font-size:16px;font-weight:600;text-decoration:none;transition:transform .15s,box-shadow .15s;cursor:none;}
+  .btn-primary{background:var(--violet);color:#fff;box-shadow:0 4px 24px rgba(124,58,237,.4);}
+  .btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(124,58,237,.6);}
+  .btn-ghost{background:transparent;color:var(--text);border:1px solid rgba(255,255,255,.15);}
+  .btn-ghost:hover{background:rgba(255,255,255,.06);transform:translateY(-2px);}
+
+  /* ── COUNTERS STRIP ──────────────────────── */
+  .kpi-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:2px;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:20px;overflow:hidden;margin-top:64px;}
+  .kpi-cell{padding:32px 28px;background:var(--card);text-align:center;position:relative;}
+  .kpi-cell::after{content:'';position:absolute;right:0;top:20%;height:60%;width:1px;background:rgba(255,255,255,.05);}
+  .kpi-cell:last-child::after{display:none;}
+  .kpi-num{font-size:clamp(32px,4vw,52px);font-weight:700;letter-spacing:-.03em;color:#fff;font-variant-numeric:tabular-nums;}
+  .kpi-num.v{color:var(--violet2);}
+  .kpi-num.ok{color:var(--ok);}
+  .kpi-lbl{font-size:13px;color:var(--muted);margin-top:6px;font-family:'JetBrains Mono',monospace;letter-spacing:.04em;}
+
+  /* ── SECTION HEADERS ─────────────────────── */
+  .tag{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500;text-transform:uppercase;letter-spacing:.12em;color:var(--violet3);background:rgba(124,58,237,.12);border:1px solid rgba(124,58,237,.25);border-radius:99px;padding:6px 18px;margin-bottom:20px;}
+  .section-title{font-size:clamp(28px,4vw,52px);font-weight:700;letter-spacing:-.02em;line-height:1.15;margin-bottom:16px;}
+  .section-sub{font-size:clamp(16px,1.5vw,19px);color:var(--muted);line-height:1.6;max-width:560px;margin-bottom:48px;}
+
+  /* ── PROBLEM SECTION ──────────────────────── */
+  .split{display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center;}
+  @media(max-width:768px){.split{grid-template-columns:1fr;}}
+  .why-chain{display:flex;flex-direction:column;gap:0;}
+  .why-item{display:flex;gap:20px;position:relative;padding-bottom:28px;}
+  .why-item:last-child{padding-bottom:0;}
+  .why-item::before{content:'';position:absolute;left:19px;top:42px;bottom:0;width:2px;background:linear-gradient(to bottom,var(--violet),transparent);display:none;}
+  .why-item:not(:last-child)::before{display:block;}
+  .why-num{flex-shrink:0;width:40px;height:40px;border-radius:10px;background:rgba(124,58,237,.2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--violet3);}
+  .why-text{font-size:17px;line-height:1.6;color:var(--text);padding-top:8px;}
+  .why-text strong{color:var(--violet3);}
+  .pareto-bars{display:flex;flex-direction:column;gap:14px;}
+  .pbar-row{display:flex;flex-direction:column;gap:6px;}
+  .pbar-label{display:flex;justify-content:space-between;font-size:14px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
+  .pbar-track{height:10px;background:rgba(255,255,255,.06);border-radius:99px;overflow:hidden;}
+  .pbar-fill{height:100%;border-radius:99px;background:var(--violet);transform-origin:left;}
+  .pbar-fill.fade{background:rgba(124,58,237,.35);}
+
+  /* ── INSTRUMENTS ─────────────────────────── */
+  .instrument-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:18px;}
+  .inst-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:26px 28px;transition:border-color .2s,transform .2s;}
+  .inst-card:hover{border-color:rgba(124,58,237,.5);transform:translateY(-3px);}
+  .inst-badge{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;color:var(--violet3);background:rgba(124,58,237,.12);border-radius:6px;padding:3px 10px;margin-bottom:12px;}
+  .inst-name{font-size:19px;font-weight:600;color:#fff;margin-bottom:6px;}
+  .inst-desc{font-size:14px;color:var(--muted);line-height:1.55;}
+
+  /* ── PLATFORM DEMO ───────────────────────── */
+  .demo-section{background:radial-gradient(ellipse 60% 50% at 30% 50%,rgba(124,58,237,.12) 0%,transparent 70%);}
+  .screen-wrap{border:1px solid var(--border);border-radius:20px;overflow:hidden;box-shadow:0 40px 80px rgba(0,0,0,.5);background:#0B1929;}
+  .screen-bar{background:#0d1f30;border-bottom:1px solid rgba(255,255,255,.06);padding:14px 20px;display:flex;align-items:center;gap:10px;}
+  .dot-r{width:12px;height:12px;border-radius:50%;background:#EF4444;}
+  .dot-y{width:12px;height:12px;border-radius:50%;background:#F59E0B;}
+  .dot-g{width:12px;height:12px;border-radius:50%;background:#10B981;}
+  .screen-url{flex:1;background:rgba(255,255,255,.06);border-radius:8px;padding:7px 18px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--muted);margin:0 16px;}
+  .screen-body{display:flex;min-height:420px;}
+  .screen-left{flex:0 0 45%;background:linear-gradient(160deg,#0E2233,#1B3A57);padding:36px;display:flex;flex-direction:column;justify-content:space-between;}
+  .screen-logo{display:flex;align-items:center;gap:14px;}
+  .logo-mark{width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,var(--violet),var(--violet2));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;}
+  .logo-name{font-size:13px;line-height:1.3;color:rgba(255,255,255,.75);}
+  .screen-hero{font-size:26px;font-weight:700;line-height:1.2;color:#fff;margin-top:20px;}
+  .screen-hero span{color:var(--violet3);}
+  .screen-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px;}
+  .sc-stat b{font-size:22px;font-weight:700;display:block;color:#fff;}
+  .sc-stat span{font-size:11px;color:rgba(255,255,255,.5);}
+  .screen-right{flex:1;padding:32px 36px;display:flex;flex-direction:column;justify-content:center;gap:18px;}
+  .sc-h2{font-size:22px;font-weight:600;color:#fff;}
+  .sc-field{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:12px 16px;font-size:14px;color:var(--muted);}
+  .sc-btn{background:var(--violet);color:#fff;border-radius:10px;padding:14px;text-align:center;font-size:15px;font-weight:600;}
+
+  /* ── KPI DASHBOARD DEMO ──────────────────── */
+  .kpi-demo{padding:28px 32px;}
+  .kpi-demo-title{font-size:15px;font-weight:600;color:#fff;margin-bottom:18px;}
+  .kpi-cols{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+  .kpi-col-hdr{font-family:'JetBrains Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,.08);margin-bottom:10px;}
+  .kpi-row{display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(255,255,255,.04);border-radius:8px;margin-bottom:6px;}
+  .kpi-row span{flex:1;font-size:13px;color:var(--muted);}
+  .kpi-row b{font-family:'JetBrains Mono',monospace;font-size:14px;color:#fff;}
+  .dot-ok{width:8px;height:8px;border-radius:50%;background:var(--ok);flex-shrink:0;}
+  .dot-warn{width:8px;height:8px;border-radius:50%;background:var(--warn);flex-shrink:0;}
+  .dot-v{width:8px;height:8px;border-radius:50%;background:var(--violet2);flex-shrink:0;}
+
+  /* ── CONTRIBUTIONS ───────────────────────── */
+  .contrib-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:20px;}
+  .contrib-card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:30px;position:relative;overflow:hidden;}
+  .contrib-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--violet),var(--violet3));}
+  .contrib-n{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--violet3);margin-bottom:10px;}
+  .contrib-title{font-size:20px;font-weight:600;color:#fff;margin-bottom:8px;}
+  .contrib-desc{font-size:14px;color:var(--muted);line-height:1.6;}
+
+  /* ── CLOSING LOOP ────────────────────────── */
+  .loop-card{background:rgba(124,58,237,.1);border:1px solid rgba(124,58,237,.3);border-radius:20px;padding:36px 40px;}
+  .loop-flow{display:flex;align-items:center;gap:0;margin-bottom:32px;flex-wrap:wrap;}
+  .loop-step{background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:12px;padding:16px 20px;text-align:center;flex:1;min-width:140px;}
+  .loop-step.hl{background:var(--violet);border-color:var(--violet);}
+  .loop-step-n{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--violet3);margin-bottom:6px;}
+  .loop-step.hl .loop-step-n{color:rgba(255,255,255,.7);}
+  .loop-step-t{font-size:15px;font-weight:600;color:#fff;}
+  .loop-arr{padding:0 14px;font-size:22px;color:rgba(124,58,237,.5);}
+  .ysd-row{display:flex;gap:20px;align-items:flex-start;padding:16px 0;border-top:1px solid rgba(255,255,255,.06);}
+  .ysd-lbl{flex-shrink:0;font-family:'JetBrains Mono',monospace;font-size:12px;padding:6px 14px;border-radius:8px;text-align:center;}
+  .lbl-said{background:rgba(255,255,255,.07);color:var(--muted);}
+  .lbl-did{background:rgba(16,185,129,.15);color:var(--ok);}
+  .ysd-text{font-size:16px;color:var(--text);line-height:1.5;}
+  .ysd-text strong{color:var(--violet3);}
+
+  /* ── FOOTER ──────────────────────────────── */
+  footer{background:var(--navy);border-top:1px solid var(--border);padding:48px clamp(24px,6vw,120px);}
+  .footer-inner{max-width:1200px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;gap:32px;flex-wrap:wrap;}
+  .footer-brand{font-size:20px;font-weight:700;}
+  .footer-meta{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--muted);line-height:1.7;}
+
+  /* ── ANIMATIONS ──────────────────────────── */
+  .reveal{opacity:0;transform:translateY(28px);transition:opacity .7s cubic-bezier(.16,1,.3,1),transform .7s cubic-bezier(.16,1,.3,1);}
+  .reveal.visible{opacity:1;transform:none;}
+  .reveal-d1{transition-delay:.1s;}
+  .reveal-d2{transition-delay:.2s;}
+  .reveal-d3{transition-delay:.3s;}
+
+  /* ── RESPONSIVE ──────────────────────────── */
+  @media(max-width:640px){
+    .kpi-strip{grid-template-columns:1fr 1fr;}
+    .kpi-cell::after{display:none;}
+    .loop-arr{display:none;}
+    .loop-flow{gap:10px;}
+  }
+</style>
+</head>
+<body>
+
+<!-- CURSOR -->
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+<canvas id="particles"></canvas>
+
+<!-- ══════════════════════════════════════════ -->
+<!-- HERO -->
+<!-- ══════════════════════════════════════════ -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-badge reveal">
+      <span></span>LIVE · evaluare-cadre-didactice-production.up.railway.app · 99,7% uptime
+    </div>
+    <h1 class="reveal reveal-d1">
+      Platforma <span class="accent">ECD</span><br/>
+      evaluarea care<br/>produce schimbare reală
+    </h1>
+    <p class="hero-sub reveal reveal-d2">
+      Sistem digital de evaluare a activității cadrelor didactice de către studenți —
+      construit pe principii de inginerie a calității, pentru FAIMA · UNSTPB.
+    </p>
+    <div class="cta-row reveal reveal-d3">
+      <a href="/login" class="btn btn-primary">Accesează platforma →</a>
+      <a href="#problema" class="btn btn-ghost">Descoperă cercetarea ↓</a>
+    </div>
+
+    <!-- LIVE KPIs - date 1:1 cu platforma -->
+    <div class="kpi-strip reveal reveal-d3">
+      <div class="kpi-cell">
+        <div class="kpi-num v" data-count="57" data-suffix="%">0%</div>
+        <div class="kpi-lbl">RATĂ PARTICIPARE</div>
+      </div>
+      <div class="kpi-cell">
+        <div class="kpi-num" data-count="357" data-decimal="true">0.00</div>
+        <div class="kpi-lbl">SCOR MEDIU / 5.00</div>
+      </div>
+      <div class="kpi-cell">
+        <div class="kpi-num ok" data-count="1423" data-comma="true">0</div>
+        <div class="kpi-lbl">EVALUĂRI COMPLETATE</div>
+      </div>
+      <div class="kpi-cell">
+        <div class="kpi-num" data-count="200">0</div>
+        <div class="kpi-lbl">CADRE DIDACTICE</div>
+      </div>
+      <div class="kpi-cell">
+        <div class="kpi-num" data-count="14" data-suffix=" zile">0 zile</div>
+        <div class="kpi-lbl">TIMP RAPORTARE</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════ -->
+<!-- PROBLEMA -->
+<!-- ══════════════════════════════════════════ -->
+<section id="problema">
+  <div class="container">
+    <span class="tag reveal">Problema diagnosticată</span>
+    <h2 class="section-title reveal reveal-d1">De ce nu evaluează studenții?</h2>
+    <p class="section-sub reveal reveal-d1">
+      Diagrama Ishikawa + tehnica „5 De Ce" au identificat cauza rădăcină.
+    </p>
+    <div class="split">
+      <div class="why-chain reveal reveal-d2">
+        <div class="why-item">
+          <div class="why-num">D1</div>
+          <div class="why-text">De ce nu evaluează? → <strong>Nu percep utilitatea</strong> actului.</div>
+        </div>
+        <div class="why-item">
+          <div class="why-num">D2</div>
+          <div class="why-text">De ce nu percep utilitatea? → <strong>Nu văd ce schimbări</strong> produc evaluările lor.</div>
+        </div>
+        <div class="why-item">
+          <div class="why-num">D3</div>
+          <div class="why-text">De ce nu văd schimbările? → <strong>Instituția nu închide bucla</strong> de retroacțiune.</div>
+        </div>
+        <div class="why-item">
+          <div class="why-num">D4</div>
+          <div class="why-text">De ce nu se închide bucla? → <strong>Rezultatele vin în 1–3 luni</strong>, prea târziu.</div>
+        </div>
+        <div class="why-item">
+          <div class="why-num">D5</div>
+          <div class="why-text">De ce sunt tardive? → <strong>Infrastructura IT depășită</strong>, procesare manuală.</div>
+        </div>
+      </div>
+      <div class="reveal reveal-d3">
+        <div class="pareto-bars">
+          <p style="font-size:13px;color:var(--muted);margin-bottom:20px;font-family:'JetBrains Mono',monospace;">ANALIZA PARETO — 4 cauze = 82%</p>
+          <div class="pbar-row">
+            <div class="pbar-label"><span>C1 · UX slabă a platformei</span><span>32%</span></div>
+            <div class="pbar-track"><div class="pbar-fill" style="width:0" data-w="32%"></div></div>
+          </div>
+          <div class="pbar-row">
+            <div class="pbar-label"><span>C2 · Fără closing-the-loop</span><span>24%</span></div>
+            <div class="pbar-track"><div class="pbar-fill" style="width:0" data-w="24%"></div></div>
+          </div>
+          <div class="pbar-row">
+            <div class="pbar-label"><span>C3 · Utilitate percepută redusă</span><span>16%</span></div>
+            <div class="pbar-track"><div class="pbar-fill" style="width:0" data-w="16%"></div></div>
+          </div>
+          <div class="pbar-row">
+            <div class="pbar-label"><span>C4 · Chestionar prea lung</span><span>10%</span></div>
+            <div class="pbar-track"><div class="pbar-fill" style="width:0" data-w="10%"></div></div>
+          </div>
+          <div class="pbar-row">
+            <div class="pbar-label" style="color:rgba(115,147,181,.5)"><span>Altele</span><span>18%</span></div>
+            <div class="pbar-track"><div class="pbar-fill fade" style="width:0" data-w="18%"></div></div>
+          </div>
+          <div style="margin-top:18px;font-size:13px;color:var(--ok);font-family:'JetBrains Mono',monospace;">
+            ✓ Primele 4 cauze adresate direct de platforma ECD
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════ -->
+<!-- INSTRUMENTE CALITATE -->
+<!-- ══════════════════════════════════════════ -->
+<section style="background:rgba(255,255,255,.015);">
+  <div class="container">
+    <span class="tag reveal">Cap. 3 · Instrumentarul metodologic</span>
+    <h2 class="section-title reveal reveal-d1">Inginerie a calității aplicată educației</h2>
+    <p class="section-sub reveal reveal-d1">
+      Ciclul PDCA ca schelet. 8 instrumente clasice. O singură soluție integrată.
+    </p>
+    <div class="instrument-grid">
+      <div class="inst-card reveal">
+        <div class="inst-badge">PLAN</div>
+        <div class="inst-name">SIPOC</div>
+        <div class="inst-desc">Definește procesul: furnizori → intrări → proces → ieșiri → clienți. Harta completă a fluxului de evaluare.</div>
+      </div>
+      <div class="inst-card reveal reveal-d1">
+        <div class="inst-badge">CHECK</div>
+        <div class="inst-name">Diagrama Ishikawa</div>
+        <div class="inst-desc">4 oase (Oameni, Metode, IT, Mediu) → 14 cauze identificate ale participării scăzute. + tehnica „5 De Ce".</div>
+      </div>
+      <div class="inst-card reveal reveal-d2">
+        <div class="inst-badge">CHECK</div>
+        <div class="inst-name">Analiza Pareto</div>
+        <div class="inst-desc">Principiul 80/20 (Juran, 1988): 4 cauze = 82% din efect. Focalizare efort maxim pe impactul maxim.</div>
+      </div>
+      <div class="inst-card reveal reveal-d3">
+        <div class="inst-badge">ACT</div>
+        <div class="inst-name">FMEA</div>
+        <div class="inst-desc">10 moduri de defectare identificate, RPN calculat. Acțiuni de mitigare pentru fiecare risc (AIAG & VDA, 2019).</div>
+      </div>
+      <div class="inst-card reveal">
+        <div class="inst-badge">ACT</div>
+        <div class="inst-name">QFD — Casa Calității</div>
+        <div class="inst-desc">Cerințele studenților (WHATs) mapate pe specificațiile sistemului (HOWs): Anonim. UX rapid. Rezultate vizibile.</div>
+      </div>
+      <div class="inst-card reveal reveal-d1">
+        <div class="inst-badge">ACT → PLAN</div>
+        <div class="inst-name">DMAIC</div>
+        <div class="inst-desc">Define → Measure → Analyze → Improve → Control. Îmbunătățire iterativă, semestru după semestru.</div>
+      </div>
+      <div class="inst-card reveal reveal-d2">
+        <div class="inst-badge">CHECK</div>
+        <div class="inst-name">SPC · Control Chart</div>
+        <div class="inst-desc">Controlul statistic al procesului (Shewhart, 1931): detecție cauze speciale de variație pe 4 ani.</div>
+      </div>
+      <div class="inst-card reveal reveal-d3">
+        <div class="inst-badge">PLAN + DO</div>
+        <div class="inst-name">RACI + SEEQ</div>
+        <div class="inst-desc">Matrice responsabilități operaționale + chestionar 19 itemi pe 5 dimensiuni SEEQ (Marsh, 1982).</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════ -->
+<!-- DEMO PLATFORMA -->
+<!-- ══════════════════════════════════════════ -->
+<section class="demo-section">
+  <div class="container">
+    <span class="tag reveal">Platforma ECD · live</span>
+    <h2 class="section-title reveal reveal-d1">Soluția în acțiune</h2>
+    <p class="section-sub reveal reveal-d1">
+      Ecranul de autentificare reproducere fidelă a platformei live — text și statistici 1:1.
+    </p>
+    <div class="screen-wrap reveal reveal-d2">
+      <div class="screen-bar">
+        <div class="dot-r"></div><div class="dot-y"></div><div class="dot-g"></div>
+        <div class="screen-url">🔒 evaluare-cadre-didactice-production.up.railway.app/login</div>
+      </div>
+      <div class="screen-body">
+        <div class="screen-left">
+          <div class="screen-logo">
+            <div class="logo-mark">E</div>
+            <div class="logo-name"><strong>ECD</strong><br/>Evaluarea Cadrelor Didactice</div>
+          </div>
+          <div>
+            <div class="screen-hero">Vocea ta contează.<br/><span>Anonim. Sigur. Util.</span></div>
+            <p style="font-size:13px;color:rgba(255,255,255,.55);margin-top:12px;line-height:1.6;">Sistem digital de evaluare a activității cadrelor didactice. Datele sunt complet anonimizate și folosite exclusiv pentru îmbunătățirea procesului didactic.</p>
+            <div class="screen-stats">
+              <div class="sc-stat"><b>57%</b><span>rată de participare</span></div>
+              <div class="sc-stat"><b>3.57</b><span>scor mediu</span></div>
+              <div class="sc-stat"><b>1 423</b><span>evaluări completate</span></div>
+            </div>
+          </div>
+          <div style="font-size:11px;color:rgba(255,255,255,.3);">FAIMA · UNSTPB · 2026 &nbsp;·&nbsp; v1.0 · pilot sem. II</div>
+        </div>
+        <div class="screen-right">
+          <div class="sc-h2">Bun venit înapoi</div>
+          <p style="font-size:14px;color:rgba(255,255,255,.5);">Autentifică-te cu adresa instituțională.</p>
+          <div class="sc-field">nume.prenume@stud.unstpb.ro</div>
+          <div class="sc-field">••••••••••</div>
+          <div class="sc-btn">Autentificare →</div>
+          <div class="sc-btn" style="background:transparent;border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.7);">Continuă cu contul UNSTPB</div>
+          <p style="font-size:12px;color:rgba(255,255,255,.3);text-align:center;">Prin autentificare, accepți Termenii de utilizare și Politica de confidențialitate.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════ -->
+<!-- TABLOU DE BORD KPI -->
+<!-- ══════════════════════════════════════════ -->
+<section>
+  <div class="container">
+    <span class="tag reveal">Tabloul de bord CEAC · 15 KPI-uri</span>
+    <h2 class="section-title reveal reveal-d1">Monitorizare în timp real</h2>
+    <p class="section-sub reveal reveal-d1">
+      15 indicatori — Proces · Output · Impact — cu praguri de alertă și export ARACIS automat.
+    </p>
+    <div class="screen-wrap reveal reveal-d2">
+      <div class="screen-bar">
+        <div class="dot-r"></div><div class="dot-y"></div><div class="dot-g"></div>
+        <div class="screen-url">🔒 evaluare-cadre-didactice-production.up.railway.app/admin/kpis</div>
+      </div>
+      <div class="kpi-demo">
+        <div class="kpi-demo-title">Tablou de bord CEAC · Semestrul curent · 15 KPI-uri P / O / I · export ARACIS</div>
+        <div class="kpi-cols">
+          <div>
+            <div class="kpi-col-hdr">Proces · P1–P5</div>
+            <div class="kpi-row"><span>P1 Participare</span><b>47,3%</b><div class="dot-warn"></div></div>
+            <div class="kpi-row"><span>P2 Timp completare</span><b>3m 42s</b><div class="dot-ok"></div></div>
+            <div class="kpi-row"><span>P3 Cursuri activate</span><b>100%</b><div class="dot-ok"></div></div>
+            <div class="kpi-row"><span>P4 Cursuri valide</span><b>94,7%</b><div class="dot-ok"></div></div>
+            <div class="kpi-row"><span>P5 Uptime</span><b>99,7%</b><div class="dot-ok"></div></div>
+          </div>
+          <div>
+            <div class="kpi-col-hdr" style="color:var(--violet3);border-color:rgba(124,58,237,.3);">Output · O1–O5</div>
+            <div class="kpi-row"><span>O1 Predare</span><b>3,71</b></div>
+            <div class="kpi-row"><span>O2 Comunicare</span><b>3,58</b></div>
+            <div class="kpi-row"><span>O3 Resurse</span><b>3,42</b></div>
+            <div class="kpi-row"><span>O4 Evaluare</span><b>3,65</b></div>
+            <div class="kpi-row"><span>O5 Disponibilitate</span><b>3,89</b></div>
+          </div>
+          <div>
+            <div class="kpi-col-hdr">Impact · I1–I5</div>
+            <div class="kpi-row"><span>I1 Δ participare</span><b>+8,2 pp</b><div class="dot-v"></div></div>
+            <div class="kpi-row"><span>I2 Δ scor mediu</span><b>+0,14</b><div class="dot-v"></div></div>
+            <div class="kpi-row"><span>I3 Timp rapoarte</span><b>12 zile</b><div class="dot-ok"></div></div>
+            <div class="kpi-row"><span>I4 Closing-the-loop</span><b>28 zile</b><div class="dot-ok"></div></div>
+            <div class="kpi-row"><span>I5 Export ARACIS</span><b>generat</b><div class="dot-ok"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════ -->
+<!-- CLOSING THE LOOP -->
+<!-- ══════════════════════════════════════════ -->
+<section style="background:rgba(124,58,237,.04);">
+  <div class="container">
+    <span class="tag reveal">Inovația centrală</span>
+    <h2 class="section-title reveal reveal-d1">Closing-the-loop<br/>„You Said, We Did"</h2>
+    <p class="section-sub reveal reveal-d1">
+      Mecanismul prin care studentul vede că evaluarea sa produce schimbare concretă — în ≤ 35 zile.
+      Implementare după Harvey (2003), prima din România.
+    </p>
+    <div class="loop-card reveal reveal-d2">
+      <div class="loop-flow">
+        <div class="loop-step">
+          <div class="loop-step-n">01</div>
+          <div class="loop-step-t">Studentul evaluează</div>
+        </div>
+        <div class="loop-arr">→</div>
+        <div class="loop-step">
+          <div class="loop-step-n">02</div>
+          <div class="loop-step-t">CEAC analizează</div>
+        </div>
+        <div class="loop-arr">→</div>
+        <div class="loop-step">
+          <div class="loop-step-n">03</div>
+          <div class="loop-step-t">Decizii de îmbunătățire</div>
+        </div>
+        <div class="loop-arr">→</div>
+        <div class="loop-step hl">
+          <div class="loop-step-n">04</div>
+          <div class="loop-step-t">Studentul vede impactul</div>
+        </div>
+      </div>
+      <div class="ysd-row">
+        <div class="ysd-lbl lbl-said">Ai spus</div>
+        <div class="ysd-text">«Materialele de curs nu sunt actualizate și relevante pentru disciplină»</div>
+      </div>
+      <div class="ysd-row">
+        <div class="ysd-lbl lbl-did">Noi am făcut</div>
+        <div class="ysd-text">Septembrie 2025 — <strong>12 cursuri revizuite</strong>. Scorul D3 Resurse: <strong>3,2 → 3,8 (+0,6 pts)</strong>. Ciclu închis în <strong>≤ 35 zile</strong> de la colectare la publicare.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════ -->
+<!-- CONTRIBUTII -->
+<!-- ══════════════════════════════════════════ -->
+<section>
+  <div class="container">
+    <span class="tag reveal">5 contribuții originale</span>
+    <h2 class="section-title reveal reveal-d1">Ce aduce nou această lucrare</h2>
+    <div class="contrib-grid">
+      <div class="contrib-card reveal">
+        <div class="contrib-n">C1 — METODOLOGICĂ</div>
+        <div class="contrib-title">Model PDCA adaptat</div>
+        <div class="contrib-desc">Adaptarea ciclului PDCA la specificul evaluării didactice în context universitar românesc, aliniată explicit celor 11 principii ISO 21001:2018.</div>
+      </div>
+      <div class="contrib-card reveal reveal-d1">
+        <div class="contrib-n">C2 — INSTRUMENTALĂ</div>
+        <div class="contrib-title">Chestionar 19 itemi / 5 dimensiuni</div>
+        <div class="contrib-desc">Instrument fundamentat pe SEEQ (Marsh, 1982), adaptat în română, cu alpha Cronbach țintă 0,87 — consistență internă ridicată.</div>
+      </div>
+      <div class="contrib-card reveal reveal-d2">
+        <div class="contrib-n">C3 — PROCEDURALĂ</div>
+        <div class="contrib-title">Procedura POS-CEAC-001</div>
+        <div class="contrib-desc">Procedură operațională standard cu matrice RACI, FMEA, Ishikawa, Pareto și management al riscurilor conform ISO 31000:2018.</div>
+      </div>
+      <div class="contrib-card reveal reveal-d3">
+        <div class="contrib-n">C4 — TEHNICĂ</div>
+        <div class="contrib-title">Aplicația ECD open-source</div>
+        <div class="contrib-desc">Arhitectură 3 straturi, principii SOLID/KISS/DRY, conformitate OWASP Top 10 și GDPR. 26/26 teste unitare · 151/151 E2E Playwright.</div>
+      </div>
+      <div class="contrib-card reveal" style="grid-column:1/-1;">
+        <div class="contrib-n">C5 — APLICATIVĂ</div>
+        <div class="contrib-title">Studiu de caz FAIMA-UNSTPB</div>
+        <div class="contrib-desc">Matrice logică a proiectului · Plan CPM/Gantt pe 12 luni · Registru riscuri ISO 31000 · Analiză ROI cu break-even sub 2 ani față de soluțiile comerciale. Date simulate, validare pilot planificată.</div>
+      </div>
+    </div>
+    <div style="margin-top:40px;padding:28px 32px;background:rgba(124,58,237,.08);border:1px solid var(--border);border-radius:16px;" class="reveal">
+      <p style="font-size:20px;font-weight:500;color:var(--violet3);line-height:1.5;">
+        De la „de ce nu evaluează studenții?" la o buclă de calitate <strong style="color:#fff;">închisă, măsurabilă și replicabilă</strong>.
+      </p>
+      <p style="font-size:14px;color:var(--muted);margin-top:10px;">
+        Covaci Sergiu-Lucian · Lucrare de disertație · CPSI · FAIMA-UNSTPB · Coordonator: Conf. univ. dr. ing. Cătălin Alexe · iulie 2026
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div>
+      <div class="footer-brand">ECD · FAIMA-UNSTPB</div>
+      <div style="color:var(--muted);font-size:14px;margin-top:6px;">Sistem de evaluare a activității cadrelor didactice de către studenți</div>
+    </div>
+    <div class="footer-meta">
+      Lucrare de disertație · Program master CPSI<br/>
+      Coordonator: Conf. univ. dr. ing. Cătălin Alexe<br/>
+      Autor: Covaci Sergiu-Lucian · iulie 2026<br/>
+      <span style="color:var(--ok);">● LIVE</span> · 99,7% uptime · Railway
+    </div>
+  </div>
+</footer>
+
+<script>
+// ── CURSOR ────────────────────────────────────
+const cursor = document.getElementById('cursor');
+const ring = document.getElementById('cursor-ring');
+let mx = 0, my = 0, rx = 0, ry = 0;
+
+document.addEventListener('mousemove', e => {
+  mx = e.clientX; my = e.clientY;
+  cursor.style.left = mx + 'px';
+  cursor.style.top = my + 'px';
+});
+(function animRing() {
+  rx += (mx - rx) * 0.12;
+  ry += (my - ry) * 0.12;
+  ring.style.left = rx + 'px';
+  ring.style.top = ry + 'px';
+  requestAnimationFrame(animRing);
+})();
+
+document.querySelectorAll('a,button,.btn,.inst-card,.contrib-card,.loop-step').forEach(el => {
+  el.addEventListener('mouseenter', () => document.body.classList.add('cursor-hover'));
+  el.addEventListener('mouseleave', () => document.body.classList.remove('cursor-hover'));
+});
+
+// ── PARTICLES ────────────────────────────────
+const canvas = document.getElementById('particles');
+const ctx = canvas.getContext('2d');
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+window.addEventListener('resize', () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; });
+const particles = [];
+document.addEventListener('mousemove', e => {
+  if (Math.random() > 0.6) return;
+  particles.push({ x: e.clientX, y: e.clientY, vx: (Math.random()-0.5)*2, vy: (Math.random()-0.5)*2-1, life: 1, r: Math.random()*3+1 });
+});
+(function animParticles() {
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  particles.forEach((p,i) => {
+    p.life -= 0.025; p.x += p.vx; p.y += p.vy; p.vy += 0.04;
+    if (p.life <= 0) { particles.splice(i,1); return; }
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r * p.life, 0, Math.PI*2);
+    ctx.fillStyle = `rgba(124,58,237,${p.life * 0.5})`;
+    ctx.fill();
+  });
+  requestAnimationFrame(animParticles);
+})();
+
+// ── REVEAL ON SCROLL ─────────────────────────
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.12 });
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+// ── COUNT-UP ANIMATIONS ───────────────────────
+function animCount(el) {
+  const target = parseInt(el.dataset.count);
+  const isDecimal = el.dataset.decimal === 'true';
+  const suffix = el.dataset.suffix || '';
+  const comma = el.dataset.comma === 'true';
+  const dur = 1600;
+  let start = null;
+  function step(ts) {
+    if (!start) start = ts;
+    const prog = Math.min((ts - start) / dur, 1);
+    const ease = 1 - Math.pow(1 - prog, 3);
+    let val = Math.round(target * ease);
+    if (isDecimal) {
+      // target is e.g. 357 → display as 3.57
+      el.textContent = (target * ease / 100).toFixed(2) + suffix;
+    } else if (comma) {
+      el.textContent = val.toLocaleString('ro-RO') + suffix;
+    } else {
+      el.textContent = val + suffix;
+    }
+    if (prog < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+const countObs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting && e.target.dataset.count) {
+      animCount(e.target);
+      countObs.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.5 });
+document.querySelectorAll('[data-count]').forEach(el => countObs.observe(el));
+
+// ── PARETO BARS ───────────────────────────────
+const barObs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.querySelectorAll('.pbar-fill').forEach((bar, i) => {
+        setTimeout(() => {
+          bar.style.transition = 'width 0.9s cubic-bezier(.34,1.56,.64,1)';
+          bar.style.width = bar.dataset.w;
+        }, i * 120);
+      });
+      barObs.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.3 });
+document.querySelectorAll('.pareto-bars').forEach(el => barObs.observe(el));
+</script>
+</body>
+</html>

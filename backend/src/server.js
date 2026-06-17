@@ -106,6 +106,13 @@ app.use('/api/achievements', require('./routes/achievements'));
 app.use('/api/platform-feedback', require('./routes/platformFeedback'));
 app.use('/api/actions', require('./routes/actions'));
 
+// Pagina publică de prezentare a platformei (accesibilă fără autentificare).
+app.get('/prezentare', (req, res) => {
+  const prezentarePath = path.join(FRONTEND_DIST, 'prezentare.html');
+  if (fs.existsSync(prezentarePath)) res.sendFile(prezentarePath);
+  else res.status(404).send('Pagina de prezentare nu este disponibilă momentan.');
+});
+
 // SPA fallback — în producție, orice URL non-/api e routat la index.html
 // ca să funcționeze React Router pe deep links (ex. /reset-password?token=...).
 if (serveFrontend && fs.existsSync(FRONTEND_DIST)) {
