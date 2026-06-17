@@ -68,8 +68,8 @@ export function ListFilterBar({
                 onClick={() => tabs.onChange(t.key)}
                 className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-400/40 ${
                   tabs.value === t.key
-                    ? 'bg-primary-800 text-white border-primary-800'
-                    : 'bg-white text-neutral-700 border-neutral-200 hover:bg-neutral-50'
+                    ? 'bg-primary-800 dark:bg-[#7C3AED] text-white border-primary-800 dark:border-[#7C3AED]'
+                    : 'bg-white dark:bg-[#162638] text-neutral-700 dark:text-[#A6BCD3] border-neutral-200 dark:border-[rgba(124,58,237,0.25)] hover:bg-neutral-50 dark:hover:bg-[#1E3248]'
                 }`}
               >
                 {t.label}

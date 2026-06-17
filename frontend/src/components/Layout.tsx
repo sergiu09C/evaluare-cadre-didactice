@@ -143,7 +143,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <div className="min-h-screen flex bg-neutral-25 font-sans text-neutral-800">
+    <div className="min-h-screen flex bg-neutral-25 dark:bg-[#06121E] font-sans text-neutral-800 dark:text-[#E8EFF6]">
       <SkipLink href="#main-content">Sari la conținut principal</SkipLink>
       <CommandPalette />
 
@@ -159,7 +159,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       {/* ── Sidebar ─────────────────────────────────────────── */}
       <nav
         aria-label="Navigare principală"
-        className={`w-[248px] shrink-0 bg-white border-r border-neutral-100 flex flex-col gap-1 px-3.5 py-5 h-screen z-40 transition-transform duration-200 fixed md:sticky inset-y-0 left-0 top-0 md:translate-x-0 ${
+        className={`w-[248px] shrink-0 bg-white dark:bg-[#0F1E2E] border-r border-neutral-100 dark:border-[rgba(124,58,237,0.15)] flex flex-col gap-1 px-3.5 py-5 h-screen z-40 transition-transform duration-200 fixed md:sticky inset-y-0 left-0 top-0 md:translate-x-0 ${
           mobileNavOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
         }`}
       >
@@ -194,8 +194,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 aria-current={active ? 'page' : undefined}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors duration-fast text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-400/40 ${
                   active
-                    ? 'bg-primary-50 text-primary-800 font-semibold'
-                    : 'text-neutral-700 font-medium hover:bg-neutral-50'
+                    ? 'bg-primary-50 dark:bg-[rgba(124,58,237,0.15)] text-primary-800 dark:text-[#C4B5FD] font-semibold'
+                    : 'text-neutral-700 dark:text-[#A6BCD3] font-medium hover:bg-neutral-50 dark:hover:bg-[rgba(255,255,255,0.05)]'
                 }`}
               >
                 <Icon className={`w-[18px] h-[18px] shrink-0 ${active ? 'text-primary-800' : 'text-neutral-500'}`} aria-hidden={true} />
@@ -217,7 +217,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <div className="flex-1" />
 
         {/* Help card per rol */}
-        <div className="p-3.5 rounded-xl bg-primary-50 text-primary-700 text-xs flex flex-col gap-1.5">
+        <div className="p-3.5 rounded-xl bg-primary-50 dark:bg-[#0E1828] text-primary-700 dark:text-[#8FA8C7] text-xs flex flex-col gap-1.5">
           <strong className="font-semibold">Ai întrebări?</strong>
           <span className="text-primary-600">
             {isAdmin
@@ -237,7 +237,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         {/* Settings + logout */}
         <button
           onClick={() => setShowLogoutConfirm(true)}
-          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-neutral-700 hover:bg-neutral-50 mt-1.5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-400/40 text-left"
+          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-neutral-700 dark:text-[#7393B5] hover:bg-neutral-50 dark:hover:bg-[rgba(255,255,255,0.05)] mt-1.5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-400/40 text-left"
           aria-label="Deconectare din cont"
         >
           <ArrowRightOnRectangleIcon className="w-[18px] h-[18px] text-neutral-500" aria-hidden={true} />
@@ -263,7 +263,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         {/* Top bar */}
         <header
           role="banner"
-          className="h-16 px-4 md:px-8 flex items-center gap-3 md:gap-4 bg-white border-b border-neutral-100 sticky top-0 z-10"
+          className="h-16 px-4 md:px-8 flex items-center gap-3 md:gap-4 bg-white dark:bg-[#0F1E2E] border-b border-neutral-100 dark:border-[rgba(124,58,237,0.15)] sticky top-0 z-10 backdrop-blur-sm"
         >
           {/* Hamburger pe mobile */}
           <button
@@ -279,7 +279,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             type="button"
             onClick={() => (window as any).__openCommandPalette?.()}
             aria-label="Deschide paleta de comenzi"
-            className="flex-1 max-w-[440px] h-9 flex items-center gap-2.5 px-3.5 bg-neutral-50 rounded-md text-[13px] text-neutral-400 hover:bg-neutral-100 cursor-pointer transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-400/40"
+            className="flex-1 max-w-[440px] h-9 flex items-center gap-2.5 px-3.5 bg-neutral-50 dark:bg-[#162638] rounded-md text-[13px] text-neutral-400 dark:text-[#5C7896] hover:bg-neutral-100 dark:hover:bg-[#1E3248] cursor-pointer transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-400/40"
           >
             <MagnifyingGlassIcon className="w-4 h-4 shrink-0" aria-hidden="true" />
             <span className="flex-1 truncate text-left hidden sm:inline">Caută o disciplină sau un profesor...</span>
@@ -352,7 +352,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           id="main-content"
           role="main"
           tabIndex={-1}
-          className="flex-1 overflow-auto px-4 md:px-10 pt-6 md:pt-8 pb-16 focus:outline-none"
+          className="flex-1 overflow-auto px-4 md:px-10 pt-6 md:pt-8 pb-16 focus:outline-none dark:bg-[#06121E]"
         >
           <div key={location.pathname} className="ecd-page-transition">
             {children}
