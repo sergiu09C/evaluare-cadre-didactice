@@ -263,7 +263,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         {/* Top bar */}
         <header
           role="banner"
-          className="h-16 px-4 md:px-8 flex items-center gap-3 md:gap-4 bg-white dark:bg-[#0F1E2E] border-b border-neutral-100 dark:border-[rgba(124,58,237,0.15)] sticky top-0 z-10 backdrop-blur-sm"
+          className="h-16 px-4 md:px-8 flex items-center gap-3 md:gap-4 bg-white dark:bg-[#0F1E2E] border-b border-neutral-100 dark:border-[rgba(124,58,237,0.15)] sticky top-0 z-[25] backdrop-blur-sm"
         >
           {/* Hamburger pe mobile */}
           <button
