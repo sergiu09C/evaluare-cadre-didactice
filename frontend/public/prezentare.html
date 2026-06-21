@@ -357,6 +357,52 @@
   .radar-leg-val{font-size:15px;}
   .kpi-demo-title{font-size:17px;}
   .footer-meta{font-size:15px;}
+
+  /* ── MOBILE OPTIMIZATION ────────────────────── */
+  @media(max-width:768px){
+    section{padding:80px 18px 48px!important;}
+    .screen-body{flex-direction:column!important;min-height:unset!important;}
+    .screen-left{flex:none!important;width:100%!important;padding:20px!important;}
+    .screen-right{padding:20px!important;}
+    .screen-url{overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+    .kpi-cols{grid-template-columns:1fr!important;}
+    .radar-wrap{flex-direction:column!important;align-items:center!important;}
+    .radar-svg{width:200px!important;height:200px!important;}
+    .radar-legend{width:100%!important;min-width:unset!important;}
+    .arch-layer{flex-wrap:wrap!important;gap:10px!important;}
+    .loop-card{padding:22px 18px!important;}
+    .loop-flow{flex-direction:column!important;gap:8px!important;}
+    .loop-step{min-width:unset!important;width:100%!important;}
+    .loop-arr{display:none!important;}
+    .kpi-demo{padding:16px!important;}
+    .form-demo-body{padding:20px 16px!important;}
+    .report-body{padding:20px 16px!important;}
+    .ba-arrow{display:none!important;}
+    .before-after{gap:16px!important;}
+    .contrib-grid{grid-template-columns:1fr!important;}
+    .report-types{grid-template-columns:1fr!important;}
+    .roi-strip{grid-template-columns:1fr 1fr!important;}
+    .btn{padding:12px 22px!important;font-size:14px!important;}
+    .cta-row{flex-direction:column!important;gap:12px!important;}
+    .two-col-inline{grid-template-columns:1fr!important;gap:16px!important;}
+    .bones-grid{grid-template-columns:1fr!important;gap:10px!important;}
+    .screen-wrap{border-radius:12px!important;}
+    .spc-wrap{overflow-x:auto;}
+    .footer-inner{flex-direction:column!important;gap:16px!important;text-align:center;}
+  }
+  @media(max-width:480px){
+    section{padding:72px 12px 36px!important;}
+    .hero h1{font-size:30px!important;letter-spacing:-.02em!important;}
+    .section-title{font-size:26px!important;}
+    .kpi-strip{grid-template-columns:1fr 1fr!important;}
+    .screen-left{padding:16px 12px!important;}
+    .radar-svg{width:160px!important;height:160px!important;}
+    .btn{font-size:13px!important;padding:10px 16px!important;}
+    .roi-strip{grid-template-columns:1fr!important;}
+    .loop-card{padding:18px 14px!important;}
+    .kpi-demo{padding:12px!important;}
+    .arch-layer-tag{min-width:70px!important;font-size:10px!important;}
+  }
 </style>
 </head>
 <body>
@@ -830,7 +876,7 @@
         <!-- Ishikawa visual - 4 bones -->
         <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:28px;display:flex;flex-direction:column;gap:14px;">
           <div style="text-align:center;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--violet3);font-weight:600;margin-bottom:8px;">EFECT: PARTICIPARE SCĂZUTĂ (&lt;30%)</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="bones-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
             <div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:12px;padding:16px;">
               <div style="font-size:13px;font-weight:600;color:#FCA5A5;margin-bottom:10px;">👥 Oameni</div>
               <ul style="list-style:none;display:flex;flex-direction:column;gap:6px;">
@@ -1590,7 +1636,7 @@
           <div class="screen-url">🔒 evaluare-cadre-didactice-production.up.railway.app/admin/actions/new</div>
         </div>
         <div style="padding:28px 32px;">
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:32px;align-items:start;">
+          <div class="two-col-inline" style="display:grid;grid-template-columns:1fr 1fr;gap:32px;align-items:start;">
             <div>
               <div style="font-size:14px;font-weight:600;color:#fff;margin-bottom:18px;">Creare acțiune nouă de îmbunătățire</div>
               <div style="display:flex;flex-direction:column;gap:12px;">
@@ -1667,7 +1713,7 @@
           <div class="screen-url">🔒 evaluare-cadre-didactice-production.up.railway.app/student/impact</div>
         </div>
         <div style="padding:28px 32px;">
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:32px;align-items:start;">
+          <div class="two-col-inline" style="display:grid;grid-template-columns:1fr 1fr;gap:32px;align-items:start;">
             <div>
               <div class="impact-card">
                 <div class="impact-badge">✓ Ai contribuit la 3 îmbunătățiri</div>
